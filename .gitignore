@@ -22,3 +22,6 @@ npm-debug.log*
 
 # Config generada desde el .env
 assets/js/core/env.js
+
+# Firma de la nota de venta: se sube a Supabase con `npm run firma`
+assets/images/firma.*

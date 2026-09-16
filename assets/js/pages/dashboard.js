@@ -4,7 +4,7 @@
 // al día con realtime (ver dashboard/data.js). Preferencias de UI (tema,
 // colapso del menú, etc.) se guardan en localStorage con prefijo "cs_admin_".
 import { sb, signOut, CATEGORIES } from "../core/supabase.js";
-import { saleNoteHtml, printSaleNote } from "../core/sale-note.js";
+import { saleNoteHtml, printSaleNote, loadSignature } from "../core/sale-note.js";
 import {
   PRODUCTS, ORDERS, RESERVAS, INVOICES, RECEIPTS, NOTIFS, CUSTOMERS, USER,
   requireAdmin, loadAll, onChange, startRealtime, setOrderStatus, reviewReceipt, markRead, receiptUrl, loadProducts,
@@ -1350,8 +1350,9 @@ import {
     return saleNoteHtml({ number: inv.id, type: inv.type, total: inv.total, issued_at: inv.date }, orderForNote(inv.order));
   }
 
-  function previewInvoice(inv) {
+  async function previewInvoice(inv) {
     if (!inv) return;
+    await loadSignature();
     openModal(
       `
       <div class="modal-head">
@@ -1381,9 +1382,9 @@ import {
   }
 
   // "Descargar": abre el comprobante en una ventana de impresión (Guardar como PDF)
-  function downloadInvoice(inv) {
+  async function downloadInvoice(inv) {
     if (!inv || !inv.order) return;
-    if (!printSaleNote({ number: inv.id, type: inv.type, total: inv.total, issued_at: inv.date }, orderForNote(inv.order))) {
+    if (!(await printSaleNote({ number: inv.id, type: inv.type, total: inv.total, issued_at: inv.date }, orderForNote(inv.order)))) {
       return toast("El navegador bloqueó la ventana. Permití pop-ups para descargar.", "bad");
     }
     toast("Se abrió el comprobante para guardar como PDF");

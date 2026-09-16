@@ -41,6 +41,11 @@ Comandos sueltos: `npm run db:push`, `npm run admins:sync`, `npm run auth:config
 | `SITE_URL`, `EXTRA_REDIRECT_URLS` | URLs permitidas para el login (`npm run auth:configure`) |
 | `MAILER_AUTOCONFIRM` | `true` = sin verificación de correo (desarrollo) |
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | login con Google |
+| `SUPABASE_SECRET_KEY` | solo scripts (`npm run firma`), nunca va al navegador |
+
+## Nota de venta
+
+Datos del vendedor en `assets/js/core/sale-note.js` (`SELLER`). La imagen de la firma (`assets/images/firma.png`) está ignorada por git: se sube al bucket privado `docs` con `npm run firma` y la nota la lee con URL firmada (solo usuarios con sesión).
 
 ## Google
 

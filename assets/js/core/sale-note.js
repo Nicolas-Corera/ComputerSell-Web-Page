@@ -1,6 +1,9 @@
 // Nota de venta / nota de crédito: documento propio (no es factura fiscal).
 // Lo usan el panel (vista previa + imprimir) y el detalle de pedido del cliente.
-// Completá los datos del vendedor en SELLER.
+// Completá los datos del vendedor en SELLER. La imagen de la firma no va en
+// el repo: se sube al bucket privado "docs" con `npm run firma` y se lee con
+// una URL firmada (solo usuarios con sesión).
+import { sb } from "./supabase.js";
 
 export const SELLER = {
   name: "ComputerSell",
@@ -47,14 +50,29 @@ export const NOTE_STYLE = `
 .saleNote .sn-totals td{border:none;padding:4px 10px}
 .saleNote .sn-totals tr.total td{border-top:2px solid #111;font-size:16px;font-weight:700;padding-top:8px}
 .saleNote .sn-sign{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;margin-top:44px}
-.saleNote .sn-sign .line{width:260px;border-top:1px solid #111;padding-top:6px;text-align:center;font-size:12px;color:#333}
+.saleNote .sn-sign .line{width:260px;border-top:1px solid #111;padding-top:6px;text-align:center;font-size:12px;color:#333;position:relative}
+.saleNote .sn-firma{display:block;height:70px;max-width:230px;object-fit:contain;object-position:bottom;margin:0 auto -6px;position:relative;z-index:1}
 .saleNote .sn-sign .line strong{display:block;font-size:13px}
 .saleNote .sn-legal{margin-top:26px;padding:10px 12px;border:1px solid #f0c36d;background:#fff8e6;border-radius:8px;font-size:11.5px;color:#5a4500}
 .saleNote .sn-foot{margin-top:14px;display:flex;justify-content:space-between;font-size:11px;color:#777}
 @media print{.saleNote{padding:0;border-radius:0;max-width:none}}
 `;
 
+// URL firmada de la firma (1 h). Se cachea; si no está subida, no se muestra.
+let signatureUrl = null;
+export async function loadSignature() {
+  if (signatureUrl !== null) return signatureUrl;
+  try {
+    const { data } = await sb.storage.from("docs").createSignedUrl("firma.png", 3600);
+    signatureUrl = data ? data.signedUrl : "";
+  } catch (e) {
+    signatureUrl = "";
+  }
+  return signatureUrl;
+}
+
 // inv: { number, type ('NV'|'NC'), total, issued_at } · order: fila de orders con order_items
+// Llamar antes a loadSignature() para que aparezca la firma.
 export function saleNoteHtml(inv, order) {
   const o = order || {};
   const c = o.customer || {};
@@ -126,18 +144,22 @@ export function saleNoteHtml(inv, order) {
 
     <div class="sn-sign">
       <div style="font-size:12px;color:#555">Emitido por ${esc(SELLER.name)}</div>
-      <div class="line"><strong>${esc(sellerName)}</strong>Firma y aclaración</div>
+      <div>
+        ${signatureUrl ? `<img class="sn-firma" src="${signatureUrl}" alt="Firma" />` : ""}
+        <div class="line"><strong>${esc(sellerName)}</strong>Firma y aclaración</div>
+      </div>
     </div>
 
     <div class="sn-legal">
-      <strong>Aclaración:</strong> este documento no constituye factura ni comprobante fiscal válido ante ARCA. No habilita el cómputo de IVA ni de gasto deducible; es una constancia interna de la operación entre las partes.
+      <strong>Aclaración:</strong> este documento no constituye factura ni comprobante fiscal válido ante ARCA. Es una constancia interna de la operación entre las partes.
     </div>
     <div class="sn-foot"><span>Documento generado por ${esc(SELLER.name)}</span><span>Página 1 de 1</span></div>
   </div>`;
 }
 
 // Abre el documento en una ventana lista para imprimir / guardar como PDF
-export function printSaleNote(inv, order) {
+export async function printSaleNote(inv, order) {
+  await loadSignature();
   const w = window.open("", "_blank");
   if (!w) return false;
   w.document.write(`<!doctype html><html lang="es"><head><meta charset="utf-8" /><title>${esc(inv.number)}</title>

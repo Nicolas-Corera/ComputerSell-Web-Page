@@ -189,8 +189,8 @@ function openTracking(o) {
 }
 
 // Nota de venta en una ventana para imprimir / guardar como PDF
-function openInvoice(inv) {
-  if (!printSaleNote(inv, order)) toast("Permití las ventanas emergentes para ver la nota de venta", "bad");
+async function openInvoice(inv) {
+  if (!(await printSaleNote(inv, order))) toast("Permití las ventanas emergentes para ver la nota de venta", "bad");
 }
 
 async function load() {

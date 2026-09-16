@@ -10,7 +10,10 @@
     "db:push": "node scripts/db-push.js",
     "admins:sync": "node scripts/sync-admins.js",
     "auth:configure": "node scripts/configure-auth.js",
-    "setup": "npm run db:push && npm run admins:sync && npm run auth:configure && npm run env"
+    "setup": "npm run db:push && npm run admins:sync && npm run auth:configure && npm run env",
+    "firma": "node scripts/upload-signature.js"
   },
-  "engines": { "node": ">=18" }
+  "engines": {
+    "node": ">=18"
+  }
 }
