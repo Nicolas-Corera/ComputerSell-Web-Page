@@ -1,0 +1,115 @@
+/* Botones */
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: var(--ink);
+  color: var(--bg-0);
+  font-weight: 600;
+  font-size: 15px;
+  padding: 0.85rem 1.5rem;
+  border-radius: 999px;
+  border: none;
+  transition:
+    transform 0.2s ease,
+    background 0.2s ease;
+}
+
+.btn-primary:hover {
+  background: #fff;
+  transform: translateY(-1px);
+}
+
+.btn-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--ink);
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.2s ease;
+}
+
+.btn-text:hover {
+  border-color: var(--ink-soft);
+}
+
+.btn-text svg {
+  width: 16px;
+  height: 16px;
+}
+
+.btn {
+  border: none;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.15s ease-in-out;
+}
+
+.btn:active {
+  transform: scale(0.97);
+}
+
+.btn-secondary {
+  flex: 1;
+  background: var(--blue);
+  color: var(--ink);
+  padding: 12px 16px;
+}
+
+.btn-secondary:hover {
+  background: var(--blue-deep);
+}
+
+.btn-third {
+  background: var(--bg-2);
+  color: var(--ink-soft);
+  border: 1px solid var(--line);
+  width: 44px;
+  flex-shrink: 0;
+}
+
+.btn-third:hover {
+  color: var(--ink);
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
+.actionsDestacados .btn-third:last-child:hover svg {
+  color: #ff3b3b;
+}
+
+.actionsDestacados .btn-third.is-favorited svg {
+  color: #ff3b3b;
+}
+
+.actionsDestacados .btn-third:last-child:hover svg,
+.purchase-row .btn-third:hover svg {
+  color: #ff3b3b;
+}
+
+.actionsDestacados .btn-third.is-favorited svg,
+.purchase-row .btn-third.is-favorited svg {
+  color: #ff3b3b;
+}
+
+.btn-ghost {
+  width: 100%;
+  background: transparent;
+  border: 1px solid var(--line);
+  color: var(--ink);
+  padding: 14px 16px;
+}
+
+.btn-ghost:hover {
+  border-color: rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.03);
+}

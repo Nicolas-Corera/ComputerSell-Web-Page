@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Acceso al panel — ComputerSell</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/assets/css/base.css" />
+    <link rel="stylesheet" href="/assets/css/header.css" />
+    <link rel="stylesheet" href="/assets/css/components/buttons.css" />
+    <link rel="stylesheet" href="/assets/css/components/forms.css" />
+    <link rel="stylesheet" href="/assets/css/pages/auth.css" />
+  </head>
+
+  <body
+    class="auth-body"
+    data-auth="admin"
+    data-start="login"
+    data-title-registro="Crear cuenta de administrador"
+    data-sub-registro="Solo con código de invitación. Vas a poder gestionar ventas, reservas, facturas y cargas."
+    data-title-login="Ingresar al panel"
+    data-sub-login="Accedé a tu panel de control para gestionar la tienda desde un solo lugar."
+  >
+    <script src="/assets/js/sprite.js"></script>
+    <script src="/assets/js/sprite-admin.js"></script>
+    <script src="/assets/js/sprite-brands.js"></script>
+
+    <div class="auth">
+      <!-- ===== Panel visual ===== -->
+      <aside class="auth-visual">
+        <span class="blob"></span>
+        <span class="blob is-light"></span>
+        <span class="grain"></span>
+
+        <a class="logo" href="/index.html">
+          <img src="/assets/images/isotipo.png" alt="ComputerSell" />
+          <span>ComputerSell<small>Panel de control</small></span>
+        </a>
+
+        <div class="auth-copy">
+          <small>Desde acá podés</small>
+          <h2>Gestionar toda tu tienda en un solo lugar</h2>
+          <p>
+            Ventas, reservas, facturación, analíticas, carga de productos y más.
+          </p>
+          <ul class="auth-perks">
+            <li><svg><use href="#ic-check" /></svg> Órdenes y reservas en tiempo real</li>
+            <li><svg><use href="#ic-check" /></svg> Facturas y comprobantes listos para descargar</li>
+            <li><svg><use href="#ic-check" /></svg> Analíticas de ventas, categorías y picos de compra</li>
+            <li><svg><use href="#ic-check" /></svg> Carga de productos con vista previa</li>
+          </ul>
+        </div>
+      </aside>
+
+      <!-- ===== Formulario ===== -->
+      <main class="auth-panel">
+        <a class="auth-top-link" href="/index.html">
+          <svg><use href="#ic-storefront" /></svg>
+          Ir a la tienda
+        </a>
+
+        <div class="auth-card">
+
+          <div class="auth-head">
+            <h1 id="authTitle">Ingresar al panel</h1>
+            <p id="authSubtitle"></p>
+          </div>
+
+          <div class="auth-switch">
+            <button type="button" data-panel="login" data-go="login">Iniciar sesión</button>
+            <button type="button" data-panel="registro" data-go="registro">Crear cuenta</button>
+          </div>
+
+          <div class="auth-stage">
+            <!-- Iniciar sesión -->
+            <form class="auth-form" data-panel="login" novalidate>
+              <div class="auth-alert">
+                <svg><use href="#ic-error" /></svg>
+                <span></span>
+              </div>
+              <label class="field">
+                <span>Correo electrónico</span>
+                <input type="email" name="email" autocomplete="email" placeholder="nombre@computersell.com.ar" required />
+                <span class="field-error"></span>
+              </label>
+              <label class="field">
+                <span>Contraseña</span>
+                <div class="pwField">
+                  <input type="password" name="password" data-pw autocomplete="current-password" placeholder="••••••••••" required />
+                  <button class="pwToggle" type="button" aria-label="Mostrar contraseña">
+                    <svg><use href="#ic-visibility" /></svg>
+                  </button>
+                </div>
+                <span class="field-error"></span>
+              </label>
+              <div class="auth-row">
+                <label class="checkOption">
+                  <input type="checkbox" name="recordar" checked />
+                  <span class="checkbox"><svg><use href="#ic-check" /></svg></span>
+                  <span>Recordarme en este equipo</span>
+                </label>
+                <button class="auth-link" type="button" data-go="recuperar">¿Olvidaste tu contraseña?</button>
+              </div>
+              <button class="btn btn-secondary auth-submit" type="submit">Ingresar al panel</button>
+
+              <div class="auth-or">o</div>
+              <button class="auth-google" type="button" data-provider="Google">
+                <svg><use href="#ic-google" /></svg>
+                Continuar con Google
+              </button>
+              <p class="auth-foot">
+                ¿Sos nuevo en el equipo?
+                <button class="auth-link" type="button" data-go="registro">Crear cuenta</button>
+              </p>
+            </form>
+
+            <!-- Crear cuenta -->
+            <form class="auth-form" data-panel="registro" novalidate>
+              <div class="formGrid">
+                <label class="field">
+                  <span>Nombre completo</span>
+                  <input type="text" name="nombre" autocomplete="name" placeholder="Nicolás Corera" required />
+                  <span class="field-error"></span>
+                </label>
+                <label class="field">
+                  <span>Correo electrónico</span>
+                  <input type="email" name="email" autocomplete="email" placeholder="nombre@computersell.com.ar" required />
+                  <span class="field-error"></span>
+                </label>
+                <label class="field">
+                  <span>Contraseña</span>
+                  <div class="pwField">
+                    <input type="password" name="password" id="regPass" data-pw data-rules="pwRules" autocomplete="new-password" placeholder="••••••••••" required />
+                    <button class="pwToggle" type="button" aria-label="Mostrar contraseña">
+                      <svg><use href="#ic-visibility" /></svg>
+                    </button>
+                  </div>
+                  <span class="field-error"></span>
+                </label>
+                <label class="field">
+                  <span>Repetir contraseña</span>
+                  <div class="pwField">
+                    <input type="password" name="password2" data-pw data-confirm="regPass" autocomplete="new-password" placeholder="••••••••••" required />
+                    <button class="pwToggle" type="button" aria-label="Mostrar contraseña">
+                      <svg><use href="#ic-visibility" /></svg>
+                    </button>
+                  </div>
+                  <span class="field-error"></span>
+                </label>
+                <ul class="pwRules is-full" id="pwRules">
+                  <li data-rule="length"><svg><use href="#ic-check" /></svg> Mínimo 8 caracteres</li>
+                  <li data-rule="case"><svg><use href="#ic-check" /></svg> Mayúsculas y minúsculas</li>
+                  <li data-rule="number"><svg><use href="#ic-check" /></svg> Al menos un número</li>
+                  <li data-rule="symbol"><svg><use href="#ic-check" /></svg> Un símbolo (!@#$%…)</li>
+                </ul>
+                <label class="field is-full">
+                  <span>Código de invitación</span>
+                  <input type="text" name="codigo" data-invite="CS-ADMIN-2026" placeholder="CS-XXXX-XXXX · te lo enviamos por correo al sumarte al equipo" style="text-transform: uppercase" required />
+                  <span class="field-error"></span>
+                </label>
+              </div>
+              <label class="checkOption">
+                <input type="checkbox" name="terminos" required />
+                <span class="checkbox"><svg><use href="#ic-check" /></svg></span>
+                <span>Acepto las <a href="#">políticas de uso del panel</a> y el tratamiento de los datos de la tienda.</span>
+              </label>
+              <button class="btn btn-secondary auth-submit" type="submit">Crear cuenta</button>
+              <div class="auth-or">o</div>
+              <button class="auth-google" type="button" data-provider="Google">
+                <svg><use href="#ic-google" /></svg>
+                Continuar con Google
+              </button>
+              <p class="auth-foot">
+                ¿Ya tenés cuenta?
+                <button class="auth-link" type="button" data-go="login">Iniciar sesión</button>
+              </p>
+            </form>
+
+            <!-- Recuperar contraseña -->
+            <form class="auth-form" data-panel="recuperar" novalidate>
+              <button class="auth-link auth-back" type="button" data-go="login">
+                <svg><use href="#ic-arrow_back" /></svg>
+                Volver a iniciar sesión
+              </button>
+              <div class="auth-recover-form">
+                <label class="field">
+                  <span>Correo electrónico</span>
+                  <input type="email" name="email" autocomplete="email" placeholder="nombre@computersell.com.ar" required />
+                  <span class="field-error"></span>
+                </label>
+                <button class="btn btn-secondary auth-submit" type="submit">Enviar enlace</button>
+              </div>
+              <div class="auth-success" hidden>
+                <span class="check"><svg><use href="#ic-check" /></svg></span>
+                <h3>Revisá tu correo</h3>
+                <p>Te enviamos un enlace a <strong></strong> para crear una contraseña nueva. Vence en 30 minutos.</p>
+              </div>
+            </form>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <script src="/assets/js/pages/auth.js"></script>
+  </body>
+</html>

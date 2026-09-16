@@ -1,0 +1,143 @@
+/* ---- Historia (split) ---- */
+.split {
+  display: grid;
+  grid-template-columns: 1.05fr 0.95fr;
+  gap: 3.5rem;
+  align-items: center;
+}
+.split-media {
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--bg-1);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-soft);
+}
+.split-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  aspect-ratio: 4 / 3;
+}
+.split-copy h2 {
+  font-size: clamp(1.8rem, 3vw, 2.4rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin-bottom: 1.1rem;
+}
+.split-copy p {
+  color: var(--ink-soft);
+  font-size: 16px;
+}
+.split-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--line);
+}
+.split-stats .stat b {
+  display: block;
+  font-family: var(--font-display);
+  font-size: clamp(1.6rem, 2.6vw, 2.1rem);
+  font-weight: 800;
+  color: var(--ink);
+}
+.split-stats .stat span {
+  color: var(--ink-soft);
+  font-size: 13px;
+}
+
+/* ---- Valores ---- */
+.section-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 2rem;
+  margin-bottom: 2.5rem;
+}
+.section-head h2 {
+  font-size: clamp(1.9rem, 3.2vw, 2.6rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+.section-head p {
+  color: var(--ink-soft);
+  font-size: 15px;
+  max-width: 340px;
+  margin: 0;
+  text-align: right;
+}
+.valoresGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 20px;
+}
+.valorCard {
+  background: var(--bg-1);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: 28px 24px;
+  box-shadow: var(--shadow-soft);
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+.valorCard:hover {
+  border-color: rgba(59, 130, 246, 0.35);
+  box-shadow: var(--shadow-lift);
+  transform: translateY(-3px);
+}
+.valorCard .valorIcon {
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  background: rgba(59, 130, 246, 0.12);
+  border: 1px solid rgba(59, 130, 246, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--blue);
+  margin-bottom: 1.2rem;
+}
+.valorCard h3 {
+  font-size: 17px;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+.valorCard p {
+  color: var(--ink-soft);
+  font-size: 14.5px;
+  margin: 0;
+}
+
+/* ---- CTA banner ---- */
+.ctaBanner {
+  background: var(--bg-1);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: 3rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+.ctaBanner h2 {
+  font-size: clamp(1.6rem, 2.6vw, 2.1rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin-bottom: 0.5rem;
+}
+.ctaBanner p {
+  color: var(--ink-soft);
+  margin: 0;
+  max-width: 420px;
+}
+.ctaBanner-actions {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}

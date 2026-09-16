@@ -1,0 +1,69 @@
+/* Carrusel horizontal de tarjetas */
+
+.carouselWrap {
+  position: relative;
+}
+
+.carouselWrap .carousel-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 20;
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+}
+
+.carouselWrap .carousel-arrow--prev {
+  left: -22px;
+}
+
+.carouselWrap .carousel-arrow--next {
+  right: -22px;
+}
+
+.listCarousel {
+  padding: 2rem 0;
+  display: flex;
+  gap: 20px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.listCarousel::-webkit-scrollbar {
+  display: none;
+}
+
+.listCarousel .itemDestacado {
+  flex: 0 0 auto;
+  scroll-snap-align: start;
+}
+
+.carousel-dots {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 0.5rem;
+}
+
+.carousel-dot {
+  width: 8px;
+  height: 8px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: var(--bg-2);
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+
+.carousel-dot.active {
+  background: var(--blue);
+  transform: scale(1.35);
+}

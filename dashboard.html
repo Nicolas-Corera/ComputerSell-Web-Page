@@ -1,0 +1,1549 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Panel — ComputerSell</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/assets/css/base.css" />
+    <link rel="stylesheet" href="/assets/css/components/buttons.css" />
+    <link rel="stylesheet" href="/assets/css/components/forms.css" />
+    <link rel="stylesheet" href="/assets/css/components/page.css" />
+    <link rel="stylesheet" href="/assets/css/components/product-card.css" />
+    <link rel="stylesheet" href="/assets/css/pages/dashboard.css" />
+    <script>
+      // Aplica el tema guardado antes del primer render para evitar el "flash"
+      (function () {
+        try {
+          var t = localStorage.getItem("cs_admin_theme") || "dark";
+          if (t === "system") {
+            t = window.matchMedia("(prefers-color-scheme: light)").matches
+              ? "light"
+              : "dark";
+          }
+          document.documentElement.dataset.theme = t;
+        } catch (e) {}
+      })();
+    </script>
+  </head>
+
+  <body class="admin-body">
+    <script src="/assets/js/sprite.js"></script>
+    <script src="/assets/js/sprite-admin.js"></script>
+
+    <div class="admin" id="admin">
+      <!-- ===== Sidebar ===== -->
+      <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+      <aside class="sidebar" id="sidebar">
+        <div class="sidebar-brand">
+          <img src="/assets/images/isotipo.png" alt="ComputerSell" />
+          <div class="brand-text">
+            <strong>ComputerSell</strong>
+            <small>Panel de control</small>
+          </div>
+          <button
+            class="sb-collapse"
+            id="sbCollapse"
+            type="button"
+            aria-label="Colapsar menú"
+            title="Colapsar menú"
+          >
+            <svg class="ic-close"><use href="#ic-left_panel_close" /></svg>
+            <svg class="ic-open"><use href="#ic-left_panel_open" /></svg>
+          </button>
+        </div>
+
+        <nav class="sidebar-nav">
+          <button
+            class="sb-item"
+            type="button"
+            id="sbSearch"
+            data-tip="Búsqueda rápida"
+          >
+            <svg><use href="#ic-search" /></svg>
+            <span class="sb-text">Búsqueda rápida</span>
+            <kbd>Ctrl K</kbd>
+          </button>
+          <button
+            class="sb-item"
+            type="button"
+            data-view="notificaciones"
+            data-tip="Notificaciones"
+          >
+            <svg><use href="#ic-notifications" /></svg>
+            <span class="sb-text">Notificaciones</span>
+            <span class="sb-badge" id="sbNotifBadge"></span>
+          </button>
+
+          <span class="sb-label">Gestión</span>
+          <button
+            class="sb-item is-active"
+            type="button"
+            data-view="dashboard"
+            data-tip="Dashboard"
+          >
+            <svg><use href="#ic-dashboard" /></svg>
+            <span class="sb-text">Dashboard</span>
+          </button>
+          <button
+            class="sb-item"
+            type="button"
+            data-view="analiticas"
+            data-tip="Analíticas"
+          >
+            <svg><use href="#ic-analytics" /></svg>
+            <span class="sb-text">Analíticas</span>
+          </button>
+          <button
+            class="sb-item"
+            type="button"
+            data-view="ordenes"
+            data-tip="Órdenes"
+          >
+            <svg><use href="#ic-orders" /></svg>
+            <span class="sb-text">Órdenes</span>
+          </button>
+          <button
+            class="sb-item"
+            type="button"
+            data-view="facturas"
+            data-tip="Facturas"
+          >
+            <svg><use href="#ic-receipt_long" /></svg>
+            <span class="sb-text">Facturas</span>
+          </button>
+          <button
+            class="sb-item"
+            type="button"
+            data-view="cargas"
+            data-tip="Cargas"
+          >
+            <svg><use href="#ic-upload" /></svg>
+            <span class="sb-text">Cargas</span>
+          </button>
+        </nav>
+
+        <div class="sidebar-profile">
+          <button
+            class="sb-profile"
+            type="button"
+            data-view="perfil"
+            data-tip="Mi perfil"
+          >
+            <span class="avatar" id="sbAvatar">NC</span>
+            <span class="sb-profile-text">
+              <strong id="sbUserName">Nicolás Corera</strong>
+              <small id="sbUserEmail">nicolas.corera@gmail.com</small>
+            </span>
+          </button>
+          <button
+            class="sb-logout"
+            type="button"
+            id="logoutBtn"
+            aria-label="Cerrar sesión"
+            title="Cerrar sesión"
+          >
+            <svg><use href="#ic-logout" /></svg>
+          </button>
+        </div>
+      </aside>
+
+      <!-- ===== Contenido ===== -->
+      <div class="admin-main">
+        <header class="admin-top">
+          <button
+            class="iconBtn menuBtn"
+            type="button"
+            id="menuBtn"
+            aria-label="Abrir menú"
+          >
+            <svg><use href="#ic-menu" /></svg>
+          </button>
+          <div>
+            <h1 id="topTitle">Dashboard</h1>
+          </div>
+          <span class="top-sub" id="topSub">Resumen general de la tienda</span>
+          <div class="top-actions">
+            <button
+              class="iconBtn"
+              type="button"
+              id="topSearchBtn"
+              aria-label="Buscar"
+              title="Buscar (Ctrl K)"
+            >
+              <svg><use href="#ic-search" /></svg>
+            </button>
+            <button
+              class="iconBtn"
+              type="button"
+              id="topNotifBtn"
+              aria-label="Notificaciones"
+              title="Notificaciones"
+            >
+              <svg><use href="#ic-notifications" /></svg>
+              <span class="dot" id="topNotifDot"></span>
+            </button>
+            <a class="iconBtn" href="/index.html" title="Ver tienda">
+              <svg><use href="#ic-storefront" /></svg>
+            </a>
+          </div>
+        </header>
+
+        <div class="admin-content">
+          <!-- ========== NOTIFICACIONES ========== -->
+          <section class="view" data-view="notificaciones">
+            <div class="toolbar">
+              <div class="chips" id="notifChips">
+                <button class="chip is-selected" data-type="todas">
+                  Todas <span class="pill" data-count="todas"></span>
+                </button>
+                <button class="chip" data-type="venta">
+                  Ventas <span class="pill" data-count="venta"></span>
+                </button>
+                <button class="chip" data-type="reserva">
+                  Reservas <span class="pill" data-count="reserva"></span>
+                </button>
+                <button class="chip" data-type="pago">
+                  Pagos <span class="pill" data-count="pago"></span>
+                </button>
+                <button class="chip" data-type="stock">
+                  Stock <span class="pill" data-count="stock"></span>
+                </button>
+                <button class="chip" data-type="sistema">
+                  Sistema <span class="pill" data-count="sistema"></span>
+                </button>
+              </div>
+              <span class="spacer"></span>
+              <button class="btn btn-ghost is-sm" type="button" id="notifReadAll">
+                <svg><use href="#ic-task_alt" /></svg>
+                Marcar todas como leídas
+              </button>
+            </div>
+            <div class="notif-list" id="notifList"></div>
+          </section>
+
+          <!-- ========== DASHBOARD ========== -->
+          <section class="view is-active" data-view="dashboard">
+            <div class="kpis" id="kpis"></div>
+
+            <div class="grid-2-1">
+              <div class="card">
+                <div class="card-head">
+                  <h2>
+                    <svg><use href="#ic-monitoring" /></svg>
+                    Ingresos
+                  </h2>
+                  <div class="card-tools">
+                    <div class="segmented" id="revenueRange">
+                      <button class="is-active" data-days="7">7 días</button>
+                      <button data-days="30">30 días</button>
+                      <button data-days="90">90 días</button>
+                    </div>
+                  </div>
+                </div>
+                <div class="chart" id="revenueChart"></div>
+              </div>
+
+              <div class="card">
+                <div class="card-head">
+                  <h2>
+                    <svg><use href="#ic-star_rate" /></svg>
+                    Más vendidos
+                  </h2>
+                  <span class="hint">Este mes</span>
+                </div>
+                <div class="list" id="topProducts"></div>
+              </div>
+            </div>
+
+            <div class="grid-2-1">
+              <div class="card">
+                <div class="card-head">
+                  <h2>
+                    <svg><use href="#ic-orders" /></svg>
+                    Órdenes recientes
+                  </h2>
+                  <button
+                    class="btn-text"
+                    type="button"
+                    data-goto="ordenes"
+                  >
+                    Ver todas
+                    <svg><use href="#ic-arrow_forward" /></svg>
+                  </button>
+                </div>
+                <div class="tableWrap">
+                  <table class="table" id="recentOrders"></table>
+                </div>
+              </div>
+
+              <div class="card">
+                <div class="card-head">
+                  <h2>
+                    <svg><use href="#ic-calendar_month" /></svg>
+                    Próximas reservas
+                  </h2>
+                  <button
+                    class="btn-text"
+                    type="button"
+                    data-goto="ordenes"
+                    data-tab="reservas"
+                  >
+                    Ver todas
+                    <svg><use href="#ic-arrow_forward" /></svg>
+                  </button>
+                </div>
+                <div class="list" id="upcomingReservas"></div>
+                <span class="sectionTitle">Stock bajo</span>
+                <div class="list" id="lowStock" style="gap: 8px"></div>
+              </div>
+            </div>
+          </section>
+
+          <!-- ========== ANALÍTICAS ========== -->
+          <section class="view" data-view="analiticas">
+            <div class="toolbar">
+              <div class="segmented" id="analyticsRange">
+                <button data-months="3">3 meses</button>
+                <button data-months="6">6 meses</button>
+                <button class="is-active" data-months="12">12 meses</button>
+              </div>
+              <span class="spacer"></span>
+              <button class="btn btn-ghost is-sm" type="button" id="exportAnalytics">
+                <svg><use href="#ic-download" /></svg>
+                Exportar CSV
+              </button>
+            </div>
+
+            <div class="kpis" id="analyticsKpis"></div>
+
+            <div class="card">
+              <div class="card-head">
+                <h2>
+                  <svg><use href="#ic-bar_chart" /></svg>
+                  Ventas por mes
+                </h2>
+                <div class="chart-legend">
+                  <span><i style="background: var(--chart-1)"></i>Ventas</span>
+                  <span><i style="background: var(--chart-4)"></i>Reservas</span>
+                </div>
+              </div>
+              <div class="chart" id="monthlyChart"></div>
+            </div>
+
+            <div class="grid-2">
+              <div class="card">
+                <div class="card-head">
+                  <h2>
+                    <svg><use href="#ic-category" /></svg>
+                    Ventas por categoría
+                  </h2>
+                  <span class="hint">Participación sobre el total</span>
+                </div>
+                <div class="hbars" id="categoryBars"></div>
+              </div>
+
+              <div class="card">
+                <div class="card-head">
+                  <h2>
+                    <svg><use href="#ic-credit_card" /></svg>
+                    Medios de pago
+                  </h2>
+                  <span class="hint">Cantidad de órdenes</span>
+                </div>
+                <div class="hbars" id="paymentBars"></div>
+              </div>
+            </div>
+
+            <div class="grid-2">
+              <div class="card">
+                <div class="card-head">
+                  <h2>
+                    <svg><use href="#ic-schedule" /></svg>
+                    Picos de compra por hora
+                  </h2>
+                  <span class="hint">Órdenes por franja horaria</span>
+                </div>
+                <div class="chart" id="hoursChart"></div>
+              </div>
+
+              <div class="card">
+                <div class="card-head">
+                  <h2>
+                    <svg><use href="#ic-query_stats" /></svg>
+                    Visitas vs. conversiones
+                  </h2>
+                  <span class="hint">Últimas 8 semanas</span>
+                </div>
+                <div class="chart" id="conversionChart"></div>
+                <div class="chart-legend">
+                  <span><i style="background: var(--chart-1)"></i>Visitas</span>
+                  <span
+                    ><i style="background: var(--chart-3)"></i>Órdenes
+                    (x100)</span
+                  >
+                </div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-head">
+                <h2>
+                  <svg><use href="#ic-inventory_2" /></svg>
+                  Rendimiento por producto
+                </h2>
+                <span class="hint">Top 8 por facturación</span>
+              </div>
+              <div class="tableWrap">
+                <table class="table" id="productPerf"></table>
+              </div>
+            </div>
+          </section>
+
+          <!-- ========== ÓRDENES ========== -->
+          <section class="view" data-view="ordenes">
+            <div class="tab-nav" id="ordersTabs">
+              <button class="tab-btn is-active" data-tab="ventas">
+                <svg><use href="#ic-shopping_cart" /></svg>
+                Ventas <span class="pill" id="ventasCount"></span>
+              </button>
+              <button class="tab-btn" data-tab="reservas">
+                <svg><use href="#ic-event" /></svg>
+                Reservas <span class="pill" id="reservasCount"></span>
+              </button>
+            </div>
+
+            <div class="tab-panel is-active" data-tab="ventas">
+              <div class="toolbar">
+                <div class="searchBox">
+                  <svg><use href="#ic-search" /></svg>
+                  <input
+                    type="text"
+                    id="ordersSearch"
+                    placeholder="Buscar por N°, cliente o producto"
+                  />
+                </div>
+                <label class="field">
+                  <select id="ordersStatus">
+                    <option value="">Todos los estados</option>
+                    <option value="pendiente">Pendiente de pago</option>
+                    <option value="pagado">Pagado</option>
+                    <option value="preparando">En preparación</option>
+                    <option value="enviado">Enviado</option>
+                    <option value="entregado">Entregado</option>
+                    <option value="cancelado">Cancelado</option>
+                  </select>
+                </label>
+                <label class="field">
+                  <select id="ordersPayment">
+                    <option value="">Todos los medios</option>
+                    <option value="credito">Tarjeta de crédito</option>
+                    <option value="debito">Tarjeta de débito</option>
+                    <option value="transferencia">Transferencia</option>
+                    <option value="mercadopago">Mercado Pago</option>
+                  </select>
+                </label>
+                <span class="spacer"></span>
+                <span class="count" id="ordersResult"></span>
+              </div>
+              <div class="tableWrap">
+                <table class="table" id="ordersTable"></table>
+              </div>
+            </div>
+
+            <div class="tab-panel" data-tab="reservas">
+              <div class="toolbar">
+                <div class="searchBox">
+                  <svg><use href="#ic-search" /></svg>
+                  <input
+                    type="text"
+                    id="reservasSearch"
+                    placeholder="Buscar por N°, cliente o producto"
+                  />
+                </div>
+                <label class="field">
+                  <select id="reservasStatus">
+                    <option value="">Todos los estados</option>
+                    <option value="activa">Activa</option>
+                    <option value="por-vencer">Por vencer</option>
+                    <option value="retirada">Retirada</option>
+                    <option value="vencida">Vencida</option>
+                    <option value="cancelada">Cancelada</option>
+                  </select>
+                </label>
+                <span class="spacer"></span>
+                <span class="count" id="reservasResult"></span>
+              </div>
+              <div class="tableWrap">
+                <table class="table" id="reservasTable"></table>
+              </div>
+            </div>
+          </section>
+
+          <!-- ========== FACTURAS ========== -->
+          <section class="view" data-view="facturas">
+            <div class="tab-nav" id="invoiceTabs">
+              <button class="tab-btn is-active" data-tab="emitidas">
+                <svg><use href="#ic-receipt_long" /></svg>
+                Facturas emitidas <span class="pill" id="emitidasCount"></span>
+              </button>
+              <button class="tab-btn" data-tab="recibidos">
+                <svg><use href="#ic-account_balance" /></svg>
+                Comprobantes recibidos
+                <span class="pill" id="recibidosCount"></span>
+              </button>
+            </div>
+
+            <div class="tab-panel is-active" data-tab="emitidas">
+              <div class="toolbar">
+                <div class="searchBox">
+                  <svg><use href="#ic-search" /></svg>
+                  <input
+                    type="text"
+                    id="invSearch"
+                    placeholder="Buscar por N°, cliente u orden"
+                  />
+                </div>
+                <label class="field">
+                  <select id="invType">
+                    <option value="">Todos los tipos</option>
+                    <option value="A">Factura A</option>
+                    <option value="B">Factura B</option>
+                    <option value="C">Factura C</option>
+                    <option value="NC">Nota de crédito</option>
+                  </select>
+                </label>
+                <label class="field">
+                  <input type="month" id="invMonth" />
+                </label>
+                <span class="spacer"></span>
+                <span class="count" id="invResult"></span>
+              </div>
+              <div class="tableWrap">
+                <table class="table" id="invoicesTable"></table>
+              </div>
+            </div>
+
+            <div class="tab-panel" data-tab="recibidos">
+              <div class="toolbar">
+                <div class="searchBox">
+                  <svg><use href="#ic-search" /></svg>
+                  <input
+                    type="text"
+                    id="recSearch"
+                    placeholder="Buscar por cliente u orden"
+                  />
+                </div>
+                <label class="field">
+                  <select id="recStatus">
+                    <option value="">Todos los estados</option>
+                    <option value="pendiente">Pendiente de revisión</option>
+                    <option value="aprobado">Aprobado</option>
+                    <option value="rechazado">Rechazado</option>
+                  </select>
+                </label>
+                <span class="spacer"></span>
+                <span class="count" id="recResult"></span>
+              </div>
+              <div class="tableWrap">
+                <table class="table" id="receiptsTable"></table>
+              </div>
+            </div>
+          </section>
+
+          <!-- ========== CARGAS ========== -->
+          <section class="view" data-view="cargas">
+            <form class="upload-layout" id="productForm" novalidate>
+              <div class="upload-form">
+                <!-- 1. Información básica -->
+                <div class="card">
+                  <div class="card-head">
+                    <h2><span class="step">1</span> Información básica</h2>
+                  </div>
+                  <div class="formGrid">
+                    <label class="field is-full">
+                      <span>Título del producto</span>
+                      <input
+                        type="text"
+                        name="title"
+                        id="pTitle"
+                        placeholder="Ej: PC Armada AMD Ryzen 5 5500, RTX 3050, 16GB RAM, 512GB SSD"
+                        maxlength="120"
+                        required
+                      />
+                      <span class="field-help is-right" id="pTitleCount"
+                        >0 / 120</span
+                      >
+                    </label>
+                    <label class="field">
+                      <span>Marca</span>
+                      <input
+                        type="text"
+                        name="brand"
+                        id="pBrand"
+                        list="brandList"
+                        placeholder="Ej: ComputerSell Gaming"
+                        required
+                      />
+                      <datalist id="brandList">
+                        <option value="ComputerSell Gaming"></option>
+                        <option value="AMD"></option>
+                        <option value="Intel"></option>
+                        <option value="NVIDIA"></option>
+                        <option value="Logitech"></option>
+                        <option value="ASUS"></option>
+                        <option value="Lenovo"></option>
+                        <option value="HP"></option>
+                        <option value="Samsung"></option>
+                        <option value="Kingston"></option>
+                        <option value="Corsair"></option>
+                        <option value="Redragon"></option>
+                        <option value="HyperX"></option>
+                      </datalist>
+                    </label>
+                    <label class="field">
+                      <span>SKU</span>
+                      <input
+                        type="text"
+                        name="sku"
+                        id="pSku"
+                        placeholder="CS-5500-3050-16-512"
+                        style="text-transform: uppercase"
+                      />
+                      <span class="field-help"
+                        >Se genera automáticamente si lo dejás vacío</span
+                      >
+                    </label>
+                    <label class="field">
+                      <span>Categoría</span>
+                      <select name="category" id="pCategory" required>
+                        <option value="">Seleccionar…</option>
+                        <option value="computadoras">Computadoras</option>
+                        <option value="notebooks">Notebooks</option>
+                        <option value="componentes">Componentes</option>
+                        <option value="perifericos">Periféricos</option>
+                      </select>
+                    </label>
+                    <label class="field">
+                      <span>Subcategoría</span>
+                      <select name="subcategory" id="pSubcategory" disabled>
+                        <option value="">Sin subcategoría</option>
+                      </select>
+                    </label>
+                    <label class="field is-full">
+                      <span>Descripción</span>
+                      <textarea
+                        name="description"
+                        id="pDescription"
+                        placeholder="Contá qué hace especial a este producto: para quién es, rendimiento, qué incluye…"
+                        maxlength="2000"
+                        required
+                      ></textarea>
+                      <span class="field-help is-right" id="pDescCount"
+                        >0 / 2000</span
+                      >
+                      <span class="field-error"><svg><use href="#ic-error" /></svg>La descripción necesita al menos 40 caracteres</span>
+                    </label>
+                    <div class="field is-full">
+                      <span>Etiquetas</span>
+                      <div class="tagsInput" id="pTags">
+                        <input
+                          type="text"
+                          id="pTagInput"
+                          placeholder="Escribí y presioná Enter (gaming, oficina, rgb…)"
+                        />
+                      </div>
+                      <span class="field-help"
+                        >Ayudan a la búsqueda del sitio. Máximo 10.</span
+                      >
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 2. Precio y stock -->
+                <div class="card">
+                  <div class="card-head">
+                    <h2><span class="step">2</span> Precio y stock</h2>
+                  </div>
+                  <div class="formGrid">
+                    <label class="field">
+                      <span>Precio de venta</span>
+                      <div class="input-affix" data-prefix="$">
+                        <input
+                          type="text"
+                          name="price"
+                          id="pPrice"
+                          inputmode="numeric"
+                          placeholder="1.304.424"
+                          required
+                        />
+                      </div>
+                    </label>
+                    <label class="field">
+                      <span>Costo (uso interno)</span>
+                      <div class="input-affix" data-prefix="$">
+                        <input
+                          type="text"
+                          name="cost"
+                          id="pCost"
+                          inputmode="numeric"
+                          placeholder="0"
+                        />
+                      </div>
+                      <span class="field-help" id="pMargin">Margen: —</span>
+                    </label>
+                    <label class="field">
+                      <span>Stock disponible</span>
+                      <input
+                        type="number"
+                        name="stock"
+                        id="pStock"
+                        min="0"
+                        step="1"
+                        placeholder="0"
+                        required
+                      />
+                    </label>
+                    <label class="field">
+                      <span>Alerta de stock bajo</span>
+                      <input
+                        type="number"
+                        name="stockMin"
+                        id="pStockMin"
+                        min="0"
+                        step="1"
+                        value="3"
+                      />
+                      <span class="field-help"
+                        >Te avisamos cuando el stock quede por debajo</span
+                      >
+                    </label>
+                    <label class="field">
+                      <span>Estado</span>
+                      <select name="status" id="pStatus">
+                        <option value="publicado">Publicado</option>
+                        <option value="borrador">Borrador</option>
+                        <option value="pausado">Pausado</option>
+                      </select>
+                    </label>
+                    <label class="field">
+                      <span>Garantía</span>
+                      <div class="input-affix is-suffix" data-suffix="meses">
+                        <input
+                          type="number"
+                          name="warranty"
+                          id="pWarranty"
+                          min="0"
+                          value="12"
+                        />
+                      </div>
+                    </label>
+                  </div>
+
+                  <div class="optionRow">
+                    <label class="switch">
+                      <input type="checkbox" name="sale" id="pSale" />
+                      <span class="track"></span>
+                      <span class="switch-text">
+                        En oferta
+                        <small
+                          >Muestra el precio anterior tachado y la etiqueta de
+                          descuento</small
+                        >
+                      </span>
+                    </label>
+                    <div class="optionRow-extra">
+                      <label class="field">
+                        <span>Precio anterior</span>
+                        <div class="input-affix" data-prefix="$">
+                          <input
+                            type="text"
+                            name="oldPrice"
+                            id="pOldPrice"
+                            inputmode="numeric"
+                            placeholder="1.610.400"
+                          />
+                        </div>
+                      </label>
+                      <label class="field">
+                        <span>Descuento</span>
+                        <div class="input-affix is-suffix" data-suffix="%">
+                          <input
+                            type="number"
+                            name="discount"
+                            id="pDiscount"
+                            min="0"
+                            max="90"
+                            placeholder="0"
+                          />
+                        </div>
+                      </label>
+                    </div>
+                  </div>
+
+                  <div class="optionRow">
+                    <label class="switch">
+                      <input type="checkbox" name="featured" id="pFeatured" />
+                      <span class="track"></span>
+                      <span class="switch-text">
+                        Producto destacado
+                        <small>Aparece en la sección "Destacados" del inicio</small>
+                      </span>
+                    </label>
+                  </div>
+                </div>
+
+                <!-- 3. Pagos y envío -->
+                <div class="card">
+                  <div class="card-head">
+                    <h2><span class="step">3</span> Pagos y envío</h2>
+                  </div>
+
+                  <div class="optionRow">
+                    <label class="switch">
+                      <input type="checkbox" name="installments" id="pCuotas" />
+                      <span class="track"></span>
+                      <span class="switch-text">
+                        Acepta cuotas sin interés
+                        <small>Se muestra la etiqueta de cuotas en la tarjeta</small>
+                      </span>
+                    </label>
+                    <div class="optionRow-extra">
+                      <label class="field">
+                        <span>Cantidad de cuotas</span>
+                        <select name="installmentsCount" id="pCuotasN">
+                          <option value="3">3 cuotas</option>
+                          <option value="6">6 cuotas</option>
+                          <option value="12">12 cuotas</option>
+                          <option value="18">18 cuotas</option>
+                        </select>
+                      </label>
+                    </div>
+                  </div>
+
+                  <div class="optionRow">
+                    <label class="switch">
+                      <input type="checkbox" name="freeShipping" id="pFreeShip" />
+                      <span class="track"></span>
+                      <span class="switch-text">
+                        Envío gratis
+                        <small>El envío no se cobra en el checkout</small>
+                      </span>
+                    </label>
+                  </div>
+
+                  <div class="formGrid">
+                    <label class="field">
+                      <span>Tiempo de entrega</span>
+                      <select name="delivery" id="pDelivery">
+                        <option value="24-48hs">24 / 48 hs</option>
+                        <option value="3-5">3 a 5 días hábiles</option>
+                        <option value="7-10">7 a 10 días hábiles</option>
+                        <option value="a-pedido">A pedido (consultar)</option>
+                      </select>
+                    </label>
+                    <label class="field">
+                      <span>Peso</span>
+                      <div class="input-affix is-suffix" data-suffix="kg">
+                        <input
+                          type="number"
+                          name="weight"
+                          id="pWeight"
+                          min="0"
+                          step="0.1"
+                          placeholder="0.0"
+                        />
+                      </div>
+                    </label>
+                    <label class="field">
+                      <span>Dimensiones (largo × ancho × alto)</span>
+                      <div class="input-affix is-suffix" data-suffix="cm">
+                        <input
+                          type="text"
+                          name="dimensions"
+                          id="pDims"
+                          placeholder="45 × 20 × 45"
+                        />
+                      </div>
+                    </label>
+                    <label class="field">
+                      <span>Condición</span>
+                      <select name="condition" id="pCondition">
+                        <option value="nuevo">Nuevo</option>
+                        <option value="reacondicionado">Reacondicionado</option>
+                        <option value="usado">Usado</option>
+                      </select>
+                    </label>
+                  </div>
+                </div>
+
+                <!-- 4. Imágenes -->
+                <div class="card">
+                  <div class="card-head">
+                    <h2><span class="step">4</span> Imágenes</h2>
+                    <span class="hint">La primera es la principal. Arrastrá para reordenar.</span>
+                  </div>
+                  <label class="imgDrop" id="imgDrop" data-required>
+                    <input
+                      type="file"
+                      id="imgInput"
+                      accept="image/png,image/jpeg,image/webp"
+                      multiple
+                    />
+                    <svg><use href="#ic-add_photo_alternate" /></svg>
+                    <strong>Arrastrá tus imágenes o hacé clic para elegir</strong>
+                    <small>PNG, JPG o WEBP · hasta 5 MB cada una · máximo 8</small>
+                  </label>
+                  <span class="field-error"><svg><use href="#ic-error" /></svg>Subí al menos una imagen del producto</span>
+                  <div class="imgGrid" id="imgGrid"></div>
+                </div>
+
+                <!-- 5. Especificaciones -->
+                <div class="card">
+                  <div class="card-head">
+                    <h2><span class="step">5</span> Especificaciones</h2>
+                    <span class="hint">Se muestran en la pestaña "Especificaciones" de la ficha</span>
+                  </div>
+                  <div class="rows" id="specRows"></div>
+                  <span class="field-error"><svg><use href="#ic-error" /></svg>Completá al menos una especificación (característica y valor)</span>
+                  <button class="btn btn-ghost is-sm rows-add" type="button" id="addSpec">
+                    <svg><use href="#ic-add" /></svg>
+                    Agregar especificación
+                  </button>
+                </div>
+
+                <!-- 6. Puntos destacados -->
+                <div class="card">
+                  <div class="card-head">
+                    <h2><span class="step">6</span> Puntos destacados</h2>
+                    <span class="hint">Lista con tildes debajo de la descripción</span>
+                  </div>
+                  <div class="rows" id="highlightRows"></div>
+                  <button
+                    class="btn btn-ghost is-sm rows-add"
+                    type="button"
+                    id="addHighlight"
+                  >
+                    <svg><use href="#ic-add" /></svg>
+                    Agregar punto
+                  </button>
+                </div>
+
+                <!-- 7. Últimas cargas -->
+                <div class="card">
+                  <div class="card-head">
+                    <h2>
+                      <svg><use href="#ic-inventory_2" /></svg>
+                      Últimas cargas
+                    </h2>
+                    <span class="hint" id="uploadedHint"></span>
+                  </div>
+                  <div class="list uploaded-list" id="uploadedList"></div>
+                </div>
+              </div>
+
+              <!-- Vista previa lateral -->
+              <aside class="upload-aside">
+                <div class="card">
+                  <div class="card-head">
+                    <h2>
+                      <svg><use href="#ic-visibility" /></svg>
+                      Vista previa
+                    </h2>
+                    <span class="hint">Así se ve en la tienda</span>
+                  </div>
+                  <div class="itemDestacado" id="previewCard">
+                    <div class="imageDestacado is-empty" id="pvImage">
+                      <img src="" alt="" hidden />
+                      <span class="pvNoImage">
+                        <svg><use href="#ic-image" /></svg>
+                        Sin imagen
+                      </span>
+                    </div>
+                    <div class="textCard">
+                      <span id="pvTitle">Título del producto</span>
+                      <div class="prices">
+                        <span class="dashed" id="pvOld" hidden></span>
+                        <span class="priceNow" id="pvPrice">0</span>
+                      </div>
+                      <span class="cuotas" id="pvCuotas" hidden></span>
+                    </div>
+                    <div class="actionsDestacados">
+                      <button class="btn btn-secondary" type="button">
+                        <span>Seleccionar</span>
+                      </button>
+                      <button class="btn btn-third" type="button">
+                        <svg class="ic-md"><use href="#ic-info" /></svg>
+                      </button>
+                      <button class="btn btn-third" type="button">
+                        <svg class="ic-md">
+                          <use class="favorite-icon" href="#ic-favorite" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div class="pvDesc" id="pvDesc">
+                    <span class="sectionTitle">Descripción</span>
+                    <p id="pvDescText" class="is-empty">La descripción aparece acá a medida que la escribís.</p>
+                    <ul class="check-list" id="pvHighlights"></ul>
+                  </div>
+                </div>
+
+                <div class="card">
+                  <div class="card-head">
+                    <h2>
+                      <svg><use href="#ic-check_circle" /></svg>
+                      Resumen
+                    </h2>
+                  </div>
+                  <div class="summary-mini" id="uploadSummary"></div>
+                  <div class="upload-actions">
+                    <button class="btn btn-ghost" type="button" id="saveDraft">
+                      <svg><use href="#ic-save" /></svg>
+                      Guardar borrador
+                    </button>
+                    <button class="btn btn-secondary" type="submit" id="publishBtn">
+                      <svg><use href="#ic-cloud_upload" /></svg>
+                      Publicar
+                    </button>
+                  </div>
+                  <button class="btn-text" type="button" id="resetForm">
+                    <svg><use href="#ic-refresh" /></svg>
+                    Limpiar formulario
+                  </button>
+                </div>
+              </aside>
+            </form>
+          </section>
+
+          <!-- ========== PERFIL ========== -->
+          <section class="view" data-view="perfil">
+            <div class="tab-nav" id="profileTabs">
+              <button class="tab-btn is-active" data-tab="perfil">
+                <svg><use href="#ic-person" /></svg>
+                Perfil
+              </button>
+              <button class="tab-btn" data-tab="config">
+                <svg><use href="#ic-settings" /></svg>
+                Configuración
+              </button>
+              <button class="tab-btn" data-tab="notif">
+                <svg><use href="#ic-notifications" /></svg>
+                Notificaciones
+              </button>
+              <button class="tab-btn" data-tab="about">
+                <svg><use href="#ic-info" /></svg>
+                Acerca de
+              </button>
+            </div>
+
+            <!-- Perfil -->
+            <div class="tab-panel is-active" data-tab="perfil">
+              <div class="card">
+                <div class="profile-hero">
+                  <span class="avatar" id="profileAvatar">NC</span>
+                  <div class="body">
+                    <h3 id="profileName">Nicolás Corera</h3>
+                    <span id="profileEmail">nicolas.corera@gmail.com</span>
+                    <span class="badge is-info is-plain">Administrador</span>
+                  </div>
+                  <div class="tools">
+                    <label class="btn btn-secondary is-sm" for="avatarInput">
+                      <svg><use href="#ic-photo_camera" /></svg>
+                      Cambiar foto
+                    </label>
+                    <input type="file" id="avatarInput" accept="image/*" />
+                    <button class="btn btn-ghost is-sm" type="button" id="avatarRemove">
+                      <svg><use href="#ic-delete" /></svg>
+                      Quitar
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="card">
+                <div class="card-head">
+                  <h2>
+                    <svg><use href="#ic-person" /></svg>
+                    Datos de la cuenta
+                  </h2>
+                  <span class="hint">El nombre y el correo no se pueden modificar</span>
+                </div>
+                <div class="formGrid">
+                  <label class="field">
+                    <span>Nombre completo</span>
+                    <input type="text" value="Nicolás Corera" disabled />
+                  </label>
+                  <label class="field">
+                    <span>Correo electrónico</span>
+                    <input type="email" value="nicolas.corera@gmail.com" disabled />
+                  </label>
+                  <label class="field">
+                    <span>Rol</span>
+                    <input type="text" value="Administrador" disabled />
+                  </label>
+                  <label class="field">
+                    <span>Miembro desde</span>
+                    <input type="text" value="Marzo 2025" disabled />
+                  </label>
+                </div>
+              </div>
+
+              <div class="card">
+                <div class="card-head">
+                  <h2>
+                    <svg><use href="#ic-verified" /></svg>
+                    Seguridad
+                  </h2>
+                </div>
+                <div class="settingRow">
+                  <div class="text">
+                    <strong>Contraseña</strong>
+                    <small>Última modificación hace 3 meses</small>
+                  </div>
+                  <button class="btn btn-ghost is-sm" type="button" data-toast="Te enviamos un correo para cambiar la contraseña">
+                    Cambiar contraseña
+                  </button>
+                </div>
+                <div class="settingRow">
+                  <div class="text">
+                    <strong>Verificación en dos pasos</strong>
+                    <small>Pide un código al iniciar sesión en un dispositivo nuevo</small>
+                  </div>
+                  <label class="switch">
+                    <input type="checkbox" data-pref="twofa" />
+                    <span class="track"></span>
+                  </label>
+                </div>
+                <div class="settingRow">
+                  <div class="text">
+                    <strong>Sesiones activas</strong>
+                    <small>Windows · Chrome · Buenos Aires (esta sesión)</small>
+                  </div>
+                  <button class="btn btn-ghost is-sm" type="button" data-toast="Se cerraron las demás sesiones">
+                    Cerrar otras sesiones
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Configuración -->
+            <div class="tab-panel" data-tab="config">
+              <div class="card">
+                <div class="card-head">
+                  <h2>
+                    <svg><use href="#ic-palette" /></svg>
+                    Tema
+                  </h2>
+                  <span class="hint">Solo afecta al panel</span>
+                </div>
+                <div class="themeCards" id="themeCards">
+                  <label class="themeCard is-dark">
+                    <input type="radio" name="theme" value="dark" checked />
+                    <div class="preview">
+                      <i class="p-side"></i>
+                      <div class="p-main"><i></i><i></i><i></i></div>
+                    </div>
+                    <span class="name">
+                      <svg><use href="#ic-dark_mode" /></svg>
+                      Oscuro
+                    </span>
+                  </label>
+                  <label class="themeCard is-light">
+                    <input type="radio" name="theme" value="light" />
+                    <div class="preview">
+                      <i class="p-side"></i>
+                      <div class="p-main"><i></i><i></i><i></i></div>
+                    </div>
+                    <span class="name">
+                      <svg><use href="#ic-light_mode" /></svg>
+                      Claro
+                    </span>
+                  </label>
+                  <label class="themeCard is-system">
+                    <input type="radio" name="theme" value="system" />
+                    <div class="preview">
+                      <i class="p-side"></i>
+                      <div class="p-main"></div>
+                    </div>
+                    <span class="name">
+                      <svg><use href="#ic-settings" /></svg>
+                      Según el sistema
+                    </span>
+                  </label>
+                </div>
+              </div>
+
+              <div class="card">
+                <div class="card-head">
+                  <h2>
+                    <svg><use href="#ic-language" /></svg>
+                    Idioma y región
+                  </h2>
+                </div>
+                <div class="settingRow">
+                  <div class="text">
+                    <strong>Idioma del panel</strong>
+                    <small>Cambia los textos de la interfaz</small>
+                  </div>
+                  <label class="field">
+                    <select data-pref="lang">
+                      <option value="es">Español (Argentina)</option>
+                      <option value="en">English</option>
+                      <option value="pt">Português</option>
+                    </select>
+                  </label>
+                </div>
+                <div class="settingRow">
+                  <div class="text">
+                    <strong>Moneda</strong>
+                    <small>Formato de los montos</small>
+                  </div>
+                  <label class="field">
+                    <select data-pref="currency">
+                      <option value="ARS">Peso argentino (ARS)</option>
+                      <option value="USD">Dólar (USD)</option>
+                    </select>
+                  </label>
+                </div>
+                <div class="settingRow">
+                  <div class="text">
+                    <strong>Zona horaria</strong>
+                    <small>Usada en fechas de órdenes y reservas</small>
+                  </div>
+                  <label class="field">
+                    <select data-pref="tz">
+                      <option value="America/Argentina/Buenos_Aires">Buenos Aires (GMT-3)</option>
+                      <option value="America/Montevideo">Montevideo (GMT-3)</option>
+                      <option value="America/Santiago">Santiago (GMT-4)</option>
+                    </select>
+                  </label>
+                </div>
+                <div class="settingRow">
+                  <div class="text">
+                    <strong>Formato de fecha</strong>
+                  </div>
+                  <label class="field">
+                    <select data-pref="dateFormat">
+                      <option value="dd/mm/yyyy">15/09/2026</option>
+                      <option value="dd mmm yyyy">15 sep 2026</option>
+                      <option value="yyyy-mm-dd">2026-09-15</option>
+                    </select>
+                  </label>
+                </div>
+              </div>
+
+              <div class="card">
+                <div class="card-head">
+                  <h2>
+                    <svg><use href="#ic-settings" /></svg>
+                    Preferencias
+                  </h2>
+                </div>
+                <div class="settingRow">
+                  <div class="text">
+                    <strong>Vista inicial</strong>
+                    <small>Qué sección se abre al ingresar al panel</small>
+                  </div>
+                  <label class="field">
+                    <select data-pref="homeView">
+                      <option value="dashboard">Dashboard</option>
+                      <option value="notificaciones">Notificaciones</option>
+                      <option value="ordenes">Órdenes</option>
+                      <option value="cargas">Cargas</option>
+                    </select>
+                  </label>
+                </div>
+                <div class="settingRow">
+                  <div class="text">
+                    <strong>Filas por página</strong>
+                    <small>En las tablas de órdenes y facturas</small>
+                  </div>
+                  <label class="field">
+                    <select data-pref="pageSize">
+                      <option value="10">10</option>
+                      <option value="25">25</option>
+                      <option value="50">50</option>
+                    </select>
+                  </label>
+                </div>
+                <div class="settingRow">
+                  <div class="text">
+                    <strong>Sidebar colapsado al iniciar</strong>
+                    <small>Más espacio para el contenido</small>
+                  </div>
+                  <label class="switch">
+                    <input type="checkbox" data-pref="startCollapsed" />
+                    <span class="track"></span>
+                  </label>
+                </div>
+                <div class="settingRow">
+                  <div class="text">
+                    <strong>Animaciones reducidas</strong>
+                    <small>Desactiva transiciones y efectos</small>
+                  </div>
+                  <label class="switch">
+                    <input type="checkbox" data-pref="reduceMotion" />
+                    <span class="track"></span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <!-- Notificaciones (config) -->
+            <div class="tab-panel" data-tab="notif">
+              <div class="card">
+                <div class="card-head">
+                  <h2>
+                    <svg><use href="#ic-notifications_active" /></svg>
+                    Qué querés recibir y por dónde
+                  </h2>
+                  <span class="hint">Los cambios se guardan automáticamente</span>
+                </div>
+                <div class="tableWrap" style="border: none; background: transparent">
+                  <table class="notifMatrix" id="notifMatrix">
+                    <thead>
+                      <tr>
+                        <th>Evento</th>
+                        <th>Panel</th>
+                        <th>Email</th>
+                        <th>WhatsApp</th>
+                      </tr>
+                    </thead>
+                    <tbody></tbody>
+                  </table>
+                </div>
+              </div>
+
+              <div class="card">
+                <div class="card-head">
+                  <h2>
+                    <svg><use href="#ic-schedule" /></svg>
+                    Resúmenes y sonido
+                  </h2>
+                </div>
+                <div class="settingRow">
+                  <div class="text">
+                    <strong>Resumen diario por email</strong>
+                    <small>Ventas, reservas y stock del día, todos los días a las 20:00</small>
+                  </div>
+                  <label class="switch">
+                    <input type="checkbox" data-pref="dailyDigest" checked />
+                    <span class="track"></span>
+                  </label>
+                </div>
+                <div class="settingRow">
+                  <div class="text">
+                    <strong>Resumen semanal de analíticas</strong>
+                    <small>Los lunes a la mañana</small>
+                  </div>
+                  <label class="switch">
+                    <input type="checkbox" data-pref="weeklyDigest" checked />
+                    <span class="track"></span>
+                  </label>
+                </div>
+                <div class="settingRow">
+                  <div class="text">
+                    <strong>Sonido en el panel</strong>
+                    <small>Reproduce un aviso al llegar una notificación</small>
+                  </div>
+                  <label class="switch">
+                    <input type="checkbox" data-pref="sound" />
+                    <span class="track"></span>
+                  </label>
+                </div>
+                <div class="settingRow">
+                  <div class="text">
+                    <strong>No molestar</strong>
+                    <small>Silencia todo entre las 22:00 y las 08:00</small>
+                  </div>
+                  <label class="switch">
+                    <input type="checkbox" data-pref="dnd" />
+                    <span class="track"></span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <!-- Acerca de -->
+            <div class="tab-panel" data-tab="about">
+              <div class="card">
+                <div class="about-hero">
+                  <img src="/assets/images/isotipo.png" alt="" />
+                  <div>
+                    <h3>ComputerSell Panel</h3>
+                    <span>Versión 1.0.0 · Panel de administración de la tienda</span>
+                  </div>
+                </div>
+                <p style="color: var(--ink-soft); font-size: 14px; margin: 0">
+                  Este panel centraliza la gestión de <strong>ComputerSell</strong>:
+                  seguimiento de ventas y reservas, facturación, analíticas de
+                  rendimiento y carga de productos al catálogo. Todo lo que
+                  publicás desde acá se refleja en la tienda con el mismo diseño
+                  que ven los clientes.
+                </p>
+                <div class="about-grid">
+                  <div class="about-stat">
+                    <small>Versión</small>
+                    <strong>1.0.0</strong>
+                  </div>
+                  <div class="about-stat">
+                    <small>Última actualización</small>
+                    <strong>15 sep 2026</strong>
+                  </div>
+                  <div class="about-stat">
+                    <small>Entorno</small>
+                    <strong>Producción</strong>
+                  </div>
+                  <div class="about-stat">
+                    <small>Tienda</small>
+                    <strong>computersell.com.ar</strong>
+                  </div>
+                </div>
+              </div>
+
+              <div class="grid-2">
+                <div class="card">
+                  <div class="card-head">
+                    <h2>
+                      <svg><use href="#ic-help" /></svg>
+                      Soporte y recursos
+                    </h2>
+                  </div>
+                  <div class="about-links">
+                    <a href="/index.html" target="_blank" rel="noopener">
+                      <svg><use href="#ic-storefront" /></svg>
+                      Ver la tienda
+                    </a>
+                    <a href="#" data-toast="Próximamente: centro de ayuda">
+                      <svg><use href="#ic-help" /></svg>
+                      Centro de ayuda
+                    </a>
+                    <a href="mailto:soporte@computersell.com.ar">
+                      <svg><use href="#ic-mail" /></svg>
+                      soporte@computersell.com.ar
+                    </a>
+                    <a href="https://wa.me/5491100000000" target="_blank" rel="noopener">
+                      <svg><use href="#ic-whatsapp" /></svg>
+                      WhatsApp
+                    </a>
+                  </div>
+                  <span class="sectionTitle">Tecnologías</span>
+                  <p style="color: var(--ink-soft); font-size: 13.5px; margin: 0">
+                    HTML, CSS y JavaScript sin frameworks · Tipografías Inter y
+                    Montserrat · Íconos Material Symbols (SVG) · Los datos de esta
+                    versión se guardan en el navegador (localStorage).
+                  </p>
+                </div>
+
+                <div class="card">
+                  <div class="card-head">
+                    <h2>
+                      <svg><use href="#ic-description" /></svg>
+                      Novedades
+                    </h2>
+                  </div>
+                  <ul class="changelog">
+                    <li>
+                      <span class="ver">1.0.0<small>sep 2026</small></span>
+                      <ul>
+                        <li>Panel inicial con dashboard y analíticas</li>
+                        <li>Gestión de ventas, reservas y facturas</li>
+                        <li>Formulario completo de carga de productos</li>
+                        <li>Búsqueda rápida (Ctrl K) y notificaciones</li>
+                      </ul>
+                    </li>
+                    <li>
+                      <span class="ver">0.9.0<small>ago 2026</small></span>
+                      <ul>
+                        <li>Checkout con tarjeta animada y transferencia</li>
+                        <li>Carrito y favoritos persistentes</li>
+                      </ul>
+                    </li>
+                    <li>
+                      <span class="ver">0.8.0<small>jul 2026</small></span>
+                      <ul>
+                        <li>Catálogo con filtros por categoría, marca y precio</li>
+                        <li>Ficha de producto con galería y opiniones</li>
+                      </ul>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== Drawer: detalle de orden / reserva ===== -->
+    <div class="drawer-backdrop" id="drawerBackdrop"></div>
+    <aside class="drawer" id="drawer" aria-hidden="true">
+      <div class="drawer-head">
+        <h3 id="drawerTitle">Orden</h3>
+        <button class="iconBtn is-sm" type="button" id="drawerClose" aria-label="Cerrar">
+          <svg><use href="#ic-close" /></svg>
+        </button>
+      </div>
+      <div class="drawer-body" id="drawerBody"></div>
+      <div class="drawer-foot" id="drawerFoot"></div>
+    </aside>
+
+    <!-- ===== Búsqueda rápida ===== -->
+    <div class="modal-backdrop palette-backdrop" id="paletteBackdrop">
+      <div class="palette" id="palette" role="dialog" aria-label="Búsqueda rápida">
+        <div class="palette-input">
+          <svg><use href="#ic-search" /></svg>
+          <input
+            type="text"
+            id="paletteInput"
+            placeholder="Buscar en todo el panel…"
+            autocomplete="off"
+          />
+          <kbd>Esc</kbd>
+        </div>
+        <div class="palette-crumb" id="paletteCrumb">
+          <button class="palette-back" type="button" id="paletteBack">
+            <svg><use href="#ic-arrow_back" /></svg>
+            Volver
+          </button>
+          <span class="palette-crumb-title" id="paletteCrumbTitle"></span>
+          <button class="btn-text" type="button" id="paletteOpenSection">
+            Abrir sección
+            <svg><use href="#ic-arrow_forward" /></svg>
+          </button>
+        </div>
+        <div class="palette-track" id="paletteTrack">
+          <div class="palette-pane">
+            <div class="palette-results" id="paletteResults"></div>
+          </div>
+          <div class="palette-pane">
+            <div class="palette-results" id="paletteDetail"></div>
+          </div>
+        </div>
+        <div class="palette-foot">
+          <span><kbd>↑</kbd><kbd>↓</kbd> navegar</span>
+          <span><kbd>Enter</kbd> abrir</span>
+          <span><kbd>←</kbd> volver</span>
+          <span><kbd>Esc</kbd> cerrar</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== Modal genérico (confirmaciones, previsualización) ===== -->
+    <div class="modal-backdrop" id="modalBackdrop">
+      <div class="modal" id="modal"></div>
+    </div>
+
+    <div class="toast-wrap" id="toasts"></div>
+
+    <script src="/assets/js/utils.js"></script>
+    <script src="/assets/js/pages/dashboard.js"></script>
+  </body>
+</html>

@@ -1,0 +1,7 @@
+# Normaliza los finales de linea: LF en el repo, lo nativo en cada maquina.
+* text=auto
+
+# Binarios: no tocar.
+*.png binary
+*.jpg binary
+*.svg text

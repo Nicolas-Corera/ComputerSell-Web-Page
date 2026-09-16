@@ -1,0 +1,490 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Perfil — ComputerSell</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15/dist/gsap.min.js"></script>
+    <link rel="stylesheet" href="/assets/css/base.css" />
+    <link rel="stylesheet" href="/assets/css/loader.css" />
+    <link rel="stylesheet" href="/assets/css/header.css" />
+    <link rel="stylesheet" href="/assets/css/footer.css" />
+    <link rel="stylesheet" href="/assets/css/components/buttons.css" />
+    <link rel="stylesheet" href="/assets/css/components/product-card.css" />
+    <link rel="stylesheet" href="/assets/css/components/cart-drawer.css" />
+    <link rel="stylesheet" href="/assets/css/components/menu-drawer.css" />
+    <link rel="stylesheet" href="/assets/css/components/page.css" />
+    <link rel="stylesheet" href="/assets/css/components/qty-selector.css" />
+    <link rel="stylesheet" href="/assets/css/pages/perfil.css" />
+    <link rel="stylesheet" href="/assets/css/responsive.css" />
+  </head>
+
+  <body class="is-loading" id="inicio">
+    <script src="/assets/js/sprite.js"></script>
+    <!-- <div class="loader-wrap">
+      <div class="loader-number" id="loaderNumber">0</div>
+    </div> -->
+    <div class="site" id="site">
+      <div class="marquee">
+        <div class="marquee-content">
+          <span class="marquee-item"
+            ><svg class="ic-sm"><use href="#ic-percent_discount" /></svg>
+            Ofertas imperdibles en selectos productos</span
+          >
+          <span>•</span>
+          <span class="marquee-item"
+            ><svg class="ic-sm"><use href="#ic-shipping_truck" /></svg>Envíos
+            gratias en productos seleccionados</span
+          >
+          <span>•</span>
+          <span class="marquee-item"
+            ><svg class="ic-sm"><use href="#ic-sell_tag" /></svg>Hasta 3 cuotas
+            sin interes en compras superiores al $1.200.000</span
+          >
+        </div>
+      </div>
+      <header class="navbar" id="navbar">
+        <div class="logo" onclick="window.location.href = '/'">
+          <img src="/assets/images/isotipo.png" alt="" />
+          <span>ComputerSell</span>
+        </div>
+        <nav class="listItems">
+          <li class="item" id="productsMenuBtn">
+            <span class="item-spn2">Productos</span>
+          </li>
+          <li
+            class="item"
+            onclick="
+              window.location.href = '/productos.html?categoria=computadoras'
+            "
+          >
+            <span class="item-spn2">Computadoras</span>
+          </li>
+          <li
+            class="item"
+            onclick="
+              window.location.href = '/productos.html?categoria=notebooks'
+            "
+          >
+            <span class="item-spn2">Notebooks</span>
+          </li>
+          <li class="item"><span class="item-spn2">Nosotros</span></li>
+          <li class="item"><span class="item-spn2">Contacto</span></li>
+        </nav>
+        <div class="actionIcons">
+          <li class="actIcon" id="favBtn">
+            <span class="cartIconWrap">
+              <svg class="ic-md"><use href="#ic-favorite" /></svg>
+              <span class="favBadge" id="favBadge"></span>
+            </span>
+            <span class="actLabel">FAVORITOS</span>
+          </li>
+          <li class="actIcon" onclick="window.location.href = '/acceso.html'">
+            <svg class="ic-md"><use href="#ic-person" /></svg>
+            <span class="actLabel">ACCEDER</span>
+          </li>
+          <li class="actIcon" id="cartBtn">
+            <span class="cartIconWrap">
+              <svg class="ic-md"><use href="#ic-shopping_bag" /></svg>
+              <span class="cartBadge" id="cartBadge"></span>
+            </span>
+            <span class="actLabel">CARRITO</span>
+          </li>
+          <li class="actIcon navToggle" id="navToggle" aria-label="Abrir menú">
+            <svg class="ic-md"><use href="#ic-menu" /></svg>
+          </li>
+        </div>
+      </header>
+
+      <main class="container page-container">
+        <div class="page-head">
+          <h1>Mi perfil</h1>
+          <span
+            >Actualizá tu foto, tus datos personales y tu dirección de
+            facturación. Desde acá también podés revisar tus compras y
+            facturas.</span
+          >
+        </div>
+
+        <!-- ===== Perfil editable ===== -->
+        <section class="profile-grid">
+          <div class="card avatar-card">
+            <div class="avatar-wrap">
+              <div class="avatar-photo" id="avatarPhoto">
+                <svg class="ic-lg"><use href="#ic-person" /></svg>
+              </div>
+              <button
+                class="avatar-edit-btn"
+                id="avatarEditBtn"
+                type="button"
+                aria-label="Cambiar foto de perfil"
+              >
+                <svg class="ic-sm"><use href="#ic-camera" /></svg>
+              </button>
+              <input type="file" id="avatarInput" accept="image/*" hidden />
+            </div>
+            <h2 id="avatarName">Nombre Apellido</h2>
+            <span class="avatar-email" id="avatarEmail">tu@email.com</span>
+            <button class="avatar-remove" id="avatarRemoveBtn" type="button">
+              <svg class="ic-sm"><use href="#ic-close" /></svg>
+              Quitar foto
+            </button>
+          </div>
+
+          <div class="card form-card">
+            <h3>Información personal</h3>
+            <p class="form-sub">
+              Estos datos se usan para tu cuenta y tus compras.
+            </p>
+
+            <form id="profileForm">
+              <div class="form-section">
+                <div class="form-section-title">
+                  <svg><use href="#ic-badge" /></svg>
+                  Datos personales
+                </div>
+                <div class="form-grid">
+                  <div class="field">
+                    <label for="nombre">Nombre</label>
+                    <input type="text" id="nombre" placeholder="Juan" />
+                  </div>
+                  <div class="field">
+                    <label for="apellido">Apellido</label>
+                    <input type="text" id="apellido" placeholder="Pérez" />
+                  </div>
+                  <div class="field">
+                    <label for="email">Email</label>
+                    <input
+                      type="email"
+                      id="email"
+                      placeholder="juan.perez@email.com"
+                    />
+                  </div>
+                  <div class="field">
+                    <label for="telefono">Número de teléfono</label>
+                    <input
+                      type="tel"
+                      id="telefono"
+                      placeholder="+54 9 11 0000-0000"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-section">
+                <div class="form-section-title">
+                  <svg><use href="#ic-location" /></svg>
+                  Dirección de facturación
+                </div>
+                <div class="form-grid">
+                  <div class="field full">
+                    <label for="calle">Calle y número</label>
+                    <input
+                      type="text"
+                      id="calle"
+                      placeholder="Av. Siempre Viva 742"
+                    />
+                  </div>
+                  <div class="field">
+                    <label for="piso">Piso / Depto (opcional)</label>
+                    <input type="text" id="piso" placeholder="3° B" />
+                  </div>
+                  <div class="field">
+                    <label for="cp">Código postal</label>
+                    <input type="text" id="cp" placeholder="C1000" />
+                  </div>
+                  <div class="field">
+                    <label for="ciudad">Ciudad</label>
+                    <input type="text" id="ciudad" placeholder="Buenos Aires" />
+                  </div>
+                  <div class="field">
+                    <label for="provincia">Provincia</label>
+                    <input
+                      type="text"
+                      id="provincia"
+                      placeholder="Buenos Aires"
+                    />
+                  </div>
+                  <div class="field full">
+                    <label for="pais">País</label>
+                    <select id="pais">
+                      <option value="Argentina" selected>Argentina</option>
+                      <option value="Chile">Chile</option>
+                      <option value="Uruguay">Uruguay</option>
+                      <option value="Paraguay">Paraguay</option>
+                      <option value="Otro">Otro</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-actions">
+                <button class="btn btn-secondary" type="submit">
+                  <svg class="ic-sm"><use href="#ic-check" /></svg>
+                  Guardar cambios
+                </button>
+                <button class="btn btn-third" type="reset" id="cancelBtn">
+                  Cancelar
+                </button>
+                <span class="save-toast" id="saveToast">
+                  <svg><use href="#ic-check" /></svg>
+                  Perfil actualizado
+                </span>
+              </div>
+            </form>
+          </div>
+        </section>
+
+        <!-- ===== Tabs: compras / facturas / ayuda ===== -->
+        <section class="tabs-wrap">
+          <div class="tabs-nav">
+            <button class="tab-btn is-active" data-tab="compras" type="button">
+              <svg><use href="#ic-shopping_bag" /></svg>
+              Mis compras
+            </button>
+            <button class="tab-btn" data-tab="facturas" type="button">
+              <svg><use href="#ic-document" /></svg>
+              Mis facturas
+            </button>
+            <a class="tab-btn tab-help" href="/contacto.html">
+              <svg><use href="#ic-help" /></svg>
+              ¿Necesitás ayuda?
+            </a>
+          </div>
+
+          <!-- Mis compras -->
+          <div class="tab-panel is-active" id="panel-compras">
+            <div class="list-card">
+              <div class="list-card-icon">
+                <svg class="ic-md"><use href="#ic-shopping_bag" /></svg>
+              </div>
+              <div class="list-card-body">
+                <div class="title-row">
+                  <strong>Pedido #48213</strong>
+                  <span class="badge badge-ok">Entregado</span>
+                </div>
+                <div class="meta">
+                  12 ago 2026 · 2 productos · PC Gamer Ryzen 5 + Mouse RGB
+                </div>
+              </div>
+              <div class="list-card-right">
+                <span class="list-card-amount">1.450.000</span>
+                <a
+                  class="icon-btn"
+                  href="/compra-detalle.html?id=48213"
+                  aria-label="Ver detalle del pedido"
+                >
+                  <svg><use href="#ic-arrow_forward" /></svg>
+                </a>
+              </div>
+            </div>
+
+            <div class="list-card">
+              <div class="list-card-icon">
+                <svg class="ic-md"><use href="#ic-shopping_bag" /></svg>
+              </div>
+              <div class="list-card-body">
+                <div class="title-row">
+                  <strong>Pedido #47950</strong>
+                  <span class="badge badge-pending">En camino</span>
+                </div>
+                <div class="meta">
+                  30 ago 2026 · 1 producto · Notebook 15" i5
+                </div>
+              </div>
+              <div class="list-card-right">
+                <span class="list-card-amount">980.000</span>
+                <a
+                  class="icon-btn"
+                  href="/compra-detalle.html?id=47950"
+                  aria-label="Ver detalle del pedido"
+                >
+                  <svg><use href="#ic-arrow_forward" /></svg>
+                </a>
+              </div>
+            </div>
+
+            <div class="list-card">
+              <div class="list-card-icon">
+                <svg class="ic-md"><use href="#ic-shopping_bag" /></svg>
+              </div>
+              <div class="list-card-body">
+                <div class="title-row">
+                  <strong>Pedido #46102</strong>
+                  <span class="badge badge-ok">Entregado</span>
+                </div>
+                <div class="meta">
+                  02 jul 2026 · 3 productos · Teclado, mouse y auriculares
+                </div>
+              </div>
+              <div class="list-card-right">
+                <span class="list-card-amount">210.500</span>
+                <a
+                  class="icon-btn"
+                  href="/compra-detalle.html?id=46102"
+                  aria-label="Ver detalle del pedido"
+                >
+                  <svg><use href="#ic-arrow_forward" /></svg>
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <!-- Mis facturas -->
+          <div class="tab-panel" id="panel-facturas">
+            <div class="list-card">
+              <div class="list-card-icon">
+                <svg class="ic-md"><use href="#ic-document" /></svg>
+              </div>
+              <div class="list-card-body">
+                <div class="title-row">
+                  <strong>Factura A-0001-00048213</strong>
+                  <span class="badge badge-ok">Pagada</span>
+                </div>
+                <div class="meta">Emitida el 12 ago 2026 · Pedido #48213</div>
+              </div>
+              <div class="list-card-right">
+                <span class="list-card-amount">1.450.000</span>
+                <button class="icon-btn" aria-label="Descargar factura">
+                  <svg><use href="#ic-download" /></svg>
+                </button>
+              </div>
+            </div>
+
+            <div class="list-card">
+              <div class="list-card-icon">
+                <svg class="ic-md"><use href="#ic-document" /></svg>
+              </div>
+              <div class="list-card-body">
+                <div class="title-row">
+                  <strong>Factura A-0001-00047950</strong>
+                  <span class="badge badge-sent">Enviada</span>
+                </div>
+                <div class="meta">Emitida el 30 ago 2026 · Pedido #47950</div>
+              </div>
+              <div class="list-card-right">
+                <span class="list-card-amount">980.000</span>
+                <button class="icon-btn" aria-label="Descargar factura">
+                  <svg><use href="#ic-download" /></svg>
+                </button>
+              </div>
+            </div>
+
+            <div class="list-card">
+              <div class="list-card-icon">
+                <svg class="ic-md"><use href="#ic-document" /></svg>
+              </div>
+              <div class="list-card-body">
+                <div class="title-row">
+                  <strong>Factura A-0001-00046102</strong>
+                  <span class="badge badge-ok">Pagada</span>
+                </div>
+                <div class="meta">Emitida el 02 jul 2026 · Pedido #46102</div>
+              </div>
+              <div class="list-card-right">
+                <span class="list-card-amount">210.500</span>
+                <button class="icon-btn" aria-label="Descargar factura">
+                  <svg><use href="#ic-download" /></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <footer class="site-footer">
+      <div class="footer-inner">
+        <div class="footer-top">
+          <div class="footer-col footer-brand">
+            <div class="logo">
+              <img src="/assets/images/isotipo.png" alt="" />
+              <span>ComputerSell</span>
+            </div>
+            <p>
+              Equipos armados a medida, componentes originales y garantía
+              oficial. Gaming, oficina y diseño: la PC que necesitás, al precio
+              justo.
+            </p>
+            <div class="footer-social">
+              <a href="#" aria-label="Instagram"
+                ><svg class="ic-sm"><use href="#ic-instagram" /></svg>
+              </a>
+              <a href="#" aria-label="Mercado Libre"
+                ><svg class="ic-sm"><use href="#ic-mercadolibre" /></svg>
+              </a>
+              <a href="#" aria-label="WhatsApp"
+                ><svg class="ic-sm"><use href="#ic-whatsapp" /></svg>
+              </a>
+            </div>
+          </div>
+
+          <!-- Productos -->
+          <div class="footer-col">
+            <h3>Productos</h3>
+            <ul>
+              <li><a href="#">PCs Armadas</a></li>
+              <li><a href="#">Notebooks</a></li>
+              <li><a href="#">Componentes</a></li>
+              <li><a href="#">Periféricos</a></li>
+              <li><a href="#">Ofertas</a></li>
+            </ul>
+          </div>
+
+          <!-- Ayuda -->
+          <div class="footer-col">
+            <h3>Ayuda</h3>
+            <ul>
+              <li><a href="#">Preguntas frecuentes</a></li>
+              <li><a href="#">Envíos</a></li>
+              <li><a href="#">Cambios y devoluciones</a></li>
+              <li><a href="#">Garantía</a></li>
+              <li><a href="#">Métodos de pago</a></li>
+            </ul>
+          </div>
+
+          <!-- Contacto -->
+          <div class="footer-col">
+            <h3>Contacto</h3>
+            <ul class="footer-contact">
+              <li>
+                <svg class="ic-sm"><use href="#ic-phone" /></svg>
+                <span>Tel:</span><a href="#">+54 9 11 2358-9249</a>
+              </li>
+              <li>
+                <svg class="ic-sm"><use href="#ic-mail" /></svg>
+                <span>Email:</span><a href="#">contacto@computersell.com.ar</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="footer-bottom">
+          <span
+            >© <span id="footerYear">2026</span> ComputerSell. Todos los
+            derechos reservados.</span
+          >
+          <div class="footer-bottom-links">
+            <a href="#">Términos y condiciones</a>
+            <a href="#">Privacidad</a>
+          </div>
+          <div class="footer-payments">Visa · Mastercard · Mercado Pago</div>
+        </div>
+      </div>
+    </footer>
+
+    <script src="/assets/js/loader.js"></script>
+    <script src="/assets/js/navbar.js"></script>
+    <script src="/assets/js/menu.js"></script>
+    <script src="/assets/js/utils.js"></script>
+    <script src="/assets/js/perfil.js"></script>
+    <script src="/assets/js/favorites.js"></script>
+    <script src="/assets/js/cart.js"></script>
+  </body>
+</html>

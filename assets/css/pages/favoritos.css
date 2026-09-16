@@ -1,0 +1,6 @@
+/* Página: favoritos */
+
+/* Reutiliza la grilla de tarjetas (.listDestacados) sin el padding vertical de sección */
+.favGrid {
+  padding: 0;
+}

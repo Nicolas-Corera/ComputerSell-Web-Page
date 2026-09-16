@@ -1,0 +1,51 @@
+/* Selector de cantidad (−/+) — ficha de producto y página de carrito */
+
+.qty-selector {
+  display: flex;
+  align-items: center;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.qty-selector button {
+  width: 44px;
+  text-align: center;
+  background: var(--bg-1);
+  border: none;
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: 600;
+  padding: 10px 0;
+  transition: background 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  outline: none;
+}
+
+.qty-selector button:hover {
+  background: var(--bg-2);
+}
+
+.qty-selector input {
+  width: 44px;
+  text-align: center;
+  background: var(--bg-1);
+  border: none;
+  outline: none;
+  border-left: 1px solid var(--line);
+  border-right: 1px solid var(--line);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: 600;
+  padding: 10px 0;
+}
+
+.qty-selector input::-webkit-outer-spin-button,
+.qty-selector input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}

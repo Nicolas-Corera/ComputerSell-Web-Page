@@ -1,0 +1,642 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pago — ComputerSell</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15/dist/gsap.min.js"></script>
+    <link rel="stylesheet" href="/assets/css/base.css" />
+    <link rel="stylesheet" href="/assets/css/loader.css" />
+    <link rel="stylesheet" href="/assets/css/header.css" />
+    <link rel="stylesheet" href="/assets/css/footer.css" />
+    <link rel="stylesheet" href="/assets/css/components/buttons.css" />
+    <link rel="stylesheet" href="/assets/css/components/product-card.css" />
+    <link rel="stylesheet" href="/assets/css/components/cart-drawer.css" />
+    <link rel="stylesheet" href="/assets/css/components/menu-drawer.css" />
+    <link rel="stylesheet" href="/assets/css/components/page.css" />
+    <link rel="stylesheet" href="/assets/css/components/forms.css" />
+    <link rel="stylesheet" href="/assets/css/pages/pago.css" />
+    <link rel="stylesheet" href="/assets/css/responsive.css" />
+  </head>
+
+  <body class="is-loading" id="inicio">
+    <script src="/assets/js/sprite.js"></script>
+    <!-- <div class="loader-wrap">
+      <div class="loader-number" id="loaderNumber">0</div>
+    </div> -->
+    <div class="site" id="site">
+      <div class="marquee">
+        <div class="marquee-content">
+          <span class="marquee-item"
+            ><svg class="ic-sm">
+              <use href="#ic-percent_discount" />
+            </svg>
+            Ofertas imperdibles en selectos productos</span
+          >
+          <span>•</span>
+          <span class="marquee-item"
+            ><svg class="ic-sm">
+              <use href="#ic-shipping_truck" /></svg
+            >Envíos gratias en productos seleccionados</span
+          >
+          <span>•</span>
+          <span class="marquee-item"
+            ><svg class="ic-sm">
+              <use href="#ic-sell_tag" /></svg
+            >Hasta 3 cuotas sin interes en compras superiores al
+            $1.200.000</span
+          >
+        </div>
+      </div>
+      <header class="navbar" id="navbar">
+        <div class="logo" onclick="window.location.href = '/'">
+          <img src="/assets/images/isotipo.png" alt="" />
+          <span>ComputerSell</span>
+        </div>
+        <nav class="listItems">
+          <li class="item" id="productsMenuBtn">
+            <span class="item-spn2">Productos</span>
+          </li>
+          <li
+            class="item"
+            onclick="
+              window.location.href = '/productos.html?categoria=computadoras'
+            "
+          >
+            <span class="item-spn2">Computadoras</span>
+          </li>
+          <li
+            class="item"
+            onclick="
+              window.location.href = '/productos.html?categoria=notebooks'
+            "
+          >
+            <span class="item-spn2">Notebooks</span>
+          </li>
+          <li class="item"><span class="item-spn2">Nosotros</span></li>
+          <li class="item"><span class="item-spn2">Contacto</span></li>
+        </nav>
+        <div class="actionIcons">
+          <li class="actIcon" id="favBtn">
+            <span class="cartIconWrap">
+              <svg class="ic-md">
+                <use href="#ic-favorite" />
+              </svg>
+              <span class="favBadge" id="favBadge"></span>
+            </span>
+            <span class="actLabel">FAVORITOS</span>
+          </li>
+          <li class="actIcon" onclick="window.location.href = '/acceso.html'">
+            <svg class="ic-md">
+              <use href="#ic-person" />
+            </svg>
+            <span class="actLabel">ACCEDER</span>
+          </li>
+          <li class="actIcon" id="cartBtn">
+            <span class="cartIconWrap">
+              <svg class="ic-md">
+                <use href="#ic-shopping_bag" />
+              </svg>
+              <span class="cartBadge" id="cartBadge"></span>
+            </span>
+            <span class="actLabel">CARRITO</span>
+          </li>
+          <li class="actIcon navToggle" id="navToggle" aria-label="Abrir menú">
+            <svg class="ic-md"><use href="#ic-menu" /></svg>
+          </li>
+        </div>
+      </header>
+
+      <main class="container page-container">
+        <div class="page-head">
+          <h1>Pago</h1>
+          <span id="payCount"></span>
+        </div>
+
+        <div class="checkout" id="checkout" hidden>
+          <form class="checkout-main" id="checkoutForm" novalidate>
+            <!-- 1. Datos personales -->
+            <section class="checkout-section">
+              <h2><span class="step">1</span> Datos personales</h2>
+              <div class="formGrid">
+                <label class="field">
+                  <span>Nombre</span>
+                  <input
+                    type="text"
+                    name="nombre"
+                    data-titlecase
+                    autocomplete="given-name"
+                    required
+                  />
+                </label>
+                <label class="field">
+                  <span>Apellido</span>
+                  <input
+                    type="text"
+                    name="apellido"
+                    data-titlecase
+                    autocomplete="family-name"
+                    required
+                  />
+                </label>
+                <label class="field">
+                  <span>Email</span>
+                  <input
+                    type="email"
+                    name="email"
+                    autocomplete="email"
+                    placeholder="nombre@email.com"
+                    required
+                  />
+                </label>
+                <label class="field">
+                  <span>Teléfono</span>
+                  <input
+                    type="tel"
+                    name="telefono"
+                    id="telefono"
+                    inputmode="numeric"
+                    autocomplete="tel"
+                    placeholder="11 2345-6789"
+                    pattern="[0-9]{2} [0-9]{4}-[0-9]{4}"
+                    required
+                  />
+                </label>
+                <label class="field">
+                  <span>DNI</span>
+                  <input
+                    type="text"
+                    name="dni"
+                    id="dni"
+                    inputmode="numeric"
+                    pattern="[0-9]{1,2}\.[0-9]{3}\.[0-9]{3}"
+                    placeholder="30.123.456"
+                    required
+                  />
+                </label>
+              </div>
+            </section>
+
+            <!-- 2. Envío -->
+            <section class="checkout-section">
+              <h2><span class="step">2</span> Datos de envío</h2>
+              <p class="hint">
+                Envío a domicilio · Llega en 24/48 hs hábiles · $15.000
+              </p>
+              <div class="formGrid" id="addressFields">
+                <label class="field">
+                  <span>Calle</span>
+                  <input
+                    type="text"
+                    name="calle"
+                    data-titlecase
+                    autocomplete="address-line1"
+                    required
+                  />
+                </label>
+                <label class="field">
+                  <span>Número</span>
+                  <input
+                    type="text"
+                    name="numero"
+                    inputmode="numeric"
+                    required
+                  />
+                </label>
+                <label class="field">
+                  <span>Piso / Depto (opcional)</span>
+                  <input type="text" name="piso" autocomplete="address-line2" />
+                </label>
+                <label class="field">
+                  <span>Código postal</span>
+                  <input
+                    type="text"
+                    name="cp"
+                    inputmode="numeric"
+                    autocomplete="postal-code"
+                    required
+                  />
+                </label>
+                <label class="field">
+                  <span>Provincia</span>
+                  <select name="provincia" required>
+                    <option value="">Seleccionar</option>
+                    <option>Buenos Aires</option>
+                    <option>CABA</option>
+                    <option>Catamarca</option>
+                    <option>Chaco</option>
+                    <option>Chubut</option>
+                    <option>Córdoba</option>
+                    <option>Corrientes</option>
+                    <option>Entre Ríos</option>
+                    <option>Formosa</option>
+                    <option>Jujuy</option>
+                    <option>La Pampa</option>
+                    <option>La Rioja</option>
+                    <option>Mendoza</option>
+                    <option>Misiones</option>
+                    <option>Neuquén</option>
+                    <option>Río Negro</option>
+                    <option>Salta</option>
+                    <option>San Juan</option>
+                    <option>San Luis</option>
+                    <option>Santa Cruz</option>
+                    <option>Santa Fe</option>
+                    <option>Santiago del Estero</option>
+                    <option>Tierra del Fuego</option>
+                    <option>Tucumán</option>
+                  </select>
+                </label>
+                <label class="field">
+                  <span>Ciudad / Localidad</span>
+                  <input
+                    type="text"
+                    name="ciudad"
+                    data-titlecase
+                    autocomplete="address-level2"
+                    required
+                  />
+                </label>
+              </div>
+            </section>
+
+            <!-- 3. Forma de pago -->
+            <section class="checkout-section">
+              <h2><span class="step">3</span> Forma de pago</h2>
+              <div class="payTabs" role="tablist">
+                <button
+                  class="payTab is-active"
+                  type="button"
+                  data-method="credito"
+                >
+                  Tarjeta de crédito<small>+10% · hasta 12 cuotas</small>
+                </button>
+                <button class="payTab" type="button" data-method="debito">
+                  Tarjeta de débito<small>+3%</small>
+                </button>
+                <button
+                  class="payTab"
+                  type="button"
+                  data-method="transferencia"
+                >
+                  Transferencia<small>Sin recargo</small>
+                </button>
+              </div>
+
+              <!-- Panel tarjeta (crédito y débito) -->
+              <div class="payPanel is-active" data-panel="card">
+                <div class="cardLayout">
+                  <div class="cardPreview" id="cardPreview" aria-hidden="true">
+                    <div class="cardPreview-inner">
+                      <div class="cardPreview-front">
+                        <div class="cardPreview-top">
+                          <span class="cardPreview-chip"></span>
+                          <span class="cardPreview-brand" id="cardBrand"></span>
+                        </div>
+                        <div
+                          class="cardPreview-number cardPreview-focus"
+                          id="cardNumberPreview"
+                        ></div>
+                        <div class="cardPreview-bottom">
+                          <div class="cardPreview-focus cardPreview-name">
+                            <small>Titular</small>
+                            <span id="cardNamePreview" class="is-placeholder"
+                              >NOMBRE APELLIDO</span
+                            >
+                          </div>
+                          <div class="cardPreview-focus cardPreview-expiry">
+                            <small>Vence</small>
+                            <span id="cardExpiryPreview" class="is-placeholder"
+                              >MM/AA</span
+                            >
+                          </div>
+                        </div>
+                      </div>
+                      <div class="cardPreview-back">
+                        <div class="cardPreview-stripe"></div>
+                        <div class="cardPreview-cvvRow">
+                          <span class="cardPreview-signature"></span>
+                          <span class="cardPreview-cvv" id="cardCvvPreview"
+                            >•••</span
+                          >
+                        </div>
+                        <span
+                          class="cardPreview-backBrand"
+                          id="cardBackBrand"
+                        ></span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="formGrid">
+                    <label class="field is-full">
+                      <span>Número de tarjeta</span>
+                      <input
+                        type="text"
+                        id="cardNumber"
+                        inputmode="numeric"
+                        autocomplete="cc-number"
+                        placeholder="0000 0000 0000 0000"
+                        required
+                      />
+                    </label>
+                    <label class="field is-full">
+                      <span>Nombre en la tarjeta</span>
+                      <input
+                        type="text"
+                        id="cardName"
+                        autocomplete="cc-name"
+                        placeholder="Como figura en la tarjeta"
+                        required
+                      />
+                    </label>
+                    <label class="field">
+                      <span>Vencimiento</span>
+                      <input
+                        type="text"
+                        id="cardExpiry"
+                        inputmode="numeric"
+                        autocomplete="cc-exp"
+                        placeholder="MM/AA"
+                        required
+                      />
+                    </label>
+                    <label class="field">
+                      <span>Código de seguridad</span>
+                      <input
+                        type="text"
+                        id="cardCvv"
+                        inputmode="numeric"
+                        autocomplete="cc-csc"
+                        placeholder="CVV"
+                        maxlength="3"
+                        required
+                      />
+                    </label>
+                    <label class="field is-full" id="cuotasField">
+                      <span>Cuotas</span>
+                      <select id="cuotas">
+                        <option value="1">1 cuota</option>
+                        <option value="3">3 cuotas</option>
+                        <option value="6">6 cuotas</option>
+                        <option value="12">12 cuotas</option>
+                      </select>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Panel transferencia -->
+              <div class="payPanel" data-panel="transferencia">
+                <div class="transferBox">
+                  <p>
+                    Transferí el total a la siguiente cuenta. El pedido se
+                    confirma cuando se acredita el pago (hasta 24 hs hábiles).
+                  </p>
+                  <dl>
+                    <dt>Titular</dt>
+                    <dd>ComputerSell S.R.L.</dd>
+                    <dt>CBU</dt>
+                    <dd>0000003100012345678901</dd>
+                    <dt>Alias</dt>
+                    <dd>COMPUTERSELL.PAGOS</dd>
+                    <dt>CUIT</dt>
+                    <dd>30-12345678-9</dd>
+                  </dl>
+                  <span class="discountNote"
+                    >Sin recargo por medio de pago</span
+                  >
+                </div>
+
+                <div class="field">
+                  <span>Comprobante de transferencia</span>
+                  <label class="fileDrop" id="receiptDrop">
+                    <input
+                      type="file"
+                      id="receiptInput"
+                      accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png"
+                      required
+                    />
+                    <svg class="fileDrop-icon">
+                      <use href="#ic-add" />
+                    </svg>
+                    <span class="fileDrop-text" id="receiptText">
+                      <strong>Subí el comprobante</strong>
+                      <small>PDF, JPG o PNG · hasta 5 MB</small>
+                    </span>
+                  </label>
+                  <div class="fileDrop-file" id="receiptFile" hidden>
+                    <span class="fileDrop-name" id="receiptName"></span>
+                    <button
+                      type="button"
+                      class="fileDrop-remove"
+                      id="receiptRemove"
+                    >
+                      Quitar
+                    </button>
+                  </div>
+                  <span class="fileDrop-error" id="receiptError" hidden></span>
+                </div>
+              </div>
+            </section>
+
+            <button
+              class="btn btn-secondary checkout-pay"
+              id="payBtn"
+              type="submit"
+            >
+              Pagar
+            </button>
+          </form>
+
+          <!-- Resumen -->
+          <aside class="checkout-summary">
+            <h2>Tu compra</h2>
+            <ul class="summaryItems" id="summaryItems"></ul>
+            <div class="summaryLines">
+              <div class="summaryLine">
+                <span>Subtotal</span>
+                <strong id="sumSubtotal">0</strong>
+              </div>
+              <div class="summaryLine">
+                <span id="sumShippingLabel">Envío</span>
+                <strong id="sumShipping">0</strong>
+              </div>
+              <div class="summaryLine">
+                <span id="sumPaymentLabel">Medio de pago</span>
+                <strong id="sumPayment">0</strong>
+              </div>
+            </div>
+            <div class="summaryTotal">
+              <span>Total</span>
+              <strong id="sumTotal">0</strong>
+            </div>
+            <span class="summaryCuotas" id="sumCuotas" hidden></span>
+
+            <span class="checkout-secure">
+              Compra protegida · Tus datos viajan cifrados
+            </span>
+          </aside>
+        </div>
+
+        <!-- Resumen desplegable desde abajo (móvil/tablet): aparece cuando el
+             resumen de arriba sale de la vista al scrollear -->
+        <div class="summarySheet-backdrop" id="summarySheetBackdrop"></div>
+        <div class="summarySheet" id="summarySheet" aria-hidden="true">
+          <div class="summarySheet-body" id="summarySheetBody"></div>
+          <button
+            type="button"
+            class="summarySheet-bar"
+            id="summarySheetToggle"
+            aria-expanded="false"
+            aria-controls="summarySheetBody"
+          >
+            <span class="summarySheet-label">Total</span>
+            <strong class="summarySheet-total" id="summarySheetTotal">0</strong>
+            <span class="summarySheet-hint">Ver resumen</span>
+            <svg class="ic-md summarySheet-chevron"><use href="#ic-expand_more" /></svg>
+          </button>
+        </div>
+
+        <div class="emptyState" id="checkoutEmpty" hidden>
+          <svg><use href="#ic-shopping_bag" /></svg>
+          <h2>No hay nada para pagar</h2>
+          <p>
+            Tu carrito está vacío. Agregá productos para continuar con la
+            compra.
+          </p>
+          <button
+            class="btn btn-secondary"
+            onclick="window.location.href = '/productos.html'"
+          >
+            Ver productos
+          </button>
+        </div>
+
+        <div class="checkout-success" id="checkoutSuccess" hidden>
+          <span class="check"
+            ><svg><use href="#ic-check" /></svg
+          ></span>
+          <h2>¡Pedido confirmado!</h2>
+          <p>
+            Te enviamos el detalle por email. Pagaste con
+            <strong id="orderMethod"></strong> un total de
+            <strong>$<span id="orderTotal"></span></strong>.
+          </p>
+          <span class="orderNumber">Pedido <span id="orderNumber"></span></span>
+          <button
+            class="btn btn-secondary"
+            onclick="window.location.href = '/productos.html'"
+          >
+            Seguir comprando
+          </button>
+        </div>
+      </main>
+    </div>
+
+    <footer class="site-footer">
+      <div class="footer-inner">
+        <div class="footer-top">
+          <!-- Marca -->
+          <div class="footer-col footer-brand">
+            <div class="logo">
+              <img src="/assets/images/isotipo.png" alt="" />
+              <span>ComputerSell</span>
+            </div>
+            <p>
+              Equipos armados a medida, componentes originales y garantía
+              oficial. Gaming, oficina y diseño: la PC que necesitás, al precio
+              justo.
+            </p>
+            <div class="footer-social">
+              <a href="#" aria-label="Instagram"
+                ><svg class="ic-sm">
+                  <use href="#ic-instagram" />
+                </svg>
+              </a>
+              <a href="#" aria-label="Mercado Libre"
+                ><svg class="ic-sm">
+                  <use href="#ic-mercadolibre" />
+                </svg>
+              </a>
+              <a href="#" aria-label="WhatsApp"
+                ><svg class="ic-sm">
+                  <use href="#ic-whatsapp" />
+                </svg>
+              </a>
+            </div>
+          </div>
+
+          <!-- Productos -->
+          <div class="footer-col">
+            <h3>Productos</h3>
+            <ul>
+              <li><a href="#">PCs Armadas</a></li>
+              <li><a href="#">Notebooks</a></li>
+              <li><a href="#">Componentes</a></li>
+              <li><a href="#">Periféricos</a></li>
+              <li><a href="#">Ofertas</a></li>
+            </ul>
+          </div>
+
+          <!-- Ayuda -->
+          <div class="footer-col">
+            <h3>Ayuda</h3>
+            <ul>
+              <li><a href="#">Preguntas frecuentes</a></li>
+              <li><a href="#">Envíos</a></li>
+              <li><a href="#">Cambios y devoluciones</a></li>
+              <li><a href="#">Garantía</a></li>
+              <li><a href="#">Métodos de pago</a></li>
+            </ul>
+          </div>
+
+          <!-- Contacto -->
+          <div class="footer-col">
+            <h3>Contacto</h3>
+            <ul class="footer-contact">
+              <li>
+                <svg class="ic-sm">
+                  <use href="#ic-phone" />
+                </svg>
+                <span>Tel:</span><a href="#">+54 9 11 2358-9249</a>
+              </li>
+              <li>
+                <svg class="ic-sm">
+                  <use href="#ic-mail" />
+                </svg>
+                <span>Email:</span><a href="#">contacto@computersell.com.ar</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="footer-bottom">
+          <span
+            >© <span id="footerYear">2026</span> ComputerSell. Todos los
+            derechos reservados.</span
+          >
+          <div class="footer-bottom-links">
+            <a href="#">Términos y condiciones</a>
+            <a href="#">Privacidad</a>
+          </div>
+          <div class="footer-payments">Visa · Mastercard · Mercado Pago</div>
+        </div>
+      </div>
+    </footer>
+
+    <script src="/assets/js/loader.js"></script>
+    <script src="/assets/js/navbar.js"></script>
+    <script src="/assets/js/menu.js"></script>
+    <script src="/assets/js/utils.js"></script>
+    <script src="/assets/js/cart.js"></script>
+    <script src="/assets/js/favorites.js"></script>
+    <script src="/assets/js/pages/pago.js"></script>
+  </body>
+</html>

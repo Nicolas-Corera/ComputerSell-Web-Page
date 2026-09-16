@@ -1,0 +1,524 @@
+/* Reglas responsive compartidas por todo el sitio. Se carga al final para
+   sobrescribir a los demás estilos.
+
+   Breakpoints:
+     xs  <  576px   móvil (360–430 típico)
+     sm  576–767px  tablet chica
+     md  768–991px  tablet grande / laptop chica
+     lg  992–1199px laptop / escritorio
+     xl  >= 1200px  pantallas grandes (contenedor tope: --container-w)
+
+   Las páginas siguen teniendo sus propias reglas específicas usando estos
+   mismos cortes. */
+
+/* ===== Header: menú hamburguesa (oculto en escritorio) ===== */
+
+.navToggle {
+  display: none;
+}
+
+/* ===== lg: 992–1199px ===== */
+@media (max-width: 1279.98px) {
+  .listItems {
+    gap: 1.25rem;
+    font-size: 16px;
+  }
+
+  .item {
+    padding: 0.5rem 0.6rem;
+  }
+}
+
+@media (max-width: 1199.98px) {
+  /* El listado deja de estar centrado en absoluto: se acomoda entre logo e íconos */
+  .listItems {
+    position: static;
+    transform: none;
+    gap: 0.75rem;
+    font-size: 15px;
+  }
+
+  .item {
+    padding: 0.4rem 0.5rem;
+  }
+}
+
+/* ===== md y menos: < 992px ===== */
+@media (max-width: 991.98px) {
+  /* Navbar: se oculta el listado y aparece la hamburguesa */
+  .listItems {
+    display: none;
+  }
+
+  .navToggle {
+    display: flex;
+  }
+
+  .actIcon .actLabel {
+    display: none;
+  }
+
+  /* El drawer de productos suma los links del sitio */
+  .menuDrawer-nav {
+    display: flex;
+  }
+
+  /* Cabeceras de sección en una columna */
+  .destacados-head,
+  .hardware-head,
+  .page-head {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .destacados-head span,
+  .hardware-text,
+  .page-head span {
+    text-align: left;
+    max-width: none;
+    align-items: flex-start;
+    justify-content: flex-start;
+  }
+
+  /* Hero del inicio en una columna */
+  .hero {
+    height: auto;
+    min-height: 0;
+    padding: calc(var(--topbar-h) + 4rem) 0 calc(var(--header-h) + 2rem);
+  }
+
+  .hero::before {
+    right: -30%;
+    width: 90vw;
+    height: 90vw;
+  }
+
+  .hero-inner {
+    grid-template-columns: 1fr;
+    gap: 2.5rem;
+  }
+
+  .hero-copy {
+    max-width: 620px;
+  }
+
+  .hero-visual {
+    justify-content: center;
+    order: -1;
+  }
+
+  .hero-visual img {
+    max-width: 520px;
+  }
+
+  .profile-grid {
+    grid-template-columns: 1fr;
+  }
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* Nosotros */
+  .split {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+
+  .split-media {
+    order: -1;
+  }
+
+  .section-head {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .section-head p {
+    text-align: left;
+    max-width: none;
+  }
+
+  .ctaBanner {
+    padding: 2.25rem;
+  }
+
+  /* Compra detalle */
+  .detail-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ===== sm y menos: < 768px ===== */
+@media (max-width: 767.98px) {
+  .container,
+  .hero-inner {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  .footer-inner {
+    padding: 3rem 1rem 1.5rem;
+  }
+
+  .section {
+    padding-block: 3rem;
+  }
+
+  .site-footer {
+    margin-top: 3rem;
+  }
+
+  .navbar {
+    padding: 0.3rem 1rem;
+  }
+
+  .hero-copy h1 {
+    font-size: clamp(2.2rem, 8vw, 3.2rem);
+  }
+
+  .hero-copy p {
+    font-size: 15px;
+    margin-bottom: 1.75rem;
+  }
+
+  .hero-actions {
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .hero-visual img {
+    max-width: 420px;
+  }
+
+  .listDestacados,
+  .listCarousel {
+    padding: 1.5rem 0;
+  }
+
+  /* Carrusel: las flechas quedan dentro del ancho de pantalla */
+  .carouselWrap .carousel-arrow--prev {
+    left: 6px;
+  }
+
+  .carouselWrap .carousel-arrow--next {
+    right: 6px;
+  }
+
+  .emptyState {
+    padding: 3rem 1rem;
+  }
+
+  /* Perfil */
+  .card {
+    padding: 22px;
+  }
+
+  .tabs-nav {
+    gap: 0;
+  }
+
+  .tab-btn {
+    padding: 12px 14px;
+    font-size: 14px;
+  }
+
+  .form-actions {
+    flex-wrap: wrap;
+  }
+
+  /* Nosotros */
+  .split-stats {
+    gap: 1rem;
+  }
+
+  .ctaBanner {
+    padding: 1.75rem;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .ctaBanner p {
+    max-width: none;
+  }
+
+  .ctaBanner-actions {
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  /* Contacto */
+  .contactForm {
+    padding: 1.75rem;
+  }
+
+  .formRow {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .formRow--motivo {
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .formRow--motivo > .field:first-child,
+  .formRow--motivo.has-extra > .field:first-child,
+  .formRow--motivo.has-extra #motivoExtraField {
+    flex: 0 0 auto;
+    width: 100%;
+  }
+
+  .formRow--motivo #motivoExtraField {
+    transform: none;
+  }
+
+  .formRow--motivo:not(.has-extra) #motivoExtraField {
+    display: none;
+  }
+
+  /* Compra detalle */
+  .order-head {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .order-head-actions {
+    width: 100%;
+  }
+
+  .order-head-actions .btn {
+    flex: 1;
+  }
+
+  .card {
+    padding: 20px;
+  }
+
+  .stepper {
+    justify-content: flex-start;
+  }
+
+  .step {
+    min-width: 110px;
+  }
+}
+
+/* ===== xs: < 576px ===== */
+@media (max-width: 575.98px) {
+  :root {
+    --header-h: 64px;
+  }
+
+  .logo {
+    gap: 0.6rem;
+  }
+
+  .logo img {
+    width: 38px;
+  }
+
+  .logo span {
+    font-size: 18px;
+  }
+
+  .actIcon {
+    padding: 0.4rem;
+  }
+
+  .hero-visual img {
+    max-width: 320px;
+  }
+
+  .hero-actions .btn-primary,
+  .hero-actions .btn-text {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .listDestacados {
+    grid-template-columns: 1fr;
+  }
+
+  .itemDestacado {
+    padding: 16px;
+  }
+
+  .bannerSections {
+    padding: 0.5rem;
+    border-radius: 20px;
+  }
+
+  .bannerSections img {
+    border-radius: 16px;
+  }
+
+  .masonry {
+    gap: 10px;
+  }
+
+  .masonry-item {
+    border-radius: 14px;
+  }
+
+  .cartDrawer,
+  .menuDrawer {
+    width: 100%;
+  }
+
+  /* Perfil */
+  .profile-grid {
+    gap: 16px;
+    padding: 0.5rem 0 2rem;
+  }
+
+  .card {
+    padding: 18px;
+  }
+
+  .avatar-wrap,
+  .avatar-photo {
+    width: 120px;
+    height: 120px;
+  }
+
+  .tab-btn {
+    padding: 12px 10px;
+    font-size: 13.5px;
+  }
+
+  .tab-btn svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .form-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .form-actions .btn-secondary,
+  .form-actions .btn-third {
+    width: 100%;
+  }
+
+  .list-card {
+    flex-wrap: wrap;
+    padding: 16px;
+    gap: 12px;
+  }
+
+  .list-card-icon {
+    width: 44px;
+    height: 44px;
+  }
+
+  .list-card-body {
+    flex-basis: calc(100% - 56px);
+  }
+
+  .list-card-right {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  /* Nosotros */
+  .split-stats {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .valorCard {
+    padding: 22px 18px;
+  }
+
+  .ctaBanner {
+    padding: 1.5rem;
+  }
+
+  .ctaBanner-actions,
+  .ctaBanner-actions .btn,
+  .ctaBanner-actions .btn-text {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Contacto */
+  .infoGrid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .contactForm {
+    padding: 1.25rem;
+  }
+
+  .contactForm .btn-secondary {
+    width: 100%;
+  }
+
+  .sidePanel-card .sidePanel-body,
+  .whatsapp-card {
+    padding: 1.1rem;
+  }
+
+  /* Compra detalle */
+  .order-head-actions {
+    flex-direction: column;
+  }
+
+  .order-head-actions .btn {
+    width: 100%;
+  }
+
+  .stepper {
+    gap: 4px;
+  }
+
+  .step {
+    min-width: 96px;
+  }
+
+  .step-icon {
+    width: 38px;
+    height: 38px;
+  }
+
+  .step::before {
+    top: 18px;
+  }
+
+  .step-label {
+    font-size: 12px;
+  }
+
+  .item-row {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .item-thumb {
+    width: 56px;
+    height: 56px;
+  }
+
+  .item-info {
+    flex-basis: calc(100% - 68px);
+  }
+
+  .item-qty,
+  .item-price {
+    flex: 1;
+  }
+
+  .item-price {
+    text-align: right;
+  }
+}
+
+@media (max-width: 375px) {
+  .logo span {
+    display: none;
+  }
+}

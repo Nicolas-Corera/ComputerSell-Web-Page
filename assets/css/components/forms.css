@@ -1,0 +1,180 @@
+/* Campos de formulario (checkout y futuros formularios del sitio) */
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px 16px;
+}
+
+.formGrid .is-full {
+  grid-column: 1 / -1;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.field > span {
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--ink-soft);
+}
+
+.field input,
+.field select {
+  width: 100%;
+  height: 46px;
+  padding: 0 14px;
+  background: var(--bg-0);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 14px;
+  outline: none;
+  transition:
+    border-color 0.15s ease-in-out,
+    box-shadow 0.15s ease-in-out;
+}
+
+.field input::placeholder {
+  color: rgba(160, 165, 172, 0.55);
+}
+
+.field input:focus,
+.field select:focus {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.18);
+}
+
+/* Solo marcamos error después de intentar enviar (form.is-submitted) */
+.is-submitted .field input:invalid,
+.is-submitted .field select:invalid {
+  border-color: #ff3b3b;
+}
+
+.field select {
+  appearance: none;
+  -webkit-appearance: none;
+  padding-right: 38px;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 -960 960 960' fill='%23a0a5ac'><path d='M480-344 240-584l56-56 184 184 184-184 56 56-240 240Z'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 18px;
+  cursor: pointer;
+}
+
+.field select option {
+  background: var(--bg-1);
+}
+
+.field input::-webkit-outer-spin-button,
+.field input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Opciones tipo tarjeta (radio) — ej. método de envío */
+.optionCards {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.optionCard {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  background: var(--bg-0);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease-in-out,
+    background 0.15s ease-in-out;
+}
+
+.optionCard:hover {
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
+.optionCard input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.optionCard .radio {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  border: 2px solid var(--ink-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.15s ease-in-out;
+}
+
+.optionCard .radio::after {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--blue);
+  transform: scale(0);
+  transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.optionCard input:checked ~ .radio {
+  border-color: var(--blue);
+}
+
+.optionCard input:checked ~ .radio::after {
+  transform: scale(1);
+}
+
+.optionCard:has(input:checked) {
+  border-color: var(--blue);
+  background: rgba(59, 130, 246, 0.08);
+}
+
+.optionCard-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.optionCard-body strong {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.optionCard-body small {
+  font-size: 12.5px;
+  color: var(--ink-soft);
+}
+
+.optionCard-price {
+  margin-left: auto;
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink);
+  white-space: nowrap;
+}
+
+@media (max-width: 575.98px) {
+  .formGrid,
+  .optionCards {
+    grid-template-columns: 1fr;
+  }
+}

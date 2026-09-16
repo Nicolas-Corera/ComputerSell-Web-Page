@@ -1,0 +1,219 @@
+/* Marquee superior, navbar y acciones (favoritos / cuenta / carrito) */
+
+.navbar {
+  top: calc(var(--topbar-h) - -12px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.3rem 1.5rem;
+  position: sticky;
+  z-index: 50;
+  width: 100%;
+  max-width: var(--container-w);
+  margin: 0 auto;
+  color: white;
+  min-height: var(--header-h);
+  backdrop-filter: blur(16px) saturate(140%);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
+  background: rgba(13, 15, 18, 0.85);
+  transition: background 0.3s ease;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.logo:hover {
+  cursor: pointer;
+}
+
+.logo img {
+  width: 50px;
+}
+
+.logo span {
+  font-size: 22px;
+  font-weight: bold;
+}
+
+.listItems {
+  position: absolute;
+  left: 50%;
+  transform: translate(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3rem;
+  font-size: 18px;
+}
+
+.item {
+  cursor: pointer;
+  position: relative;
+  padding: 0.5rem 0.8rem;
+
+  background:
+    linear-gradient(90deg, white, white) top left / 0 1px no-repeat,
+    linear-gradient(0deg, white, white) top left / 1px 0 no-repeat,
+    linear-gradient(90deg, white, white) bottom right / 0 1px no-repeat,
+    linear-gradient(0deg, white, white) bottom right / 1px 0 no-repeat;
+
+  transition: background-size 0.35s ease;
+}
+
+.item-spn2 {
+  position: relative;
+}
+
+.item:hover {
+  background-size:
+    50% 1px,
+    1px 50%,
+    50% 1px,
+    1px 50%;
+}
+
+.actionIcons {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* gap: 1rem; */
+  list-style: none;
+}
+
+.actIcon {
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  cursor: pointer;
+  position: relative;
+  padding: 0.5rem;
+}
+
+.actIcon .ic-md {
+  flex-shrink: 0;
+}
+
+.actIcon .actLabel {
+  display: inline-block;
+  white-space: nowrap;
+  overflow: hidden;
+  max-width: 0;
+  opacity: 0;
+  margin-left: 0;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  transition:
+    max-width 0.45s ease,
+    opacity 0.35s ease 0.05s,
+    margin-left 0.45s ease;
+}
+
+.actIcon:hover .actLabel {
+  max-width: 150px;
+  opacity: 1;
+  margin-left: 0.5rem;
+}
+
+.marquee {
+  width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  background-color: var(--bg-1);
+  position: fixed;
+  z-index: 99999;
+  height: 20px;
+  top: 0;
+}
+
+.marquee-content {
+  display: flex;
+  padding-left: 100%;
+  align-items: center;
+  justify-content: center;
+  gap: 0.8rem;
+  animation: marquee 60s linear infinite;
+  text-transform: uppercase;
+}
+
+.marquee-item {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-100%);
+  }
+}
+
+/* ===== Badges en el header (carrito y favoritos) ===== */
+/* .actIcon tiene overflow: hidden (animación del label) y recortaba el badge */
+#cartBtn,
+#favBtn {
+  overflow: visible;
+}
+
+.cartIconWrap {
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
+}
+
+.cartBadge,
+.favBadge {
+  position: absolute;
+  top: -5px;
+  right: -7px;
+  z-index: 1;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: var(--blue);
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: 10.5px;
+  font-weight: 700;
+  line-height: 17px;
+  text-align: center;
+  box-shadow: 0 0 0 2px var(--bg-0);
+  pointer-events: none;
+  transform: scale(0);
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.cartBadge.is-visible,
+.favBadge.is-visible {
+  transform: scale(1);
+}
+
+.cartBadge.is-bump,
+.favBadge.is-bump {
+  animation: cartBadgeBump 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes cartBadgeBump {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.35);
+  }
+  100% {
+    transform: scale(1);
+  }
+}

@@ -1,0 +1,66 @@
+/* Contenedor y cabecera de páginas internas (productos, carrito, favoritos) */
+
+.page-container {
+  padding-top: calc(var(--header-h));
+}
+
+.page-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 2rem;
+  margin-bottom: 1.75rem;
+}
+
+.page-head h1 {
+  font-size: clamp(1.9rem, 3.2vw, 2.6rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+.page-head span {
+  color: var(--ink-soft);
+  font-size: 15px;
+  max-width: 380px;
+  text-align: right;
+}
+
+/* Estado vacío (carrito / favoritos sin ítems) */
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 5rem 1.5rem;
+  text-align: center;
+  color: var(--ink-soft);
+  background: var(--bg-1);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+}
+
+.emptyState svg {
+  width: 48px;
+  height: 48px;
+  fill: currentColor;
+  opacity: 0.45;
+}
+
+.emptyState h2 {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.emptyState p {
+  font-size: 14px;
+  max-width: 360px;
+}
+
+.emptyState .btn {
+  margin-top: 8px;
+  padding: 12px 22px;
+}

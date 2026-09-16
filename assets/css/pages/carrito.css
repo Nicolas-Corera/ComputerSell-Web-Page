@@ -1,0 +1,235 @@
+/* Página: carrito */
+
+.cartPage {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  gap: 24px;
+  align-items: start;
+}
+
+/* ---- Lista de ítems ---- */
+
+.cartPage-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.cartRow {
+  display: grid;
+  grid-template-columns: 110px minmax(0, 1fr) auto;
+  gap: 18px;
+  align-items: center;
+  padding: 16px;
+  background: var(--bg-1);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+}
+
+.cartRow-img {
+  width: 110px;
+  height: 110px;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cartRow-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.cartRow-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.cartRow-name {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--ink);
+}
+
+.cartRow-controls {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.cartRow .qty-selector {
+  border: 1px solid var(--line);
+}
+
+.cartRow-subtotal {
+  min-width: 120px;
+  text-align: right;
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--ink);
+}
+
+.cartRow-subtotal::before {
+  content: "$";
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-soft);
+  margin-right: 2px;
+}
+
+.cartRow-remove {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: all 0.15s ease-in-out;
+}
+
+.cartRow-remove:hover {
+  color: #ff3b3b;
+  border-color: rgba(255, 59, 59, 0.4);
+  background: rgba(255, 59, 59, 0.08);
+}
+
+.cartRow-remove:active {
+  transform: scale(0.94);
+}
+
+.cartRow-remove svg {
+  width: 20px;
+  height: 20px;
+  fill: currentColor;
+}
+
+/* ---- Resumen ---- */
+
+.cartSummary {
+  position: sticky;
+  top: calc(var(--topbar-h) + var(--header-h) + 24px);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 22px;
+  background: var(--bg-1);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+}
+
+.cartSummary h2 {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.cartSummary-line {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  font-size: 14px;
+  color: var(--ink-soft);
+}
+
+.cartSummary-line strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.cartSummary-line strong::before,
+.cartSummary-total strong::before {
+  content: "$";
+  font-weight: 600;
+  color: var(--ink-soft);
+  margin-right: 2px;
+}
+
+.cartSummary-total {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+  font-size: 15px;
+  color: var(--ink-soft);
+}
+
+.cartSummary-total strong {
+  font-family: var(--font-display);
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--ink);
+}
+
+.cartSummary-total strong::before {
+  font-size: 16px;
+}
+
+.cartSummary .btn-secondary {
+  width: 100%;
+  padding: 14px 16px;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.cartSummary-continue {
+  text-align: center;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--ink-soft);
+  text-decoration: none;
+  transition: color 0.15s ease-in-out;
+}
+
+.cartSummary-continue:hover {
+  color: var(--ink);
+}
+
+/* ---- Responsive ---- */
+
+@media (max-width: 991.98px) {
+  .cartPage {
+    grid-template-columns: 1fr;
+  }
+
+  .cartSummary {
+    position: static;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .cartRow {
+    grid-template-columns: 84px minmax(0, 1fr);
+  }
+
+  .cartRow-img {
+    width: 84px;
+    height: 84px;
+  }
+
+  .cartRow-controls {
+    grid-column: 1 / -1;
+    justify-content: space-between;
+  }
+
+  .cartRow-subtotal {
+    min-width: 0;
+  }
+}

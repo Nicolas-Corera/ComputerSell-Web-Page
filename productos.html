@@ -1,0 +1,1003 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ComputerSell</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15/dist/gsap.min.js"></script>
+    <link rel="stylesheet" href="/assets/css/base.css" />
+    <link rel="stylesheet" href="/assets/css/loader.css" />
+    <link rel="stylesheet" href="/assets/css/header.css" />
+    <link rel="stylesheet" href="/assets/css/footer.css" />
+    <link rel="stylesheet" href="/assets/css/components/buttons.css" />
+    <link rel="stylesheet" href="/assets/css/components/product-card.css" />
+    <link rel="stylesheet" href="/assets/css/components/cart-drawer.css" />
+    <link rel="stylesheet" href="/assets/css/components/menu-drawer.css" />
+    <link rel="stylesheet" href="/assets/css/components/page.css" />
+    <link rel="stylesheet" href="/assets/css/pages/productos.css" />
+    <link rel="stylesheet" href="/assets/css/responsive.css" />
+  </head>
+
+  <body class="is-loading" id="inicio">
+    <script src="/assets/js/sprite.js"></script>
+    <!-- <div class="loader-wrap">
+      <div class="loader-number" id="loaderNumber">0</div>
+    </div> -->
+    <div class="site" id="site">
+      <div class="marquee">
+        <div class="marquee-content">
+          <span class="marquee-item"
+            ><svg class="ic-sm"><use href="#ic-percent_discount" /></svg>
+            Ofertas imperdibles en selectos productos</span
+          >
+          <span>•</span>
+          <span class="marquee-item"
+            ><svg class="ic-sm"><use href="#ic-shipping_truck" /></svg>Envíos
+            gratias en productos seleccionados</span
+          >
+          <span>•</span>
+          <span class="marquee-item"
+            ><svg class="ic-sm"><use href="#ic-sell_tag" /></svg>Hasta 3 cuotas
+            sin interes en compras superiores al $1.200.000</span
+          >
+        </div>
+      </div>
+      <header class="navbar" id="navbar">
+        <div class="logo" onclick="window.location.href = '/'">
+          <img src="/assets/images/isotipo.png" alt="" />
+          <span>ComputerSell</span>
+        </div>
+        <nav class="listItems">
+          <li class="item" id="productsMenuBtn">
+            <span class="item-spn2">Productos</span>
+          </li>
+          <li
+            class="item"
+            onclick="window.location.href = '/productos.html?categoria=computadoras'"
+          >
+            <span class="item-spn2">Computadoras</span>
+          </li>
+          <li
+            class="item"
+            onclick="window.location.href = '/productos.html?categoria=notebooks'"
+          >
+            <span class="item-spn2">Notebooks</span>
+          </li>
+          <li class="item"><span class="item-spn2">Nosotros</span></li>
+          <li class="item"><span class="item-spn2">Contacto</span></li>
+        </nav>
+        <div class="actionIcons">
+          <li class="actIcon" id="favBtn">
+            <span class="cartIconWrap">
+              <svg class="ic-md"><use href="#ic-favorite" /></svg>
+              <span class="favBadge" id="favBadge"></span>
+            </span>
+            <span class="actLabel">FAVORITOS</span>
+          </li>
+          <li class="actIcon" onclick="window.location.href = '/acceso.html'">
+            <svg class="ic-md"><use href="#ic-person" /></svg>
+            <span class="actLabel">ACCEDER</span>
+          </li>
+          <li class="actIcon" id="cartBtn">
+            <span class="cartIconWrap">
+              <svg class="ic-md"><use href="#ic-shopping_bag" /></svg>
+              <span class="cartBadge" id="cartBadge"></span>
+            </span>
+            <span class="actLabel">CARRITO</span>
+          </li>
+          <li class="actIcon navToggle" id="navToggle" aria-label="Abrir menú">
+            <svg class="ic-md"><use href="#ic-menu" /></svg>
+          </li>
+        </div>
+      </header>
+
+      <main class="container page-container">
+        <div class="page-head">
+          <h1>Productos</h1>
+          <span>Computadoras, notebooks y componentes seleccionados</span>
+        </div>
+
+        <!-- Filtros superiores -->
+        <div class="filtersBar">
+          <div class="filtersBar-left">
+            <button
+              class="btn btn-third filtersBar-toggle"
+              id="filtersToggle"
+              type="button"
+            >
+              <svg class="ic-md"><use href="#ic-tune" /></svg>
+              <span>Filtros</span>
+              <span class="filterCount" id="filterCount" hidden>0</span>
+            </button>
+            <div class="searchField">
+              <svg class="ic-md"><use href="#ic-search" /></svg>
+              <input type="text" id="searchProducts" placeholder="Buscar productos..." />
+            </div>
+            <div class="sortSelect">
+              <label for="sortProducts">Ordenar por</label>
+              <select id="sortProducts">
+                <option value="relevancia">Relevancia</option>
+                <option value="menor-precio">Menor precio</option>
+                <option value="mayor-precio">Mayor precio</option>
+                <option value="novedades">Novedades</option>
+              </select>
+            </div>
+          </div>
+          <div class="filtersBar-right">
+            <span class="resultsCount" id="resultsCount"
+              ><strong>9</strong> productos encontrados</span
+            >
+          </div>
+        </div>
+
+        <!-- Tags de filtros activos -->
+        <div class="activeFilters" id="activeFilters" hidden>
+          <button class="clearFilters" id="clearAllFilters">
+            Limpiar todo
+          </button>
+        </div>
+
+        <div class="productsLayout">
+          <div class="filtersAside-backdrop" id="filtersBackdrop"></div>
+
+          <!-- Panel de filtros lateral -->
+          <aside class="filtersAside" id="filtersAside">
+            <div class="filtersAside-head">
+              <h3>Filtros</h3>
+              <button
+                class="filtersAside-close"
+                id="filtersClose"
+                type="button"
+                aria-label="Cerrar filtros"
+              >
+                <svg class="ic-sm"><use href="#ic-close" /></svg>
+              </button>
+            </div>
+
+            <div class="filterGroup">
+              <button class="filterGroup-head" type="button">
+                Categoría
+                <svg class="ic-sm"><use href="#ic-expand_more" /></svg>
+              </button>
+              <div class="filterGroup-body">
+                <label class="checkOption">
+                  <input
+                    type="checkbox"
+                    data-filter-group="Categoría"
+                    data-filter-label="Computadoras"
+                  />
+                  <span class="checkbox"
+                    ><svg><use href="#ic-check" /></svg
+                  ></span>
+                  <span>Computadoras</span>
+                  <span class="count">32</span>
+                </label>
+                <label class="checkOption">
+                  <input
+                    type="checkbox"
+                    data-filter-group="Categoría"
+                    data-filter-label="Notebooks"
+                  />
+                  <span class="checkbox"
+                    ><svg><use href="#ic-check" /></svg
+                  ></span>
+                  <span>Notebooks</span>
+                  <span class="count">24</span>
+                </label>
+                <label class="checkOption">
+                  <input
+                    type="checkbox"
+                    data-filter-group="Categoría"
+                    data-filter-label="Componentes"
+                  />
+                  <span class="checkbox"
+                    ><svg><use href="#ic-check" /></svg
+                  ></span>
+                  <span>Componentes</span>
+                  <span class="count">58</span>
+                </label>
+                <label class="checkOption">
+                  <input
+                    type="checkbox"
+                    data-filter-group="Categoría"
+                    data-filter-label="Periféricos"
+                  />
+                  <span class="checkbox"
+                    ><svg><use href="#ic-check" /></svg
+                  ></span>
+                  <span>Periféricos</span>
+                  <span class="count">41</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Subcategorías de Componentes: solo se muestra con "Componentes" marcado en Categoría -->
+            <div class="filterGroup" data-parent="Componentes" hidden>
+              <button class="filterGroup-head" type="button">
+                Componentes
+                <svg class="ic-sm"><use href="#ic-expand_more" /></svg>
+              </button>
+              <div class="filterGroup-body">
+                <label class="checkOption">
+                  <input
+                    type="checkbox"
+                    data-filter-group="Componentes"
+                    data-filter-label="Placas de video"
+                  />
+                  <span class="checkbox"
+                    ><svg><use href="#ic-check" /></svg
+                  ></span>
+                  <span>Placas de video</span>
+                  <span class="count">0</span>
+                </label>
+                <label class="checkOption">
+                  <input
+                    type="checkbox"
+                    data-filter-group="Componentes"
+                    data-filter-label="Procesadores"
+                  />
+                  <span class="checkbox"
+                    ><svg><use href="#ic-check" /></svg
+                  ></span>
+                  <span>Procesadores</span>
+                  <span class="count">0</span>
+                </label>
+                <label class="checkOption">
+                  <input
+                    type="checkbox"
+                    data-filter-group="Componentes"
+                    data-filter-label="Memorias RAM"
+                  />
+                  <span class="checkbox"
+                    ><svg><use href="#ic-check" /></svg
+                  ></span>
+                  <span>Memorias RAM</span>
+                  <span class="count">0</span>
+                </label>
+                <label class="checkOption">
+                  <input
+                    type="checkbox"
+                    data-filter-group="Componentes"
+                    data-filter-label="Almacenamiento"
+                  />
+                  <span class="checkbox"
+                    ><svg><use href="#ic-check" /></svg
+                  ></span>
+                  <span>Almacenamiento</span>
+                  <span class="count">0</span>
+                </label>
+                <label class="checkOption">
+                  <input
+                    type="checkbox"
+                    data-filter-group="Componentes"
+                    data-filter-label="Motherboards"
+                  />
+                  <span class="checkbox"
+                    ><svg><use href="#ic-check" /></svg
+                  ></span>
+                  <span>Motherboards</span>
+                  <span class="count">0</span>
+                </label>
+                <label class="checkOption">
+                  <input
+                    type="checkbox"
+                    data-filter-group="Componentes"
+                    data-filter-label="Fuentes"
+                  />
+                  <span class="checkbox"
+                    ><svg><use href="#ic-check" /></svg
+                  ></span>
+                  <span>Fuentes</span>
+                  <span class="count">0</span>
+                </label>
+                <label class="checkOption">
+                  <input
+                    type="checkbox"
+                    data-filter-group="Componentes"
+                    data-filter-label="Gabinetes"
+                  />
+                  <span class="checkbox"
+                    ><svg><use href="#ic-check" /></svg
+                  ></span>
+                  <span>Gabinetes</span>
+                  <span class="count">0</span>
+                </label>
+                <label class="checkOption">
+                  <input
+                    type="checkbox"
+                    data-filter-group="Componentes"
+                    data-filter-label="Refrigeración"
+                  />
+                  <span class="checkbox"
+                    ><svg><use href="#ic-check" /></svg
+                  ></span>
+                  <span>Refrigeración</span>
+                  <span class="count">0</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Subcategorías de Periféricos: solo se muestra con "Periféricos" marcado en Categoría -->
+            <div class="filterGroup" data-parent="Periféricos" hidden>
+              <button class="filterGroup-head" type="button">
+                Periféricos
+                <svg class="ic-sm"><use href="#ic-expand_more" /></svg>
+              </button>
+              <div class="filterGroup-body">
+                <label class="checkOption">
+                  <input
+                    type="checkbox"
+                    data-filter-group="Periféricos"
+                    data-filter-label="Teclados"
+                  />
+                  <span class="checkbox"
+                    ><svg><use href="#ic-check" /></svg
+                  ></span>
+                  <span>Teclados</span>
+                  <span class="count">0</span>
+                </label>
+                <label class="checkOption">
+                  <input
+                    type="checkbox"
+                    data-filter-group="Periféricos"
+                    data-filter-label="Mouse"
+                  />
+                  <span class="checkbox"
+                    ><svg><use href="#ic-check" /></svg
+                  ></span>
+                  <span>Mouse</span>
+                  <span class="count">0</span>
+                </label>
+                <label class="checkOption">
+                  <input
+                    type="checkbox"
+                    data-filter-group="Periféricos"
+                    data-filter-label="Auriculares"
+                  />
+                  <span class="checkbox"
+                    ><svg><use href="#ic-check" /></svg
+                  ></span>
+                  <span>Auriculares</span>
+                  <span class="count">0</span>
+                </label>
+                <label class="checkOption">
+                  <input
+                    type="checkbox"
+                    data-filter-group="Periféricos"
+                    data-filter-label="Monitores"
+                  />
+                  <span class="checkbox"
+                    ><svg><use href="#ic-check" /></svg
+                  ></span>
+                  <span>Monitores</span>
+                  <span class="count">0</span>
+                </label>
+                <label class="checkOption">
+                  <input
+                    type="checkbox"
+                    data-filter-group="Periféricos"
+                    data-filter-label="Micrófonos"
+                  />
+                  <span class="checkbox"
+                    ><svg><use href="#ic-check" /></svg
+                  ></span>
+                  <span>Micrófonos</span>
+                  <span class="count">0</span>
+                </label>
+                <label class="checkOption">
+                  <input
+                    type="checkbox"
+                    data-filter-group="Periféricos"
+                    data-filter-label="Webcams"
+                  />
+                  <span class="checkbox"
+                    ><svg><use href="#ic-check" /></svg
+                  ></span>
+                  <span>Webcams</span>
+                  <span class="count">0</span>
+                </label>
+                <label class="checkOption">
+                  <input
+                    type="checkbox"
+                    data-filter-group="Periféricos"
+                    data-filter-label="Parlantes"
+                  />
+                  <span class="checkbox"
+                    ><svg><use href="#ic-check" /></svg
+                  ></span>
+                  <span>Parlantes</span>
+                  <span class="count">0</span>
+                </label>
+                <label class="checkOption">
+                  <input
+                    type="checkbox"
+                    data-filter-group="Periféricos"
+                    data-filter-label="Mousepads"
+                  />
+                  <span class="checkbox"
+                    ><svg><use href="#ic-check" /></svg
+                  ></span>
+                  <span>Mousepads</span>
+                  <span class="count">0</span>
+                </label>
+              </div>
+            </div>
+
+            <div class="filterGroup">
+              <button class="filterGroup-head" type="button">
+                Marca
+                <svg class="ic-sm"><use href="#ic-expand_more" /></svg>
+              </button>
+              <div class="filterGroup-body">
+                <label class="checkOption">
+                  <input
+                    type="checkbox"
+                    data-filter-group="Marca"
+                    data-filter-label="AMD"
+                  />
+                  <span class="checkbox"
+                    ><svg><use href="#ic-check" /></svg
+                  ></span>
+                  <span>AMD</span>
+                  <span class="count">19</span>
+                </label>
+                <label class="checkOption">
+                  <input
+                    type="checkbox"
+                    data-filter-group="Marca"
+                    data-filter-label="Intel"
+                  />
+                  <span class="checkbox"
+                    ><svg><use href="#ic-check" /></svg
+                  ></span>
+                  <span>Intel</span>
+                  <span class="count">15</span>
+                </label>
+                <label class="checkOption">
+                  <input
+                    type="checkbox"
+                    data-filter-group="Marca"
+                    data-filter-label="NVIDIA"
+                  />
+                  <span class="checkbox"
+                    ><svg><use href="#ic-check" /></svg
+                  ></span>
+                  <span>NVIDIA</span>
+                  <span class="count">12</span>
+                </label>
+                <label class="checkOption">
+                  <input
+                    type="checkbox"
+                    data-filter-group="Marca"
+                    data-filter-label="Logitech"
+                  />
+                  <span class="checkbox"
+                    ><svg><use href="#ic-check" /></svg
+                  ></span>
+                  <span>Logitech</span>
+                  <span class="count">9</span>
+                </label>
+              </div>
+            </div>
+
+            <div class="filterGroup">
+              <button class="filterGroup-head" type="button">
+                Precio
+                <svg class="ic-sm"><use href="#ic-expand_more" /></svg>
+              </button>
+              <div class="filterGroup-body">
+                <div class="priceRange">
+                  <input type="number" placeholder="Mín." id="priceMin" />
+                  <span>—</span>
+                  <input type="number" placeholder="Máx." id="priceMax" />
+                </div>
+                <button class="filterGroup-apply" id="applyPrice" type="button">
+                  Aplicar
+                </button>
+              </div>
+            </div>
+
+            <div class="filterGroup">
+              <button class="filterGroup-head" type="button">
+                Disponibilidad
+                <svg class="ic-sm"><use href="#ic-expand_more" /></svg>
+              </button>
+              <div class="filterGroup-body">
+                <label class="checkOption">
+                  <input
+                    type="checkbox"
+                    data-filter-group="Disponibilidad"
+                    data-filter-label="En stock"
+                  />
+                  <span class="checkbox"
+                    ><svg><use href="#ic-check" /></svg
+                  ></span>
+                  <span>En stock</span>
+                </label>
+                <label class="checkOption">
+                  <input
+                    type="checkbox"
+                    data-filter-group="Disponibilidad"
+                    data-filter-label="Con envío gratis"
+                  />
+                  <span class="checkbox"
+                    ><svg><use href="#ic-check" /></svg
+                  ></span>
+                  <span>Con envío gratis</span>
+                </label>
+                <label class="checkOption">
+                  <input
+                    type="checkbox"
+                    data-filter-group="Disponibilidad"
+                    data-filter-label="En oferta"
+                  />
+                  <span class="checkbox"
+                    ><svg><use href="#ic-check" /></svg
+                  ></span>
+                  <span>En oferta</span>
+                </label>
+              </div>
+            </div>
+          </aside>
+
+          <!-- Grid de productos -->
+          <div class="productsGrid-wrap">
+            <div class="listDestacados productsGrid" id="productsGrid">
+              <div
+                class="itemDestacado"
+                data-category="computadoras"
+                data-brand="amd nvidia"
+                data-stock="1"
+                data-shipping="1"
+                data-sale="1"
+                data-order="1"
+              >
+                <div class="imageDestacado">
+                  <img src="/assets/images/pc1.webp" alt="" />
+                </div>
+                <div class="textCard">
+                  <span>PC Armada AMD Ryzen 5 5500 RTX 3050 16GB 512GB</span>
+                  <div class="prices">
+                    <span class="dashed">$1.610.400</span>
+                    <span class="priceNow">1.304.424</span>
+                  </div>
+                  <span class="cuotas">3 cuotas sin interés</span>
+                </div>
+                <div class="actionsDestacados">
+                  <button class="btn btn-secondary">
+                    <span>Seleccionar</span>
+                  </button>
+                  <button
+                    class="btn btn-third"
+                    onclick="window.location.href = '/detail.html'"
+                  >
+                    <svg class="ic-md"><use href="#ic-info" /></svg>
+                  </button>
+                  <button class="btn btn-third">
+                    <svg class="ic-md">
+                      <use class="favorite-icon" href="#ic-favorite" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+              <div
+                class="itemDestacado"
+                data-category="notebooks"
+                data-brand="intel"
+                data-stock="1"
+                data-shipping="1"
+                data-sale="1"
+                data-order="2"
+              >
+                <div class="imageDestacado">
+                  <img src="/assets/images/pc1.webp" alt="" />
+                </div>
+                <div class="textCard">
+                  <span>Notebook Lenovo IdeaPad Intel i5 8GB 256GB SSD</span>
+                  <div class="prices">
+                    <span class="dashed">$980.000</span>
+                    <span class="priceNow">799.990</span>
+                  </div>
+                  <span class="cuotas">3 cuotas sin interés</span>
+                </div>
+                <div class="actionsDestacados">
+                  <button class="btn btn-secondary">
+                    <span>Seleccionar</span>
+                  </button>
+                  <button
+                    class="btn btn-third"
+                    onclick="window.location.href = '/detail.html'"
+                  >
+                    <svg class="ic-md"><use href="#ic-info" /></svg>
+                  </button>
+                  <button class="btn btn-third">
+                    <svg class="ic-md">
+                      <use class="favorite-icon" href="#ic-favorite" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+              <div
+                class="itemDestacado"
+                data-category="componentes"
+                data-type="placas-de-video"
+                data-brand="nvidia"
+                data-stock="1"
+                data-shipping="0"
+                data-sale="1"
+                data-order="3"
+              >
+                <div class="imageDestacado">
+                  <img src="/assets/images/pc1.webp" alt="" />
+                </div>
+                <div class="textCard">
+                  <span>Placa de video NVIDIA RTX 4060 8GB</span>
+                  <div class="prices">
+                    <span class="dashed">$650.000</span>
+                    <span class="priceNow">549.990</span>
+                  </div>
+                  <span class="cuotas">3 cuotas sin interés</span>
+                </div>
+                <div class="actionsDestacados">
+                  <button class="btn btn-secondary">
+                    <span>Seleccionar</span>
+                  </button>
+                  <button
+                    class="btn btn-third"
+                    onclick="window.location.href = '/detail.html'"
+                  >
+                    <svg class="ic-md"><use href="#ic-info" /></svg>
+                  </button>
+                  <button class="btn btn-third">
+                    <svg class="ic-md">
+                      <use class="favorite-icon" href="#ic-favorite" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+              <div
+                class="itemDestacado"
+                data-category="perifericos"
+                data-type="teclados"
+                data-brand="logitech"
+                data-stock="1"
+                data-shipping="0"
+                data-sale="1"
+                data-order="4"
+              >
+                <div class="imageDestacado">
+                  <img src="/assets/images/pc1.webp" alt="" />
+                </div>
+                <div class="textCard">
+                  <span>Teclado mecánico Logitech RGB switch rojo</span>
+                  <div class="prices">
+                    <span class="dashed">$120.000</span>
+                    <span class="priceNow">94.990</span>
+                  </div>
+                  <span class="cuotas">3 cuotas sin interés</span>
+                </div>
+                <div class="actionsDestacados">
+                  <button class="btn btn-secondary">
+                    <span>Seleccionar</span>
+                  </button>
+                  <button
+                    class="btn btn-third"
+                    onclick="window.location.href = '/detail.html'"
+                  >
+                    <svg class="ic-md"><use href="#ic-info" /></svg>
+                  </button>
+                  <button class="btn btn-third">
+                    <svg class="ic-md">
+                      <use class="favorite-icon" href="#ic-favorite" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+              <div
+                class="itemDestacado"
+                data-category="computadoras"
+                data-brand="intel nvidia"
+                data-stock="0"
+                data-shipping="1"
+                data-sale="1"
+                data-order="5"
+              >
+                <div class="imageDestacado">
+                  <img src="/assets/images/pc1.webp" alt="" />
+                </div>
+                <div class="textCard">
+                  <span>PC Armada Intel i7 12700F RTX 4070 32GB 1TB</span>
+                  <div class="prices">
+                    <span class="dashed">$2.850.000</span>
+                    <span class="priceNow">2.399.990</span>
+                  </div>
+                  <span class="cuotas">3 cuotas sin interés</span>
+                </div>
+                <div class="actionsDestacados">
+                  <button class="btn btn-secondary">
+                    <span>Seleccionar</span>
+                  </button>
+                  <button
+                    class="btn btn-third"
+                    onclick="window.location.href = '/detail.html'"
+                  >
+                    <svg class="ic-md"><use href="#ic-info" /></svg>
+                  </button>
+                  <button class="btn btn-third">
+                    <svg class="ic-md">
+                      <use class="favorite-icon" href="#ic-favorite" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+              <div
+                class="itemDestacado"
+                data-category="perifericos"
+                data-type="mouse"
+                data-brand="logitech"
+                data-stock="1"
+                data-shipping="0"
+                data-sale="0"
+                data-order="6"
+              >
+                <div class="imageDestacado">
+                  <img src="/assets/images/pc1.webp" alt="" />
+                </div>
+                <div class="textCard">
+                  <span>Mouse Logitech G203 gaming inalámbrico</span>
+                  <div class="prices">
+                    <span class="priceNow">32.990</span>
+                  </div>
+                  <span class="cuotas">3 cuotas sin interés</span>
+                </div>
+                <div class="actionsDestacados">
+                  <button class="btn btn-secondary">
+                    <span>Seleccionar</span>
+                  </button>
+                  <button
+                    class="btn btn-third"
+                    onclick="window.location.href = '/detail.html'"
+                  >
+                    <svg class="ic-md"><use href="#ic-info" /></svg>
+                  </button>
+                  <button class="btn btn-third">
+                    <svg class="ic-md">
+                      <use class="favorite-icon" href="#ic-favorite" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+              <div
+                class="itemDestacado"
+                data-category="notebooks"
+                data-brand="amd nvidia"
+                data-stock="1"
+                data-shipping="1"
+                data-sale="1"
+                data-order="7"
+              >
+                <div class="imageDestacado">
+                  <img src="/assets/images/pc1.webp" alt="" />
+                </div>
+                <div class="textCard">
+                  <span>Notebook ASUS TUF Gaming AMD Ryzen 7 RTX 3050</span>
+                  <div class="prices">
+                    <span class="dashed">$1.750.000</span>
+                    <span class="priceNow">1.499.990</span>
+                  </div>
+                  <span class="cuotas">3 cuotas sin interés</span>
+                </div>
+                <div class="actionsDestacados">
+                  <button class="btn btn-secondary">
+                    <span>Seleccionar</span>
+                  </button>
+                  <button
+                    class="btn btn-third"
+                    onclick="window.location.href = '/detail.html'"
+                  >
+                    <svg class="ic-md"><use href="#ic-info" /></svg>
+                  </button>
+                  <button class="btn btn-third">
+                    <svg class="ic-md">
+                      <use class="favorite-icon" href="#ic-favorite" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+              <div
+                class="itemDestacado"
+                data-category="componentes"
+                data-type="memorias-ram"
+                data-brand="kingston"
+                data-stock="1"
+                data-shipping="0"
+                data-sale="0"
+                data-order="8"
+              >
+                <div class="imageDestacado">
+                  <img src="/assets/images/pc1.webp" alt="" />
+                </div>
+                <div class="textCard">
+                  <span>Memoria RAM Kingston Fury 16GB DDR4 3200MHz</span>
+                  <div class="prices">
+                    <span class="priceNow">52.990</span>
+                  </div>
+                  <span class="cuotas">3 cuotas sin interés</span>
+                </div>
+                <div class="actionsDestacados">
+                  <button class="btn btn-secondary">
+                    <span>Seleccionar</span>
+                  </button>
+                  <button
+                    class="btn btn-third"
+                    onclick="window.location.href = '/detail.html'"
+                  >
+                    <svg class="ic-md"><use href="#ic-info" /></svg>
+                  </button>
+                  <button class="btn btn-third">
+                    <svg class="ic-md">
+                      <use class="favorite-icon" href="#ic-favorite" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+              <div
+                class="itemDestacado"
+                data-category="componentes"
+                data-type="almacenamiento"
+                data-brand="kingston"
+                data-stock="1"
+                data-shipping="0"
+                data-sale="0"
+                data-order="9"
+              >
+                <div class="imageDestacado">
+                  <img src="/assets/images/pc1.webp" alt="" />
+                </div>
+                <div class="textCard">
+                  <span>SSD NVMe 1TB Kingston NV2 PCIe Gen4</span>
+                  <div class="prices">
+                    <span class="priceNow">69.990</span>
+                  </div>
+                  <span class="cuotas">3 cuotas sin interés</span>
+                </div>
+                <div class="actionsDestacados">
+                  <button class="btn btn-secondary">
+                    <span>Seleccionar</span>
+                  </button>
+                  <button
+                    class="btn btn-third"
+                    onclick="window.location.href = '/detail.html'"
+                  >
+                    <svg class="ic-md"><use href="#ic-info" /></svg>
+                  </button>
+                  <button class="btn btn-third">
+                    <svg class="ic-md">
+                      <use class="favorite-icon" href="#ic-favorite" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div class="emptyState" id="productsEmpty" hidden>
+              <svg><use href="#ic-search" /></svg>
+              <h2>No encontramos productos</h2>
+              <p>Probá con otra búsqueda o quitá algunos filtros.</p>
+              <button
+                class="btn btn-secondary"
+                id="productsEmptyClear"
+                type="button"
+              >
+                Limpiar filtros
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="pagination">
+          <button class="active">1</button>
+          <button>2</button>
+          <button>3</button>
+          <button>
+            <svg class="ic-sm"><use href="#ic-arrow_forward" /></svg>
+          </button>
+        </div>
+      </main>
+    </div>
+
+    <footer class="site-footer">
+      <div class="footer-inner">
+        <div class="footer-top">
+          <!-- Marca -->
+          <div class="footer-col footer-brand">
+            <div class="logo">
+              <img src="/assets/images/isotipo.png" alt="" />
+              <span>ComputerSell</span>
+            </div>
+            <p>
+              Equipos armados a medida, componentes originales y garantía
+              oficial. Gaming, oficina y diseño: la PC que necesitás, al precio
+              justo.
+            </p>
+            <div class="footer-social">
+              <a href="#" aria-label="Instagram"
+                ><svg class="ic-sm"><use href="#ic-instagram" /></svg>
+              </a>
+              <a href="#" aria-label="Mercado Libre"
+                ><svg class="ic-sm"><use href="#ic-mercadolibre" /></svg>
+              </a>
+              <a href="#" aria-label="WhatsApp"
+                ><svg class="ic-sm"><use href="#ic-whatsapp" /></svg>
+              </a>
+            </div>
+          </div>
+
+          <!-- Productos -->
+          <div class="footer-col">
+            <h3>Productos</h3>
+            <ul>
+              <li><a href="#">PCs Armadas</a></li>
+              <li><a href="#">Notebooks</a></li>
+              <li><a href="#">Componentes</a></li>
+              <li><a href="#">Periféricos</a></li>
+              <li><a href="#">Ofertas</a></li>
+            </ul>
+          </div>
+
+          <!-- Ayuda -->
+          <div class="footer-col">
+            <h3>Ayuda</h3>
+            <ul>
+              <li><a href="#">Preguntas frecuentes</a></li>
+              <li><a href="#">Envíos</a></li>
+              <li><a href="#">Cambios y devoluciones</a></li>
+              <li><a href="#">Garantía</a></li>
+              <li><a href="#">Métodos de pago</a></li>
+            </ul>
+          </div>
+
+          <!-- Contacto -->
+          <div class="footer-col">
+            <h3>Contacto</h3>
+            <ul class="footer-contact">
+              <li>
+                <svg class="ic-sm"><use href="#ic-phone" /></svg>
+                <span>Tel:</span><a href="#">+54 9 11 2358-9249</a>
+              </li>
+              <li>
+                <svg class="ic-sm"><use href="#ic-mail" /></svg>
+                <span>Email:</span><a href="#">contacto@computersell.com.ar</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="footer-bottom">
+          <span
+            >© <span id="footerYear">2026</span> ComputerSell. Todos los
+            derechos reservados.</span
+          >
+          <div class="footer-bottom-links">
+            <a href="#">Términos y condiciones</a>
+            <a href="#">Privacidad</a>
+          </div>
+          <div class="footer-payments">Visa · Mastercard · Mercado Pago</div>
+        </div>
+      </div>
+    </footer>
+
+    <script src="/assets/js/loader.js"></script>
+    <script src="/assets/js/navbar.js"></script>
+    <script src="/assets/js/menu.js"></script>
+    <script src="/assets/js/utils.js"></script>
+    <script src="/assets/js/cart.js"></script>
+    <script src="/assets/js/favorites.js"></script>
+    <script src="/assets/js/pages/productos.js"></script>
+  </body>
+</html>
