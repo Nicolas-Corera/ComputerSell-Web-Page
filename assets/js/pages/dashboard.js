@@ -1533,10 +1533,10 @@ import {
     tagInput.addEventListener("keydown", (e) => {
       if (e.key === "Enter" || e.key === ",") {
         e.preventDefault();
-        const v = tagInput.value.trim().toLowerCase().replace(/,+$/, "");
+        const v = tagInput.value.trim().replace(/,+$/, "");
         if (!v) return;
         if (tags.length >= 10) return toast("Máximo 10 etiquetas", "bad");
-        if (!tags.includes(v)) tags.push(v);
+        if (!tags.some((t) => t.toLowerCase() === v.toLowerCase())) tags.push(v);
         tagInput.value = "";
         renderTags();
       } else if (e.key === "Backspace" && !tagInput.value && tags.length) {
@@ -1630,7 +1630,10 @@ import {
       const row = document.createElement("div");
       row.className = "row-single";
       row.innerHTML = `<input type="text" placeholder="Ej: Armado y testeado en Argentina, listo para usar" value="${escapeHtml(v || "")}" /><button class="row-remove" type="button" aria-label="Quitar"><svg><use href="#ic-delete" /></svg></button>`;
-      row.querySelector(".row-remove").addEventListener("click", () => row.remove());
+      row.querySelector(".row-remove").addEventListener("click", () => {
+        row.remove();
+        updatePreview();
+      });
       highlightRows.appendChild(row);
       if (!v) row.querySelector("input").focus();
     }
