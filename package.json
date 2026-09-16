@@ -1,0 +1,16 @@
+{
+  "name": "computersell-web",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Tienda ComputerSell: sitio estático + Supabase (auth, productos, favoritos, órdenes) en tiempo real.",
+  "scripts": {
+    "dev": "node scripts/dev-server.js",
+    "build": "node scripts/build-env.js",
+    "env": "node scripts/build-env.js",
+    "db:push": "node scripts/db-push.js",
+    "admins:sync": "node scripts/sync-admins.js",
+    "auth:configure": "node scripts/configure-auth.js",
+    "setup": "npm run db:push && npm run admins:sync && npm run auth:configure && npm run env"
+  },
+  "engines": { "node": ">=18" }
+}

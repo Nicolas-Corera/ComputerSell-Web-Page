@@ -16,6 +16,7 @@
     <link rel="stylesheet" href="/assets/css/header.css" />
     <link rel="stylesheet" href="/assets/css/footer.css" />
     <link rel="stylesheet" href="/assets/css/components/buttons.css" />
+    <link rel="stylesheet" href="/assets/css/components/toast.css" />
     <link rel="stylesheet" href="/assets/css/components/product-card.css" />
     <link rel="stylesheet" href="/assets/css/components/cart-drawer.css" />
     <link rel="stylesheet" href="/assets/css/components/menu-drawer.css" />
@@ -26,7 +27,7 @@
   </head>
 
   <body class="is-loading" id="inicio">
-    <script src="/assets/js/sprite.js"></script>
+    <script src="/assets/js/sprites/sprite.js"></script>
     <!-- <div class="loader-wrap">
       <div class="loader-number" id="loaderNumber">0</div>
     </div> -->
@@ -81,7 +82,7 @@
             </span>
             <span class="actLabel">FAVORITOS</span>
           </li>
-          <li class="actIcon" onclick="window.location.href = '/acceso.html'">
+          <li class="actIcon" id="accountBtn">
             <svg class="ic-md"><use href="#ic-person" /></svg>
             <span class="actLabel">ACCEDER</span>
           </li>
@@ -227,12 +228,14 @@
       </div>
     </footer>
 
-    <script src="/assets/js/loader.js"></script>
-    <script src="/assets/js/navbar.js"></script>
-    <script src="/assets/js/menu.js"></script>
-    <script src="/assets/js/utils.js"></script>
-    <script src="/assets/js/cart.js"></script>
-    <script src="/assets/js/favorites.js"></script>
-    <script src="/assets/js/pages/carrito.js"></script>
+    <script src="/assets/js/components/loader.js"></script>
+    <script src="/assets/js/components/navbar.js"></script>
+    <script src="/assets/js/components/menu.js"></script>
+    <script src="/assets/js/core/env.js"></script>
+    <script src="/assets/js/core/utils.js"></script>
+    <script src="/assets/js/core/cart.js"></script>
+    <script type="module" src="/assets/js/core/favorites.js"></script>
+    <script type="module" src="/assets/js/core/account.js"></script>
+    <script type="module" src="/assets/js/pages/carrito.js"></script>
   </body>
 </html>

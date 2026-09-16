@@ -12,6 +12,7 @@
     />
     <link rel="stylesheet" href="/assets/css/base.css" />
     <link rel="stylesheet" href="/assets/css/components/buttons.css" />
+    <link rel="stylesheet" href="/assets/css/components/toast.css" />
     <link rel="stylesheet" href="/assets/css/components/forms.css" />
     <link rel="stylesheet" href="/assets/css/components/page.css" />
     <link rel="stylesheet" href="/assets/css/components/product-card.css" />
@@ -33,8 +34,8 @@
   </head>
 
   <body class="admin-body">
-    <script src="/assets/js/sprite.js"></script>
-    <script src="/assets/js/sprite-admin.js"></script>
+    <script src="/assets/js/sprites/sprite.js"></script>
+    <script src="/assets/js/sprites/sprite-admin.js"></script>
 
     <div class="admin" id="admin">
       <!-- ===== Sidebar ===== -->
@@ -1543,7 +1544,8 @@
 
     <div class="toast-wrap" id="toasts"></div>
 
-    <script src="/assets/js/utils.js"></script>
-    <script src="/assets/js/pages/dashboard.js"></script>
+    <script src="/assets/js/core/env.js"></script>
+    <script src="/assets/js/core/utils.js"></script>
+    <script type="module" src="/assets/js/pages/dashboard.js"></script>
   </body>
 </html>

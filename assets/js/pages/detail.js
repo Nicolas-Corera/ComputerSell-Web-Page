@@ -1,40 +1,135 @@
-// Página de detalle: galería, selector de cantidad, tabs y chips de variantes.
+// Ficha de producto (detail.html?id=<uuid>): se carga desde la base y se
+// actualiza en tiempo real (precio, stock, imágenes). Galería, cantidad,
+// tabs y productos relacionados.
+import { sb, subscribe, toCard, fetchPublished, CATEGORIES } from "../core/supabase.js";
 
-function setMainImage(el, src) {
-  document.getElementById("mainImage").src = src;
-  document
-    .querySelectorAll(".thumb")
-    .forEach((t) => t.classList.remove("is-active"));
+const { formatPrice, escapeHtml, cardHtml, register } = window.CS;
+const $ = (s) => document.querySelector(s);
+
+const id = new URLSearchParams(location.search).get("id");
+const detail = $("#productDetail");
+let product = null;
+
+// ---------- Helpers globales usados por los onclick del HTML ----------
+window.setMainImage = function (el, src) {
+  $("#mainImage").src = src;
+  document.querySelectorAll(".thumb").forEach((t) => t.classList.remove("is-active"));
   el.classList.add("is-active");
-}
+};
 
 // La cantidad real vive en data-qty; el input muestra "99+" a partir de 100
-function changeQty(delta) {
-  const input = document.getElementById("qtyInput");
+window.changeQty = function (delta) {
+  const input = $("#qtyInput");
   const current = parseInt(input.dataset.qty || input.value, 10) || 1;
-  const next = Math.max(1, current + delta);
+  const max = product ? Math.max(1, product.stock) : 99;
+  const next = Math.min(max, Math.max(1, current + delta));
   input.dataset.qty = next;
   input.value = next > 99 ? "99+" : next;
-}
+};
 
-function switchTab(btn, panelId) {
-  document
-    .querySelectorAll(".tab-btn")
-    .forEach((b) => b.classList.remove("is-active"));
-  document
-    .querySelectorAll(".tab-panel")
-    .forEach((p) => p.classList.remove("is-active"));
+window.switchTab = function (btn, panelId) {
+  document.querySelectorAll(".tabs .tab-btn").forEach((b) => b.classList.remove("is-active"));
+  document.querySelectorAll(".tabs .tab-panel").forEach((p) => p.classList.remove("is-active"));
   btn.classList.add("is-active");
   document.getElementById(panelId).classList.add("is-active");
+};
+
+// ---------- Render ----------
+function render(p) {
+  product = p;
+  const card = toCard(p);
+  register(card);
+  detail.dataset.id = p.id;
+  document.title = `${p.title} — ComputerSell`;
+
+  const cat = CATEGORIES[p.category];
+  $("#crumbCategory").textContent = cat ? cat.label : "Productos";
+  $("#crumbCategory").href = `/productos.html?categoria=${p.category}`;
+  $("#crumbTitle").textContent = p.title;
+
+  // Galería
+  const imgs = p.images && p.images.length ? p.images : [];
+  const main = $("#mainImage");
+  if (!imgs.includes(main.getAttribute("src"))) main.src = imgs[0] || "";
+  main.alt = p.title;
+  $("#galleryThumbs").innerHTML = imgs
+    .map(
+      (src, i) =>
+        `<div class="thumb ${src === main.getAttribute("src") || (!main.getAttribute("src") && i === 0) ? "is-active" : ""}" onclick="setMainImage(this, '${escapeHtml(src)}')"><img src="${escapeHtml(src)}" alt="Imagen ${i + 1}" /></div>`,
+    )
+    .join("");
+  const badge = $("#discountBadge");
+  badge.hidden = !card.oldPrice;
+  if (card.oldPrice) badge.querySelector("span").textContent = `${Math.round((1 - p.price / card.oldPrice) * 100)}% OFF`;
+
+  // Info
+  $("#pBrand").textContent = p.brand;
+  $("#pSku").textContent = `· SKU ${p.sku}`;
+  $("#pTitle").textContent = p.title;
+  $("#pOld").hidden = !card.oldPrice;
+  $("#pOld").textContent = card.oldPrice ? `$${formatPrice(card.oldPrice)}` : "";
+  $("#pPrice").textContent = formatPrice(p.price);
+  const cuotas = $("#pCuotas");
+  cuotas.hidden = !p.installments;
+  if (p.installments) cuotas.textContent = `${p.installments} cuotas sin interés de $${formatPrice(Math.round(p.price / p.installments))}`;
+
+  const DELIVERY = { "24-48hs": "Envío en 24/48 hs", "3-5": "Envío en 3 a 5 días hábiles", "7-10": "Envío en 7 a 10 días hábiles", "a-pedido": "A pedido (consultar)" };
+  const out = p.stock <= 0;
+  $("#stockDot").style.background = out ? "#ef4444" : p.stock <= p.stock_min ? "#f59e0b" : "";
+  $("#stockText").textContent = out
+    ? "Sin stock por el momento"
+    : `${p.stock <= p.stock_min ? `¡Últimas ${p.stock} unidad${p.stock === 1 ? "" : "es"}!` : "Stock disponible"} · ${DELIVERY[p.delivery] || p.delivery}`;
+  $("#addCartBtn").disabled = out;
+  $("#buyNowBtn").disabled = out;
+  $("#addCartBtn").querySelector("span").textContent = out ? "Sin stock" : "Agregar al carrito";
+  changeQty(0);
+
+  $("#shipLine span").innerHTML = p.free_shipping ? "<strong>Envío gratis</strong> a todo el país" : "<strong>Envío a domicilio</strong> o retiro en el local";
+  $("#warrantyLine").innerHTML = p.warranty_months ? `<strong>${p.warranty_months} meses de garantía oficial</strong> ComputerSell` : "Garantía oficial ComputerSell";
+
+  // Descripción / especificaciones
+  $("#pDescription").innerHTML = String(p.description || "")
+    .split(/\n{2,}|\n/)
+    .filter((t) => t.trim())
+    .map((t) => `<p>${escapeHtml(t)}</p>`)
+    .join("");
+  $("#pHighlights").innerHTML = (p.highlights || []).map((h) => `<li><svg><use href="#ic-check" /></svg> ${escapeHtml(h)}</li>`).join("");
+  const specs = (p.specs || []).map((s) => `<tr><td>${escapeHtml(s.k)}</td><td>${escapeHtml(s.v)}</td></tr>`);
+  if (p.warranty_months) specs.push(`<tr><td>Garantía</td><td>${p.warranty_months} meses de garantía oficial ComputerSell</td></tr>`);
+  $("#pSpecs").innerHTML = specs.join("") || `<tr><td colspan="2">Sin especificaciones cargadas.</td></tr>`;
+
+  if (window.syncFavorites) window.syncFavorites();
 }
 
-document.querySelectorAll(".chip-row").forEach((row) => {
-  row.querySelectorAll(".chip").forEach((chip) => {
-    chip.addEventListener("click", () => {
-      row
-        .querySelectorAll(".chip")
-        .forEach((c) => c.classList.remove("is-selected"));
-      chip.classList.add("is-selected");
-    });
-  });
-});
+function missing() {
+  detail.hidden = true;
+  document.querySelector(".tabs").hidden = true;
+  $("#relatedSection").hidden = true;
+  $("#productMissing").hidden = false;
+  $("#crumbTitle").textContent = "Producto no encontrado";
+}
+
+async function loadRelated(p) {
+  const rows = await fetchPublished((q) => q.eq("category", p.category).neq("id", p.id).limit(4));
+  if (!rows.length) return;
+  $("#relatedSection").hidden = false;
+  $("#relatedGrid").innerHTML = rows.map((r) => cardHtml(toCard(r))).join("");
+  if (window.syncFavorites) window.syncFavorites($("#relatedGrid"));
+}
+
+// ---------- Carga ----------
+(async () => {
+  if (!id) return missing();
+  const { data } = await sb.from("products").select("*").eq("id", id).eq("status", "publicado").maybeSingle();
+  if (!data) return missing();
+  render(data);
+  loadRelated(data);
+  subscribe(
+    "products",
+    (ev) => {
+      if (ev.eventType === "DELETE" || (ev.new && ev.new.status !== "publicado")) return missing();
+      if (ev.new) render(ev.new);
+    },
+    `id=eq.${id}`,
+  );
+})();

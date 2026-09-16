@@ -1,5 +1,8 @@
 // Página de carrito: lista de ítems con cantidad, eliminar y resumen de compra.
 // Se alimenta de window.CartStore (cart.js) y se re-renderiza en cada cambio.
+// El catálogo en tiempo real mantiene precio y stock de cada ítem al día.
+import { createCatalog } from "../core/catalog.js";
+
 (function () {
   const { formatPrice, escapeHtml } = window.CS;
   const store = window.CartStore;
@@ -49,12 +52,13 @@
               <span class="priceNow">${formatPrice(it.price)}</span>
             </div>
             ${it.cuotas ? `<span class="cuotas">${escapeHtml(it.cuotas)}</span>` : ""}
+            ${typeof it.stock === "number" && it.stock <= 3 ? `<span class="cuotas" style="color:#f59e0b">${it.stock === 0 ? "Sin stock" : `Quedan ${it.stock}`}</span>` : ""}
           </div>
           <div class="cartRow-controls">
             <div class="qty-selector">
               <button type="button" data-action="dec" aria-label="Restar uno">−</button>
               <input type="text" value="${it.qty > 99 ? "99+" : it.qty}" readonly />
-              <button type="button" data-action="inc" aria-label="Sumar uno">+</button>
+              <button type="button" data-action="inc" aria-label="Sumar uno" ${typeof it.stock === "number" && it.qty >= it.stock ? "disabled" : ""}>+</button>
             </div>
             <span class="cartRow-subtotal">${formatPrice(it.price * it.qty)}</span>
             <button type="button" class="cartRow-remove" data-action="remove" aria-label="Eliminar del carrito">${ICON_TRASH}</button>
@@ -85,4 +89,5 @@
 
   store.onChange(render);
   render();
+  createCatalog(); // refresca precio/stock del carrito y quita lo no publicado
 })();

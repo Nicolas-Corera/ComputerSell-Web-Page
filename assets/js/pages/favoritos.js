@@ -1,65 +1,36 @@
-// Página de favoritos: grilla con las mismas tarjetas de producto del sitio.
-// Se alimenta de window.FavoritesStore (favorites.js). Los botones de las
-// tarjetas (Seleccionar / info / corazón) ya los manejan cart.js y favorites.js.
-(function () {
-  const { formatPrice, escapeHtml } = window.CS;
+// Página de favoritos: requiere sesión. Grilla con las tarjetas de producto
+// guardadas en la cuenta; se actualiza en tiempo real (favoritos y productos).
+import { requireAuth, subscribe } from "../core/supabase.js";
+
+const { cardHtml } = window.CS;
+const grid = document.getElementById("favGrid");
+const empty = document.getElementById("favEmpty");
+const countEl = document.getElementById("favPageCount");
+
+(async () => {
+  if (!(await requireAuth())) return;
   const store = window.FavoritesStore;
+  await store.ready;
 
-  const grid = document.getElementById("favGrid");
-  const empty = document.getElementById("favEmpty");
-  const countEl = document.getElementById("favPageCount");
-
-  function cardTemplate(it) {
-    return `
-      <div class="itemDestacado">
-        <div class="imageDestacado">
-          ${it.image ? `<img src="${escapeHtml(it.image)}" alt="" />` : ""}
-        </div>
-        <div class="textCard">
-          <span>${escapeHtml(it.name)}</span>
-          <div class="prices">
-            ${it.oldPrice ? `<span class="dashed">$${formatPrice(it.oldPrice)}</span>` : ""}
-            <span class="priceNow">${formatPrice(it.price)}</span>
-          </div>
-          ${it.cuotas ? `<span class="cuotas">${escapeHtml(it.cuotas)}</span>` : ""}
-        </div>
-        <div class="actionsDestacados">
-          <button class="btn btn-secondary">
-            <span>Seleccionar</span>
-          </button>
-          <button
-            class="btn btn-third"
-            onclick="window.location.href = '/detail.html'"
-          >
-            <svg class="ic-md"><use href="#ic-info" /></svg>
-          </button>
-          <button class="btn btn-third">
-            <svg class="ic-md">
-              <use class="favorite-icon" href="#ic-favorite-fill" />
-            </svg>
-          </button>
-        </div>
-      </div>`;
-  }
-
-  function render() {
-    const items = store.getItems();
+  let rendering = false;
+  async function render() {
+    if (rendering) return;
+    rendering = true;
+    const items = await store.getItems();
+    rendering = false;
     const n = items.length;
-
-    countEl.textContent =
-      n === 0
-        ? "Todavía no guardaste productos"
-        : `${n} ${n === 1 ? "producto guardado" : "productos guardados"}`;
-
+    countEl.textContent = n === 0 ? "Todavía no guardaste productos" : `${n} ${n === 1 ? "producto guardado" : "productos guardados"}`;
     grid.hidden = n === 0;
     empty.hidden = n !== 0;
-
-    grid.innerHTML = items.map(cardTemplate).join("");
-    // Marca los corazones de las tarjetas recién insertadas
+    grid.innerHTML = items.map((it) => cardHtml(it)).join("");
     if (window.syncFavorites) window.syncFavorites(grid);
   }
 
-  // Al quitar un favorito desde su corazón, la tarjeta desaparece
   store.onChange(render);
+  // Cambios de precio/stock de los productos guardados
+  subscribe("products", (p) => {
+    const pid = (p.new && p.new.id) || (p.old && p.old.id);
+    if (pid && store.has(pid)) render();
+  });
   render();
 })();

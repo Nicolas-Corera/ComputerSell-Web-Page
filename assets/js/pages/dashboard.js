@@ -1,21 +1,24 @@
 // Panel de administración (dashboard.html).
-// Todo corre en el navegador con datos de demostración generados de forma
-// determinística (misma semilla => mismos datos). Lo que el usuario cambia
-// (notificaciones leídas, productos cargados, preferencias, avatar, tema)
-// se persiste en localStorage con prefijo "cs_admin_".
-(function () {
-  const { formatPrice, parsePrice, escapeHtml, loadList, saveList } = window.CS;
+// Solo para cuentas con rol admin. Los datos (productos, órdenes, facturas,
+// comprobantes, reservas, notificaciones) vienen de Supabase y se mantienen
+// al día con realtime (ver dashboard/data.js). Preferencias de UI (tema,
+// colapso del menú, etc.) se guardan en localStorage con prefijo "cs_admin_".
+import { sb, signOut, CATEGORIES } from "../core/supabase.js";
+import {
+  PRODUCTS, ORDERS, RESERVAS, INVOICES, RECEIPTS, NOTIFS, CUSTOMERS, USER,
+  requireAdmin, loadAll, onChange, startRealtime, setOrderStatus, reviewReceipt, markRead, receiptUrl, loadProducts,
+} from "./dashboard/data.js";
+
+(async function () {
+  if (!(await requireAdmin())) return;
+  await loadAll();
+  const { formatPrice, parsePrice, escapeHtml } = window.CS;
 
   const $ = (sel, root) => (root || document).querySelector(sel);
   const $$ = (sel, root) => Array.from((root || document).querySelectorAll(sel));
 
-  const TODAY = new Date(2026, 8, 15, 18, 30); // fecha de referencia de la demo
+  const TODAY = new Date();
   const DAY = 86400000;
-
-  const USER = {
-    name: "Nicolás Corera",
-    email: "nicolas.corera@gmail.com",
-  };
 
   // ---------- Storage ----------
   const store = {
@@ -42,18 +45,6 @@
   };
 
   // ---------- Utilidades ----------
-  function rng(seed) {
-    // mulberry32: aleatorio determinístico
-    let a = seed >>> 0;
-    return function () {
-      a += 0x6d2b79f5;
-      let t = a;
-      t = Math.imul(t ^ (t >>> 15), t | 1);
-      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-    };
-  }
-
   const MONTHS = [
     "ene", "feb", "mar", "abr", "may", "jun",
     "jul", "ago", "sep", "oct", "nov", "dic",
@@ -171,70 +162,8 @@
   }
 
   // =====================================================================
-  //  DATOS DE DEMOSTRACIÓN
+  //  CONSTANTES DE DOMINIO
   // =====================================================================
-
-  const CATEGORIES = {
-    computadoras: { label: "Computadoras", subs: [] },
-    notebooks: { label: "Notebooks", subs: [] },
-    componentes: {
-      label: "Componentes",
-      subs: [
-        "Placas de video", "Procesadores", "Memorias RAM", "Almacenamiento",
-        "Motherboards", "Fuentes", "Gabinetes", "Refrigeración",
-      ],
-    },
-    perifericos: {
-      label: "Periféricos",
-      subs: [
-        "Teclados", "Mouse", "Auriculares", "Monitores", "Micrófonos",
-        "Parlantes", "Webcams", "Mousepads",
-      ],
-    },
-  };
-
-  const IMGS = {
-    pc1: "/assets/images/pc1.webp",
-    pc2: "/assets/images/pc2.webp",
-    pc3: "/assets/images/pc3.webp",
-    pcw: "/assets/images/PCWhite.webp",
-    pc: "/assets/images/PC.png",
-  };
-
-  const PRODUCTS = [
-    { id: "p1", name: "PC Armada AMD Ryzen 5 5500, RTX 3050, 16GB RAM, 512GB SSD", price: 1304424, cat: "computadoras", img: IMGS.pc1, stock: 4, sku: "CS-5500-3050-16-512" },
-    { id: "p2", name: "PC Gamer Intel Core i5 12400F, RTX 4060, 16GB DDR4, 1TB NVMe", price: 1789900, cat: "computadoras", img: IMGS.pc2, stock: 2, sku: "CS-12400-4060-16-1T" },
-    { id: "p3", name: "PC Armada AMD Ryzen 7 5700X, RTX 4070, 32GB RAM, 1TB SSD", price: 2649000, cat: "computadoras", img: IMGS.pc3, stock: 1, sku: "CS-5700-4070-32-1T" },
-    { id: "p4", name: "PC Oficina Intel Core i3 12100, 8GB RAM, 256GB SSD", price: 549900, cat: "computadoras", img: IMGS.pcw, stock: 9, sku: "CS-12100-8-256" },
-    { id: "p5", name: "PC Gamer White Edition Ryzen 5 7600, RTX 4060 Ti, 32GB DDR5", price: 2199000, cat: "computadoras", img: IMGS.pcw, stock: 3, sku: "CS-7600-4060TI-32" },
-    { id: "p6", name: "Notebook Lenovo IdeaPad 3 Ryzen 5 7520U 8GB 512GB 15.6\"", price: 899900, cat: "notebooks", img: IMGS.pc, stock: 6, sku: "NB-LEN-IP3-7520" },
-    { id: "p7", name: "Notebook ASUS TUF Gaming F15 i5 RTX 3050 16GB 512GB", price: 1549000, cat: "notebooks", img: IMGS.pc, stock: 2, sku: "NB-ASUS-TUF-F15" },
-    { id: "p8", name: "Notebook HP 15 Intel Core i7 1255U 16GB 512GB", price: 1199000, cat: "notebooks", img: IMGS.pc, stock: 0, sku: "NB-HP-15-I7" },
-    { id: "p9", name: "Placa de video NVIDIA GeForce RTX 4060 8GB GDDR6", price: 619900, cat: "componentes", sub: "Placas de video", img: IMGS.pc, stock: 7, sku: "CO-GPU-4060-8" },
-    { id: "p10", name: "Procesador AMD Ryzen 5 5600 AM4", price: 189900, cat: "componentes", sub: "Procesadores", img: IMGS.pc, stock: 12, sku: "CO-CPU-5600" },
-    { id: "p11", name: "Memoria RAM Kingston Fury Beast 16GB DDR4 3200MHz", price: 62900, cat: "componentes", sub: "Memorias RAM", img: IMGS.pc, stock: 25, sku: "CO-RAM-KF-16-3200" },
-    { id: "p12", name: "SSD Kingston NV2 1TB NVMe PCIe 4.0", price: 94900, cat: "componentes", sub: "Almacenamiento", img: IMGS.pc, stock: 18, sku: "CO-SSD-NV2-1T" },
-    { id: "p13", name: "Fuente Corsair CV650 650W 80 Plus Bronze", price: 109900, cat: "componentes", sub: "Fuentes", img: IMGS.pc, stock: 2, sku: "CO-PSU-CV650" },
-    { id: "p14", name: "Teclado mecánico Redragon Kumara K552 RGB", price: 54900, cat: "perifericos", sub: "Teclados", img: IMGS.pc, stock: 14, sku: "PE-KB-K552" },
-    { id: "p15", name: "Mouse Logitech G502 Hero 25K", price: 79900, cat: "perifericos", sub: "Mouse", img: IMGS.pc, stock: 3, sku: "PE-MS-G502" },
-    { id: "p16", name: "Monitor Samsung Odyssey G5 27\" 165Hz QHD", price: 449900, cat: "perifericos", sub: "Monitores", img: IMGS.pc, stock: 5, sku: "PE-MON-G5-27" },
-    { id: "p17", name: "Auriculares HyperX Cloud II 7.1", price: 119900, cat: "perifericos", sub: "Auriculares", img: IMGS.pc, stock: 8, sku: "PE-HS-CLOUD2" },
-  ];
-
-  const CUSTOMERS = [
-    ["Martín González", "martin.gonzalez@gmail.com", "11 4567-8901", "32.456.789", "Av. Rivadavia 4520, CABA"],
-    ["Rocío Pereyra", "rocio.pereyra@hotmail.com", "11 5678-9012", "35.123.456", "Belgrano 1180, Quilmes"],
-    ["Lucas Fernández", "lucasf@outlook.com", "11 2345-6789", "38.765.432", "Mitre 830, San Isidro"],
-    ["Camila Sosa", "cami.sosa@gmail.com", "11 6789-0123", "40.111.222", "Córdoba 2210, Rosario"],
-    ["Julián Ríos", "julian.rios@gmail.com", "11 3456-7890", "36.987.654", "San Martín 455, Lanús"],
-    ["Florencia Díaz", "flor.diaz@yahoo.com", "11 7890-1234", "41.222.333", "Alsina 990, Morón"],
-    ["Tomás Herrera", "tomas.herrera@gmail.com", "11 8901-2345", "33.444.555", "Av. Santa Fe 3100, CABA"],
-    ["Valentina Cruz", "valen.cruz@gmail.com", "11 9012-3456", "42.555.666", "Las Heras 720, Tigre"],
-    ["Agustín Molina", "agus.molina@gmail.com", "11 0123-4567", "37.666.777", "Sarmiento 1500, La Plata"],
-    ["Sofía Romero", "sofi.romero@gmail.com", "11 1234-5678", "39.777.888", "Av. Cabildo 2345, CABA"],
-    ["Bruno Castro", "bruno.castro@gmail.com", "11 4321-8765", "34.888.999", "Italia 610, Avellaneda"],
-    ["Micaela Vega", "mica.vega@gmail.com", "11 8765-4321", "43.999.000", "Brown 150, Adrogué"],
-  ].map((c, i) => ({ id: "c" + (i + 1), name: c[0], email: c[1], phone: c[2], dni: c[3], address: c[4] }));
 
   const PAYMENTS = {
     credito: { label: "Tarjeta de crédito", surcharge: 0.1 },
@@ -260,230 +189,9 @@
     cancelada: { label: "Cancelada", cls: "is-bad" },
   };
 
-  // Genera ~140 órdenes en los últimos 12 meses, más densas en los últimos días.
-  function generateOrders() {
-    const rand = rng(20260915);
-    const orders = [];
-    let seq = 10480;
-    const total = 150;
-    for (let i = 0; i < total; i++) {
-      // distribución sesgada hacia lo reciente
-      const r = rand();
-      const daysAgo = Math.floor(Math.pow(r, 1.6) * 365);
-      const hour = [10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 9, 23, 8][
-        Math.floor(Math.pow(rand(), 0.8) * 16)
-      ];
-      const date = new Date(TODAY.getTime() - daysAgo * DAY);
-      date.setHours(hour, Math.floor(rand() * 60), 0, 0);
+  // Notificaciones leídas por este admin (columna read_by)
+  const isRead = (n) => n.readBy.includes(USER.id);
 
-      const customer = CUSTOMERS[Math.floor(rand() * CUSTOMERS.length)];
-      const nItems = rand() < 0.7 ? 1 : rand() < 0.7 ? 2 : 3;
-      const items = [];
-      const used = new Set();
-      for (let k = 0; k < nItems; k++) {
-        let p = PRODUCTS[Math.floor(rand() * PRODUCTS.length)];
-        if (used.has(p.id)) continue;
-        used.add(p.id);
-        const qty = p.price > 500000 ? 1 : 1 + Math.floor(rand() * 2);
-        items.push({ product: p, qty, price: p.price });
-      }
-      const payKeys = Object.keys(PAYMENTS);
-      const payment = payKeys[Math.floor(Math.pow(rand(), 1.3) * payKeys.length)];
-      const subtotal = items.reduce((s, it) => s + it.price * it.qty, 0);
-      const shippingMethod = rand() < 0.7 ? "domicilio" : "retiro";
-      const shipping = shippingMethod === "domicilio" ? (subtotal > 1200000 ? 0 : 15000) : 0;
-      const surcharge = Math.round(subtotal * PAYMENTS[payment].surcharge);
-      const total = subtotal + shipping + surcharge;
-
-      let status;
-      const s = rand();
-      if (daysAgo === 0) status = s < 0.5 ? "pendiente" : s < 0.85 ? "pagado" : "preparando";
-      else if (daysAgo < 3) status = s < 0.2 ? "pendiente" : s < 0.5 ? "pagado" : s < 0.8 ? "preparando" : "enviado";
-      else if (daysAgo < 8) status = s < 0.1 ? "cancelado" : s < 0.5 ? "enviado" : "entregado";
-      else status = s < 0.07 ? "cancelado" : "entregado";
-
-      orders.push({
-        id: "CS-" + (seq + i),
-        date,
-        customer,
-        items,
-        payment,
-        shippingMethod,
-        shipping,
-        surcharge,
-        subtotal,
-        total,
-        status,
-        installments: payment === "credito" && subtotal > 1200000 ? 3 : 1,
-      });
-    }
-    orders.sort((a, b) => b.date - a.date);
-    // renumerar en orden cronológico
-    orders.forEach((o, i) => (o.id = "CS-" + (seq + orders.length - i)));
-    return orders;
-  }
-
-  function generateReservas() {
-    const rand = rng(777);
-    const list = [];
-    const statusPool = ["activa", "activa", "activa", "por-vencer", "retirada", "retirada", "vencida", "cancelada"];
-    for (let i = 0; i < 14; i++) {
-      const daysAgo = Math.floor(rand() * 20) - 2;
-      const date = new Date(TODAY.getTime() - daysAgo * DAY);
-      date.setHours(10 + Math.floor(rand() * 10), Math.floor(rand() * 60), 0, 0);
-      const product = PRODUCTS[Math.floor(rand() * PRODUCTS.length)];
-      const customer = CUSTOMERS[Math.floor(rand() * CUSTOMERS.length)];
-      const expires = new Date(date.getTime() + 7 * DAY);
-      let status = statusPool[Math.floor(rand() * statusPool.length)];
-      const daysToExpire = Math.round((expires - TODAY) / DAY);
-      if (status === "activa" && daysToExpire <= 2 && daysToExpire >= 0) status = "por-vencer";
-      if ((status === "activa" || status === "por-vencer") && daysToExpire < 0) status = "vencida";
-      list.push({
-        id: "RS-" + pad(120 + i),
-        date,
-        expires,
-        customer,
-        product,
-        qty: 1,
-        deposit: Math.round(product.price * 0.2),
-        status,
-        note: rand() < 0.3 ? "Consulta por cambio de RAM a 32GB" : "",
-      });
-    }
-    list.sort((a, b) => b.date - a.date);
-    return list;
-  }
-
-  const ORDERS = generateOrders();
-  const RESERVAS = generateReservas();
-
-  // Facturas: una por orden pagada (o posterior). Comprobantes: transferencias.
-  const INVOICES = ORDERS.filter((o) => o.status !== "pendiente" && o.status !== "cancelado").map(
-    (o, i) => {
-      const rand = rng(i + 99);
-      const type = rand() < 0.15 ? "A" : "B";
-      return {
-        id: `${type}-0003-${pad(String(20000 + i)).padStart(8, "0")}`,
-        type,
-        order: o,
-        date: o.date,
-        customer: o.customer,
-        total: o.total,
-        cae: String(76000000000000 + Math.floor(rand() * 999999999)),
-      };
-    },
-  );
-  // Un par de notas de crédito para órdenes canceladas
-  ORDERS.filter((o) => o.status === "cancelado")
-    .slice(0, 3)
-    .forEach((o, i) => {
-      INVOICES.push({
-        id: `NC-0003-${String(300 + i).padStart(8, "0")}`,
-        type: "NC",
-        order: o,
-        date: new Date(o.date.getTime() + DAY),
-        customer: o.customer,
-        total: o.total,
-        cae: String(76000000000000 + i * 12345),
-      });
-    });
-  INVOICES.sort((a, b) => b.date - a.date);
-
-  const RECEIPTS = ORDERS.filter((o) => o.payment === "transferencia").map((o, i) => {
-    const rand = rng(i + 500);
-    let status = "aprobado";
-    if (o.status === "pendiente") status = "pendiente";
-    else if (o.status === "cancelado") status = "rechazado";
-    return {
-      id: "CP-" + pad(900 + i),
-      order: o,
-      customer: o.customer,
-      date: new Date(o.date.getTime() + Math.floor(rand() * 6) * 3600000),
-      amount: o.total,
-      bank: ["Banco Galicia", "Banco Nación", "Mercado Pago", "Brubank", "Santander"][Math.floor(rand() * 5)],
-      reference: String(100000000 + Math.floor(rand() * 899999999)),
-      file: "/assets/images/image_test.jpg",
-      status,
-    };
-  });
-
-  // Notificaciones generadas a partir de los datos
-  function buildNotifications() {
-    const list = [];
-    ORDERS.slice(0, 6).forEach((o) => {
-      list.push({
-        id: "n-venta-" + o.id,
-        type: "venta",
-        icon: "shopping_cart",
-        title: `Nueva venta ${o.id}`,
-        body: `${o.customer.name} compró ${o.items[0].product.name}${o.items.length > 1 ? ` y ${o.items.length - 1} más` : ""} por $${formatPrice(o.total)}.`,
-        date: o.date,
-        target: { view: "ordenes", tab: "ventas", order: o.id },
-      });
-    });
-    RESERVAS.filter((r) => r.status === "activa" || r.status === "por-vencer")
-      .slice(0, 4)
-      .forEach((r) => {
-        list.push({
-          id: "n-reserva-" + r.id,
-          type: "reserva",
-          icon: "event",
-          title: r.status === "por-vencer" ? `Reserva ${r.id} por vencer` : `Nueva reserva ${r.id}`,
-          body: `${r.customer.name} reservó ${r.product.name}. Seña: $${formatPrice(r.deposit)}. Vence el ${fmtDate(r.expires)}.`,
-          date: r.status === "por-vencer" ? new Date(TODAY - 3 * 3600000) : r.date,
-          target: { view: "ordenes", tab: "reservas", reserva: r.id },
-        });
-      });
-    RECEIPTS.filter((r) => r.status === "pendiente")
-      .slice(0, 3)
-      .forEach((r) => {
-        list.push({
-          id: "n-pago-" + r.id,
-          type: "pago",
-          icon: "account_balance",
-          title: `Comprobante recibido · ${r.order.id}`,
-          body: `${r.customer.name} envió un comprobante de transferencia por $${formatPrice(r.amount)} (${r.bank}). Pendiente de revisión.`,
-          date: r.date,
-          target: { view: "facturas", tab: "recibidos" },
-        });
-      });
-    PRODUCTS.filter((p) => p.stock <= 2).forEach((p, i) => {
-      list.push({
-        id: "n-stock-" + p.id,
-        type: "stock",
-        icon: "inventory_2",
-        title: p.stock === 0 ? "Sin stock" : "Stock bajo",
-        body: `${p.name}: ${p.stock === 0 ? "se agotó" : `quedan ${p.stock} unidad${p.stock === 1 ? "" : "es"}`}.`,
-        date: new Date(TODAY - (i + 1) * 5 * 3600000),
-        target: { view: "cargas" },
-      });
-    });
-    list.push(
-      {
-        id: "n-sys-1",
-        type: "sistema",
-        icon: "verified",
-        title: "Panel actualizado a la versión 1.0.0",
-        body: "Nuevas analíticas, búsqueda rápida y formulario de carga completo. Mirá las novedades en Acerca de.",
-        date: new Date(TODAY - 2 * DAY),
-        target: { view: "perfil", tab: "about" },
-      },
-      {
-        id: "n-sys-2",
-        type: "sistema",
-        icon: "star_rate",
-        title: "Nueva opinión de 5 estrellas",
-        body: "Martín G. dejó una reseña en PC Armada AMD Ryzen 5 5500: \"Llegó bien embalado y anduvo perfecto desde el primer arranque\".",
-        date: new Date(TODAY - 5 * DAY),
-        target: { view: "analiticas" },
-      },
-    );
-    list.sort((a, b) => b.date - a.date);
-    return list;
-  }
-
-  const NOTIFS = buildNotifications();
-  let readIds = new Set(store.get("read", []));
 
   // =====================================================================
   //  NAVEGACIÓN / SIDEBAR
@@ -821,7 +529,7 @@
   let notifFilter = "todas";
 
   function unreadCount() {
-    return NOTIFS.filter((n) => !readIds.has(n.id)).length;
+    return NOTIFS.filter((n) => !isRead(n)).length;
   }
 
   function updateNotifBadges() {
@@ -830,7 +538,7 @@
     $("#topNotifDot").textContent = c ? " " : "";
     $$("#notifChips [data-count]").forEach((el) => {
       const t = el.dataset.count;
-      const n = NOTIFS.filter((x) => (t === "todas" || x.type === t) && !readIds.has(x.id)).length;
+      const n = NOTIFS.filter((x) => (t === "todas" || x.type === t) && !isRead(x)).length;
       el.textContent = n ? n : "";
       el.hidden = !n;
     });
@@ -846,7 +554,7 @@
     notifList.innerHTML = items
       .map(
         (n) => `
-        <article class="notif ${readIds.has(n.id) ? "" : "is-unread"}" data-id="${n.id}">
+        <article class="notif ${isRead(n) ? "" : "is-unread"}" data-id="${n.id}">
           <span class="notif-icon is-${n.type}"><svg><use href="#ic-${n.icon}" /></svg></span>
           <div class="notif-body">
             <strong>${escapeHtml(n.title)}</strong>
@@ -860,15 +568,15 @@
   }
 
   function openNotification(n) {
-    readIds.add(n.id);
-    store.set("read", Array.from(readIds));
+    markRead([n.id]);
     const el = $(`.notif[data-id="${n.id}"]`, notifList);
     el && el.classList.remove("is-unread");
     updateNotifBadges();
-    if (n.target) {
+    if (n.target && n.target.view) {
       showView(n.target.view, { tab: n.target.tab });
-      if (n.target.order) openOrderDrawer(ORDERS.find((o) => o.id === n.target.order));
-      if (n.target.reserva) openReservaDrawer(RESERVAS.find((r) => r.id === n.target.reserva));
+      if (n.target.order) openOrderDrawer(ORDERS.find((o) => o.uuid === n.target.order));
+      if (n.target.reserva) openReservaDrawer(RESERVAS.find((r) => r.uuid === n.target.reserva));
+      if (n.target.product && RENDERERS._editProduct) RENDERERS._editProduct(n.target.product);
     }
   }
 
@@ -886,8 +594,7 @@
   });
 
   $("#notifReadAll").addEventListener("click", () => {
-    NOTIFS.forEach((n) => readIds.add(n.id));
-    store.set("read", Array.from(readIds));
+    markRead(NOTIFS.filter((n) => !isRead(n)).map((n) => n.id));
     renderNotifs();
     toast("Todas las notificaciones quedaron como leídas", "ok");
   });
@@ -947,12 +654,12 @@
       });
     }
     drawRevenue(7);
-    $("#revenueRange").addEventListener("click", (e) => {
+    $("#revenueRange").onclick = (e) => {
       const b = e.target.closest("button");
       if (!b) return;
       $$("#revenueRange button").forEach((x) => x.classList.toggle("is-active", x === b));
       drawRevenue(+b.dataset.days);
-    });
+    };
 
     // Más vendidos (mes)
     const sold = {};
@@ -964,22 +671,22 @@
       }),
     );
     const top = Object.values(sold).sort((a, b) => b.rev - a.rev).slice(0, 5);
-    $("#topProducts").innerHTML = top
+    $("#topProducts").innerHTML = (top.length ? top : [])
       .map(
         (t, i) => `
         <div class="list-item">
           <span class="rank ${i === 0 ? "is-top" : ""}">${i + 1}</span>
-          <span class="thumb"><img src="${t.p.img}" alt="" /></span>
+          <span class="thumb">${t.p.img ? `<img src="${t.p.img}" alt="" />` : '<svg><use href="#ic-image" /></svg>'}</span>
           <div class="body"><strong>${escapeHtml(t.p.name)}</strong><small>${t.qty} vendido${t.qty === 1 ? "" : "s"}</small></div>
           <span class="val is-money">${formatPrice(t.rev)}</span>
         </div>`,
       )
-      .join("");
+      .join("") || `<p style="color:var(--ink-soft);font-size:13.5px;margin:0">Todavía no hay ventas este mes.</p>`;
 
     // Órdenes recientes
     $("#recentOrders").innerHTML =
       `<thead><tr><th>Orden</th><th>Cliente</th><th>Fecha</th><th>Estado</th><th class="num">Total</th></tr></thead><tbody>` +
-      ORDERS.slice(0, 6)
+      (ORDERS.length ? ORDERS.slice(0, 6) : [])
         .map(
           (o) => `
           <tr class="is-clickable" data-order="${o.id}">
@@ -991,6 +698,7 @@
           </tr>`,
         )
         .join("") +
+      (ORDERS.length ? "" : `<tr><td colspan="5" class="table-empty">Todavía no hay órdenes.</td></tr>`) +
       "</tbody>";
 
     // Próximas reservas
@@ -1002,7 +710,7 @@
           .map(
             (r) => `
           <div class="list-item is-clickable" data-reserva="${r.id}" style="cursor:pointer">
-            <span class="thumb"><img src="${r.product.img}" alt="" /></span>
+            <span class="thumb">${r.product.img ? `<img src="${r.product.img}" alt="" />` : ""}</span>
             <div class="body"><strong>${escapeHtml(r.customer.name)}</strong><small>${escapeHtml(r.product.name)}</small></div>
             <div style="text-align:right">${badge(RESERVA_STATUS, r.status)}<small class="muted" style="display:block;font-size:11.5px;color:var(--ink-soft);margin-top:3px">vence ${fmtDateShort(r.expires)}</small></div>
           </div>`,
@@ -1011,8 +719,8 @@
       : `<p style="color:var(--ink-soft);font-size:13.5px;margin:0">No hay reservas activas.</p>`;
 
     // Stock bajo
-    const low = PRODUCTS.filter((p) => p.stock <= 2).slice(0, 4);
-    $("#lowStock").innerHTML = low
+    const low = PRODUCTS.filter((p) => p.status === "publicado" && p.stock <= p.stockMin).slice(0, 4);
+    $("#lowStock").innerHTML = (low.length ? low : [])
       .map(
         (p) => `
         <div class="stock-alert">
@@ -1021,7 +729,7 @@
           <strong>${p.stock === 0 ? "Sin stock" : p.stock + " u."}</strong>
         </div>`,
       )
-      .join("");
+      .join("") || `<p style="color:var(--ink-soft);font-size:13.5px;margin:0">Todo el stock está por encima del mínimo.</p>`;
   }
 
   document.addEventListener("click", (e) => {
@@ -1051,8 +759,7 @@
         tips.push(`${MONTHS_LONG[start.getMonth()]} ${start.getFullYear()}`);
         sales.push(os.length);
         revenue.push(os.reduce((s, o) => s + o.total, 0));
-        // reservas: la demo solo tiene reservas recientes; se estima proporcional
-        res.push(i === 0 ? RESERVAS.length : Math.round(os.length * 0.35));
+        res.push(RESERVAS.filter((r) => r.date >= start && r.date < end).length);
       }
       return { labels, sales, res, tips, revenue };
     }
@@ -1084,16 +791,16 @@
       $("#analyticsKpis").innerHTML =
         kpi("payments", `Facturado (${months} meses)`, formatPrice(totalRev), `${totalOrders} órdenes pagadas`, true) +
         kpi("inventory_2", "Unidades vendidas", units, "en todo el período") +
-        kpi("group", "Clientes únicos", new Set(paid.map((o) => o.customer.id)).size, `${Math.round((paid.length / new Set(paid.map((o) => o.customer.id)).size) * 10) / 10} órdenes por cliente`) +
-        kpi("cancel", "Tasa de cancelación", `${Math.round((cancel / ORDERS.length) * 100)}%`, `${cancel} de ${ORDERS.length} órdenes`);
+        kpi("group", "Clientes únicos", new Set(paid.map((o) => o.customer.id)).size, `${paid.length ? Math.round((paid.length / new Set(paid.map((o) => o.customer.id)).size) * 10) / 10 : 0} órdenes por cliente`) +
+        kpi("cancel", "Tasa de cancelación", `${ORDERS.length ? Math.round((cancel / ORDERS.length) * 100) : 0}%`, `${cancel} de ${ORDERS.length} órdenes`);
     }
     draw(12);
-    $("#analyticsRange").addEventListener("click", (e) => {
+    $("#analyticsRange").onclick = (e) => {
       const b = e.target.closest("button");
       if (!b) return;
       $$("#analyticsRange button").forEach((x) => x.classList.toggle("is-active", x === b));
       draw(+b.dataset.months);
-    });
+    };
 
     // Categorías
     const byCat = {};
@@ -1105,7 +812,7 @@
       $("#categoryBars"),
       Object.entries(byCat)
         .sort((a, b) => b[1] - a[1])
-        .map(([k, v], i) => ({ label: CATEGORIES[k].label, value: v, color: catColors[i] })),
+        .map(([k, v], i) => ({ label: (CATEGORIES[k] || { label: "Otros" }).label, value: v, color: catColors[i % 4] })),
       { format: (v) => "$" + fmtCompact(v) },
     );
 
@@ -1116,7 +823,7 @@
       $("#paymentBars"),
       Object.entries(byPay)
         .sort((a, b) => b[1] - a[1])
-        .map(([k, v], i) => ({ label: PAYMENTS[k].label, value: v, color: catColors[i] })),
+        .map(([k, v], i) => ({ label: PAYMENTS[k].label, value: v, color: catColors[i % 4] })),
       { format: (v) => v },
     );
 
@@ -1135,24 +842,19 @@
       axisFormat: (v) => Math.round(v),
     });
 
-    // Visitas vs conversiones (visitas simuladas)
-    const rand = rng(42);
-    const wLabels = [], visits = [], convs = [];
+    // Ticket promedio por semana (últimas 8 semanas)
+    const wLabels = [], tickets = [];
     for (let i = 7; i >= 0; i--) {
       const start = new Date(TODAY.getTime() - (i + 1) * 7 * DAY);
       const end = new Date(TODAY.getTime() - i * 7 * DAY);
-      const os = ordersBetween(start, end).length;
+      const os = ordersBetween(start, end).filter(isPaid);
       wLabels.push("sem " + (8 - i));
-      visits.push(Math.round(1800 + rand() * 900 + os * 40));
-      convs.push(os * 100);
+      tickets.push(os.length ? Math.round(os.reduce((s, o) => s + o.total, 0) / os.length) : 0);
     }
     lineChart($("#conversionChart"), {
       labels: wLabels,
-      series: [
-        { name: "Visitas", color: "#3b82f6", values: visits },
-        { name: "Órdenes (x100)", color: "#059669", values: convs },
-      ],
-      format: (v) => formatPrice(v),
+      series: [{ name: "Ticket promedio", color: "#3b82f6", values: tickets }],
+      format: (v) => "$" + formatPrice(v),
     });
 
     // Rendimiento por producto
@@ -1174,10 +876,10 @@
           (r) => `
           <tr>
             <td class="ellipsis" title="${escapeHtml(r.p.name)}">${escapeHtml(r.p.name)}</td>
-            <td class="muted">${CATEGORIES[r.p.cat].label}</td>
+            <td class="muted">${(CATEGORIES[r.p.cat] || { label: "—" }).label}</td>
             <td class="num">${r.qty}</td>
             <td class="num">${r.orders}</td>
-            <td class="num">${r.p.stock === 0 ? '<span class="badge is-bad">0</span>' : r.p.stock <= 2 ? `<span class="badge is-warn">${r.p.stock}</span>` : r.p.stock}</td>
+            <td class="num">${(() => { const cur = PRODUCTS.find((p) => p.id === r.p.id); const st = cur ? cur.stock : "—"; return st === 0 ? '<span class="badge is-bad">0</span>' : cur && st <= cur.stockMin ? `<span class="badge is-warn">${st}</span>` : st; })()}</td>
             <td class="num is-money">${formatPrice(r.rev)}</td>
             <td><div class="hbar-track"><div class="hbar-fill" style="width:${((r.rev / maxRev) * 100).toFixed(1)}%;background:var(--chart-1)"></div></div></td>
           </tr>`,
@@ -1185,14 +887,14 @@
         .join("") +
       "</tbody>";
 
-    $("#exportAnalytics").addEventListener("click", () => {
+    $("#exportAnalytics").onclick = () => {
       const lines = [["Producto", "Categoria", "Unidades", "Ordenes", "Stock", "Facturacion"]];
       Object.values(perf).forEach((r) =>
-        lines.push([r.p.name, CATEGORIES[r.p.cat].label, r.qty, r.orders, r.p.stock, r.rev]),
+        lines.push([r.p.name, (CATEGORIES[r.p.cat] || { label: "" }).label, r.qty, r.orders, (PRODUCTS.find((p) => p.id === r.p.id) || {}).stock ?? "", r.rev]),
       );
       downloadFile("analiticas-productos.csv", lines.map((l) => l.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(";")).join("\n"), "text/csv");
       toast("CSV exportado", "ok");
-    });
+    };
   }
 
   function downloadFile(name, content, type) {
@@ -1242,7 +944,7 @@
               <td><div class="cell-user">${avatarHtml(o.customer.name)}<div><span>${escapeHtml(o.customer.name)}</span><small>${escapeHtml(o.customer.email)}</small></div></div></td>
               <td class="ellipsis" title="${escapeHtml(o.items.map((i) => i.product.name).join(", "))}">${escapeHtml(o.items[0].product.name)}${o.items.length > 1 ? ` <span class="muted">+${o.items.length - 1}</span>` : ""}</td>
               <td class="muted">${fmtDateTime(o.date)}</td>
-              <td class="muted">${PAYMENTS[o.payment].label}</td>
+              <td class="muted">${(PAYMENTS[o.payment] || { label: o.payment }).label}</td>
               <td>${badge(ORDER_STATUS, o.status)}</td>
               <td class="num is-money">${formatPrice(o.total)}</td>
             </tr>`,
@@ -1252,7 +954,7 @@
         "</tbody>" +
         (rows.length > pageSize ? `<tfoot><tr><td colspan="7" class="muted" style="text-align:center">Mostrando ${pageSize} de ${rows.length}. Refiná la búsqueda para ver el resto.</td></tr></tfoot>` : "");
     }
-    [search, status, pay].forEach((el) => el.addEventListener("input", draw));
+    [search, status, pay].forEach((el) => (el.oninput = draw));
     draw();
 
     // Reservas
@@ -1285,9 +987,11 @@
           : `<tr><td colspan="7" class="table-empty">No hay reservas que coincidan.</td></tr>`) +
         "</tbody>";
     }
-    [rSearch, rStatus].forEach((el) => el.addEventListener("input", drawRes));
+    [rSearch, rStatus].forEach((el) => (el.oninput = drawRes));
     drawRes();
     RENDERERS._redrawOrders = () => {
+      $("#ventasCount").textContent = ORDERS.length;
+      $("#reservasCount").textContent = RESERVAS.length;
       draw();
       drawRes();
     };
@@ -1317,17 +1021,29 @@
     const steps = ["pendiente", "pagado", "preparando", "enviado", "entregado"];
     const idx = o.status === "cancelado" ? -1 : steps.indexOf(o.status);
     const labels = { pendiente: "Orden creada", pagado: "Pago confirmado", preparando: "En preparación", enviado: "Despachado", entregado: "Entregado" };
+    const when = (st) => {
+      const ev = o.events.find((e) => e.status === st);
+      return ev ? `<small>${fmtDateTime(new Date(ev.created_at))}${ev.note ? " · " + escapeHtml(ev.note) : ""}</small>` : "";
+    };
     let html = "";
     steps.forEach((s, i) => {
       const done = i <= idx;
-      html += `<li class="${done ? "" : "is-pending"}">${labels[s]}${done ? `<small>${fmtDateTime(new Date(o.date.getTime() + i * 2 * 3600000))}</small>` : ""}</li>`;
+      html += `<li class="${done ? "" : "is-pending"}">${labels[s]}${done ? when(s) : ""}</li>`;
     });
-    if (o.status === "cancelado") html = `<li>Orden creada<small>${fmtDateTime(o.date)}</small></li><li style="color:var(--bad)">Cancelada<small>${fmtDateTime(new Date(o.date.getTime() + 8 * 3600000))}</small></li>`;
+    if (o.status === "cancelado") {
+      html = `<li>Orden creada<small>${fmtDateTime(o.date)}</small></li>`;
+      o.events.filter((e) => e.status !== "pendiente" && e.status !== "cancelado").forEach((e) => (html += `<li>${labels[e.status] || e.status}<small>${fmtDateTime(new Date(e.created_at))}</small></li>`));
+      html += `<li style="color:var(--bad)">Cancelada${when("cancelado")}</li>`;
+    }
     return `<ul class="timeline">${html}</ul>`;
   }
 
+  // Qué hay abierto en el drawer (para refrescarlo cuando llegan cambios)
+  let drawerOpen = null;
+
   function openOrderDrawer(o) {
     if (!o) return;
+    drawerOpen = { type: "order", uuid: o.uuid };
     drawerTitle.textContent = `Orden ${o.id}`;
     drawerBody.innerHTML = `
       <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
@@ -1350,8 +1066,8 @@
             .map(
               (it) => `
             <div class="list-item">
-              <span class="thumb"><img src="${it.product.img}" alt="" /></span>
-              <div class="body"><strong>${escapeHtml(it.product.name)}</strong><small>x${it.qty} · $${formatPrice(it.price)} c/u</small></div>
+              <span class="thumb">${it.product.img ? `<img src="${it.product.img}" alt="" />` : '<svg><use href="#ic-image" /></svg>'}</span>
+              <div class="body"><strong>${escapeHtml(it.product.name)}</strong><small>x${it.qty} · ${formatPrice(it.price)} c/u${it.product.sku ? " · SKU " + escapeHtml(it.product.sku) : ""}</small></div>
               <span class="val is-money">${formatPrice(it.price * it.qty)}</span>
             </div>`,
             )
@@ -1361,7 +1077,7 @@
       <div>
         <h4>Pago y envío</h4>
         <dl class="kv">
-          <dt>Medio de pago</dt><dd>${PAYMENTS[o.payment].label}${o.installments > 1 ? ` · ${o.installments} cuotas sin interés` : ""}</dd>
+          <dt>Medio de pago</dt><dd>${(PAYMENTS[o.payment] || { label: o.payment }).label}${o.installments > 1 ? ` · ${o.installments} cuotas sin interés` : ""}</dd>
           <dt>Entrega</dt><dd>${o.shippingMethod === "domicilio" ? "Envío a domicilio · " + escapeHtml(o.customer.address) : "Retiro en el local"}</dd>
           <dt>Subtotal</dt><dd>$${formatPrice(o.subtotal)}</dd>
           <dt>Envío</dt><dd>${o.shipping ? "$" + formatPrice(o.shipping) : "Gratis"}</dd>
@@ -1373,23 +1089,31 @@
         <h4>Seguimiento</h4>
         ${orderTimeline(o)}
       </div>`;
-    const inv = INVOICES.find((i) => i.order === o && i.type !== "NC");
+    const inv = INVOICES.find((i) => i.order && i.order.uuid === o.uuid && i.type !== "NC");
+    const rec = RECEIPTS.find((r) => r.order && r.order.uuid === o.uuid);
     drawerFoot.innerHTML = `
       ${NEXT_STATUS[o.status] ? `<button class="btn btn-secondary is-sm" type="button" id="advanceOrder"><svg><use href="#ic-check_circle" /></svg>${NEXT_LABEL[o.status]}</button>` : ""}
       ${inv ? `<button class="btn btn-ghost is-sm" type="button" id="drawerInvoice"><svg><use href="#ic-receipt_long" /></svg>Ver factura</button>` : ""}
+      ${rec ? `<button class="btn btn-ghost is-sm" type="button" id="drawerReceipt"><svg><use href="#ic-account_balance" /></svg>Comprobante</button>` : ""}
       ${o.status !== "cancelado" && o.status !== "entregado" ? `<button class="btn btn-danger is-sm" type="button" id="cancelOrder" style="margin-left:auto"><svg><use href="#ic-cancel" /></svg>Cancelar</button>` : ""}`;
     openDrawer();
 
     const adv = $("#advanceOrder");
     if (adv)
-      adv.addEventListener("click", () => {
-        o.status = NEXT_STATUS[o.status];
-        toast(`${o.id}: ${ORDER_STATUS[o.status].label}`, "ok");
-        RENDERERS._redrawOrders && RENDERERS._redrawOrders();
-        openOrderDrawer(o);
+      adv.addEventListener("click", async () => {
+        adv.disabled = true;
+        try {
+          await setOrderStatus(o, NEXT_STATUS[o.status]);
+          toast(`${o.id}: ${ORDER_STATUS[NEXT_STATUS[o.status]].label}`, "ok");
+        } catch (err) {
+          toast(err.message, "bad");
+          adv.disabled = false;
+        }
       });
     const inv2 = $("#drawerInvoice");
     if (inv2) inv2.addEventListener("click", () => previewInvoice(inv));
+    const rec2 = $("#drawerReceipt");
+    if (rec2) rec2.addEventListener("click", () => previewReceipt(rec));
     const cancel = $("#cancelOrder");
     if (cancel)
       cancel.addEventListener("click", async () => {
@@ -1400,15 +1124,18 @@
           danger: true,
         });
         if (!ok) return;
-        o.status = "cancelado";
-        toast(`${o.id} cancelada`, "bad");
-        RENDERERS._redrawOrders && RENDERERS._redrawOrders();
-        openOrderDrawer(o);
+        try {
+          await setOrderStatus(o, "cancelado", "Cancelada desde el panel");
+          toast(`${o.id} cancelada`, "bad");
+        } catch (err) {
+          toast(err.message, "bad");
+        }
       });
   }
 
   function openReservaDrawer(r) {
     if (!r) return;
+    drawerOpen = { type: "reserva", uuid: r.uuid };
     drawerTitle.textContent = `Reserva ${r.id}`;
     const daysLeft = Math.round((r.expires - TODAY) / DAY);
     drawerBody.innerHTML = `
@@ -1418,7 +1145,7 @@
       </div>
       <div class="list">
         <div class="list-item">
-          <span class="thumb"><img src="${r.product.img}" alt="" /></span>
+          <span class="thumb">${r.product.img ? `<img src="${r.product.img}" alt="" />` : ""}</span>
           <div class="body"><strong>${escapeHtml(r.product.name)}</strong><small>SKU ${r.product.sku} · Stock actual: ${r.product.stock}</small></div>
           <span class="val is-money">${formatPrice(r.product.price)}</span>
         </div>
@@ -1447,22 +1174,21 @@
          <button class="btn btn-danger is-sm" type="button" id="resCancel" style="margin-left:auto"><svg><use href="#ic-cancel" /></svg>Cancelar</button>`
       : `<a class="btn btn-ghost is-sm" href="https://wa.me/54${r.customer.phone.replace(/\D/g, "")}" target="_blank" rel="noopener"><svg><use href="#ic-whatsapp" /></svg>Contactar por WhatsApp</a>`;
     openDrawer();
-    const done = (status, msg, type) => {
-      r.status = status;
+    const done = async (patch, msg, type) => {
+      const { error } = await sb.from("reservations").update(patch).eq("id", r.uuid);
+      if (error) return toast(error.message, "bad");
       toast(msg, type);
-      RENDERERS._redrawOrders && RENDERERS._redrawOrders();
-      openReservaDrawer(r);
     };
-    $("#resPickup") && $("#resPickup").addEventListener("click", () => done("retirada", `${r.id} marcada como retirada`, "ok"));
+    $("#resPickup") && $("#resPickup").addEventListener("click", () => done({ status: "retirada" }, `${r.id} marcada como retirada`, "ok"));
     $("#resExtend") &&
       $("#resExtend").addEventListener("click", () => {
-        r.expires = new Date(r.expires.getTime() + 7 * DAY);
-        done("activa", `${r.id} extendida hasta el ${fmtDate(r.expires)}`, "ok");
+        const exp = new Date(r.expires.getTime() + 7 * DAY);
+        done({ status: "activa", expires_at: exp.toISOString() }, `${r.id} extendida hasta el ${fmtDate(exp)}`, "ok");
       });
     $("#resCancel") &&
       $("#resCancel").addEventListener("click", async () => {
         const ok = await confirmModal({ title: `Cancelar ${r.id}`, text: "Se liberará el stock reservado. La seña deberá devolverse manualmente.", okText: "Cancelar reserva", danger: true });
-        if (ok) done("cancelada", `${r.id} cancelada`, "bad");
+        if (ok) done({ status: "cancelada" }, `${r.id} cancelada`, "bad");
       });
   }
 
@@ -1491,7 +1217,7 @@
           const [y, mo] = m.value.split("-").map(Number);
           if (i.date.getFullYear() !== y || i.date.getMonth() + 1 !== mo) return false;
         }
-        if (q && !normalize(i.id + " " + i.customer.name + " " + i.order.id).includes(q)) return false;
+        if (q && !normalize(i.id + " " + i.customer.name + " " + (i.order ? i.order.id : "")).includes(q)) return false;
         return true;
       });
       $("#invResult").textContent = `${rows.length} de ${INVOICES.length} comprobantes`;
@@ -1506,7 +1232,7 @@
               <td class="mono">${i.id}</td>
               <td>${i.type === "NC" ? '<span class="badge is-bad is-plain">Nota de crédito</span>' : `<span class="badge is-muted is-plain">Factura ${i.type}</span>`}</td>
               <td>${escapeHtml(i.customer.name)}</td>
-              <td class="muted">${i.order.id}</td>
+              <td class="muted">${i.order ? i.order.id : "—"}</td>
               <td class="muted">${fmtDate(i.date)}</td>
               <td class="num is-money">${formatPrice(i.total)}</td>
               <td><div class="actions">
@@ -1519,15 +1245,20 @@
           : `<tr><td colspan="7" class="table-empty">No hay comprobantes que coincidan.</td></tr>`) +
         "</tbody>";
     }
-    [s, t, m].forEach((el) => el.addEventListener("input", draw));
+    [s, t, m].forEach((el) => (el.oninput = draw));
     draw();
+    RENDERERS._redrawInvoices = () => {
+      $("#emitidasCount").textContent = INVOICES.length;
+      $("#recibidosCount").textContent = RECEIPTS.length;
+      draw();
+    };
 
     const rs = $("#recSearch"), rst = $("#recStatus");
     function drawRec() {
       const q = normalize(rs.value);
       const rows = RECEIPTS.filter((r) => {
         if (rst.value && r.status !== rst.value) return false;
-        if (q && !normalize(r.customer.name + " " + r.order.id + " " + r.bank).includes(q)) return false;
+        if (q && !normalize(r.customer.name + " " + (r.order ? r.order.id : "") + " " + r.bank).includes(q)) return false;
         return true;
       });
       $("#recResult").textContent = `${rows.length} de ${RECEIPTS.length} comprobantes`;
@@ -1540,14 +1271,14 @@
             <tr>
               <td class="mono">${r.id}</td>
               <td>${escapeHtml(r.customer.name)}</td>
-              <td class="muted">${r.order.id}</td>
-              <td class="muted">${r.bank}</td>
+              <td class="muted">${r.order ? r.order.id : "—"}</td>
+              <td class="muted">${r.bank || "—"}</td>
               <td class="muted">${fmtDateTime(r.date)}</td>
               <td class="num is-money">${formatPrice(r.amount)}</td>
               <td>${badge(RECEIPT_STATUS, r.status)}</td>
               <td><div class="actions">
                 <button class="iconBtn is-sm" type="button" data-rec-preview="${r.id}" title="Ver comprobante"><svg><use href="#ic-visibility" /></svg></button>
-                <a class="iconBtn is-sm" href="${r.file}" download="${r.id}.jpg" title="Descargar"><svg><use href="#ic-download" /></svg></a>
+
               </div></td>
             </tr>`,
               )
@@ -1555,7 +1286,7 @@
           : `<tr><td colspan="8" class="table-empty">No hay comprobantes que coincidan.</td></tr>`) +
         "</tbody>";
     }
-    [rs, rst].forEach((el) => el.addEventListener("input", drawRec));
+    [rs, rst].forEach((el) => (el.oninput = drawRec));
     drawRec();
     RENDERERS._redrawReceipts = drawRec;
   }
@@ -1571,6 +1302,7 @@
 
   function invoiceHtml(inv) {
     const o = inv.order;
+    if (!o) return "<p>Orden no disponible.</p>";
     const isNC = inv.type === "NC";
     return `
       <div class="invoice" id="invoiceDoc">
@@ -1601,7 +1333,7 @@
           <div>
             <small>Condiciones</small>
             Condición IVA: Consumidor final<br />
-            Medio de pago: ${PAYMENTS[o.payment].label}<br />
+            Medio de pago: ${(PAYMENTS[o.payment] || { label: o.payment }).label}<br />
             Entrega: ${o.shippingMethod === "domicilio" ? "Envío a domicilio" : "Retiro en el local"}
           </div>
         </div>
@@ -1610,7 +1342,7 @@
           <tbody>
             ${o.items.map((it) => `<tr><td>${escapeHtml(it.product.name)}<br /><span style="color:#5b6270;font-size:11.5px">SKU ${it.product.sku}</span></td><td>${it.qty}</td><td>$${formatPrice(it.price)}</td><td>$${formatPrice(it.price * it.qty)}</td></tr>`).join("")}
             ${o.shipping ? `<tr><td>Envío a domicilio</td><td>1</td><td>$${formatPrice(o.shipping)}</td><td>$${formatPrice(o.shipping)}</td></tr>` : ""}
-            ${o.surcharge ? `<tr><td>Recargo por medio de pago (${Math.round(PAYMENTS[o.payment].surcharge * 100)}%)</td><td>1</td><td>$${formatPrice(o.surcharge)}</td><td>$${formatPrice(o.surcharge)}</td></tr>` : ""}
+            ${o.surcharge ? `<tr><td>Recargo por medio de pago (${Math.round((PAYMENTS[o.payment] || { surcharge: 0 }).surcharge * 100)}%)</td><td>1</td><td>$${formatPrice(o.surcharge)}</td><td>$${formatPrice(o.surcharge)}</td></tr>` : ""}
           </tbody>
         </table>
         <div class="invoice-totals">
@@ -1655,23 +1387,25 @@
     toast("Se abrió el comprobante para guardar como PDF");
   }
 
-  function previewReceipt(r) {
+  async function previewReceipt(r) {
     if (!r) return;
+    const url = await receiptUrl(r);
+    const isPdf = /\.pdf$/i.test(r.file);
     openModal(
       `
       <div class="modal-head">
         <h3>Comprobante ${r.id}</h3>
-        <a class="btn btn-secondary is-sm" href="${r.file}" download="${r.id}.jpg"><svg><use href="#ic-download" /></svg>Descargar</a>
+        <a class="btn btn-secondary is-sm" href="${url}" target="_blank" rel="noopener"><svg><use href="#ic-download" /></svg>Abrir</a>
         <button class="iconBtn is-sm" type="button" data-close aria-label="Cerrar"><svg><use href="#ic-close" /></svg></button>
       </div>
       <div class="receipt-preview">
-        <img src="${r.file}" alt="Comprobante de transferencia" />
+        ${isPdf ? `<iframe src="${url}" style="width:100%;height:420px;border:0;border-radius:12px;background:#fff"></iframe>` : `<img src="${url}" alt="Comprobante de transferencia" />`}
         <dl class="kv">
           <dt>Estado</dt><dd>${badge(RECEIPT_STATUS, r.status)}</dd>
           <dt>Cliente</dt><dd>${escapeHtml(r.customer.name)}</dd>
-          <dt>Orden</dt><dd>${r.order.id} · $${formatPrice(r.order.total)}</dd>
-          <dt>Banco</dt><dd>${r.bank}</dd>
-          <dt>Referencia</dt><dd>${r.reference}</dd>
+          <dt>Orden</dt><dd>${r.order ? `${r.order.id} · ${formatPrice(r.order.total)}` : "—"}</dd>
+          <dt>Banco</dt><dd>${r.bank || "—"}</dd>
+          <dt>Referencia</dt><dd>${r.reference || "—"}</dd>
           <dt>Monto</dt><dd>$${formatPrice(r.amount)}</dd>
           <dt>Recibido</dt><dd>${fmtDateTime(r.date)}</dd>
         </dl>
@@ -1683,14 +1417,14 @@
       </div>` : ""}`,
       { wide: true },
     );
-    const done = (status) => {
-      r.status = status;
-      if (status === "aprobado" && r.order.status === "pendiente") r.order.status = "pagado";
-      if (status === "rechazado") r.order.status = "pendiente";
-      closeModal();
-      toast(status === "aprobado" ? `${r.order.id} marcada como pagada` : `Comprobante ${r.id} rechazado`, status === "aprobado" ? "ok" : "bad");
-      RENDERERS._redrawReceipts && RENDERERS._redrawReceipts();
-      RENDERERS._redrawOrders && RENDERERS._redrawOrders();
+    const done = async (status) => {
+      try {
+        await reviewReceipt(r, status === "aprobado");
+        closeModal();
+        toast(status === "aprobado" ? `${r.order ? r.order.id : "Orden"} marcada como pagada` : `Comprobante ${r.id} rechazado`, status === "aprobado" ? "ok" : "bad");
+      } catch (err) {
+        toast(err.message, "bad");
+      }
     };
     $("#recApprove") && $("#recApprove").addEventListener("click", () => done("aprobado"));
     $("#recReject") && $("#recReject").addEventListener("click", () => done("rechazado"));
@@ -2018,54 +1752,184 @@
     form.addEventListener("change", updateSummary);
     updateSummary();
 
-    // --- Guardado ---
-    function uploaded() {
-      return store.get("products", []);
+    // --- Guardado (tabla products + bucket products) ---
+    let editingId = null; // uuid del producto que se está editando (null = alta)
+    const editBanner = document.createElement("div");
+    editBanner.className = "card";
+    editBanner.style.cssText = "display:none;align-items:center;gap:12px;flex-direction:row;padding:14px 18px;border-color:var(--blue)";
+    editBanner.innerHTML = `<svg style="width:18px;height:18px;fill:var(--blue)"><use href="#ic-edit" /></svg><span style="flex:1;font-size:13.5px">Editando <strong id="editingTitle"></strong>. Los cambios se publican al guardar.</span><button class="btn btn-ghost is-sm" type="button" id="editCancel">Cancelar edición</button>`;
+    form.querySelector(".upload-form").prepend(editBanner);
+    $("#editCancel").addEventListener("click", () => resetForm());
+
+    function setEditing(p) {
+      editingId = p ? p.id : null;
+      editBanner.style.display = p ? "flex" : "none";
+      if (p) $("#editingTitle").textContent = p.name;
+      $("#publishBtn").innerHTML = `<svg><use href="#ic-cloud_upload" /></svg>${p ? "Guardar cambios" : "Publicar"}`;
     }
 
+    // Carga un producto existente en el formulario
+    function loadIntoForm(p) {
+      const r = p.raw;
+      resetForm(true);
+      setEditing(p);
+      title.value = r.title;
+      brand.value = r.brand;
+      sku.value = r.sku;
+      cat.value = r.category;
+      cat.dispatchEvent(new Event("change"));
+      sub.value = r.subcategory || "";
+      desc.value = r.description;
+      tags = (r.tags || []).slice();
+      renderTags();
+      price.value = r.price ? formatPrice(r.price) : "";
+      cost.value = r.cost ? formatPrice(r.cost) : "";
+      stock.value = r.stock;
+      $("#pStockMin").value = r.stock_min;
+      status.value = r.status;
+      $("#pWarranty").value = r.warranty_months;
+      sale.checked = r.on_sale;
+      oldPrice.value = r.old_price ? formatPrice(r.old_price) : "";
+      discount.value = r.on_sale && r.old_price > r.price ? Math.round((1 - r.price / r.old_price) * 100) : "";
+      $("#pFeatured").checked = r.featured;
+      cuotas.checked = r.installments > 0;
+      if (r.installments) cuotasN.value = String(r.installments);
+      freeShip.checked = r.free_shipping;
+      $("#pDelivery").value = r.delivery;
+      $("#pWeight").value = r.weight || "";
+      $("#pDims").value = r.dimensions;
+      $("#pCondition").value = r.condition;
+      images = (r.images || []).map((url) => ({ url, name: url.split("/").pop(), existing: true }));
+      renderImages();
+      specRows.innerHTML = "";
+      (r.specs || []).forEach((s) => addSpec(s.k, s.v));
+      if (!specRows.children.length) addSpec("", "");
+      highlightRows.innerHTML = "";
+      (r.highlights || []).forEach(addHighlight);
+      updateMargin();
+      updatePreview();
+      updateSummary();
+      $("#pTitleCount").textContent = `${title.value.length} / 120`;
+      $("#pDescCount").textContent = `${desc.value.length} / 2000`;
+      form.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+    RENDERERS._editProduct = (id) => {
+      const p = PRODUCTS.find((x) => x.id === id);
+      if (p) loadIntoForm(p);
+    };
+
     function renderUploaded() {
-      const list = uploaded();
+      const list = PRODUCTS;
       $("#uploadedHint").textContent = list.length ? `${list.length} producto${list.length === 1 ? "" : "s"}` : "";
       $("#uploadedList").innerHTML = list.length
         ? list
-            .slice()
-            .reverse()
+            .slice(0, 40)
             .map(
-              (p, idx) => `
+              (p) => `
             <div class="list-item">
-              <span class="thumb">${p.image ? `<img src="${escapeHtml(p.image)}" alt="" />` : '<svg><use href="#ic-image" /></svg>'}</span>
-              <div class="body"><strong>${escapeHtml(p.title)}</strong><small>${escapeHtml(p.sku)} · ${CATEGORIES[p.category] ? CATEGORIES[p.category].label : "—"} · ${fmtRelative(p.createdAt)}</small></div>
+              <span class="thumb">${p.img ? `<img src="${escapeHtml(p.img)}" alt="" />` : '<svg><use href="#ic-image" /></svg>'}</span>
+              <div class="body"><strong>${escapeHtml(p.name)}</strong><small>${escapeHtml(p.sku)} · ${CATEGORIES[p.cat] ? CATEGORIES[p.cat].label : "—"} · stock ${p.stock} · ${fmtRelative(p.createdAt)}</small></div>
               <span class="badge ${p.status === "publicado" ? "is-ok" : p.status === "borrador" ? "is-warn" : "is-muted"}">${p.status}</span>
               <span class="val is-money">${formatPrice(p.price)}</span>
-              <button class="iconBtn is-sm is-danger" type="button" data-del-product="${list.length - 1 - idx}" title="Eliminar"><svg><use href="#ic-delete" /></svg></button>
+              <button class="iconBtn is-sm" type="button" data-edit-product="${p.id}" title="Editar"><svg><use href="#ic-edit" /></svg></button>
+              <button class="iconBtn is-sm is-danger" type="button" data-del-product="${p.id}" title="Eliminar"><svg><use href="#ic-delete" /></svg></button>
             </div>`,
             )
             .join("")
         : `<p style="color:var(--ink-soft);font-size:13.5px;margin:0">Todavía no cargaste productos desde el panel.</p>`;
     }
+    RENDERERS._redrawUploaded = renderUploaded;
     $("#uploadedList").addEventListener("click", async (e) => {
+      const ed = e.target.closest("[data-edit-product]");
+      if (ed) return RENDERERS._editProduct(ed.dataset.editProduct);
       const b = e.target.closest("[data-del-product]");
       if (!b) return;
-      const list = uploaded();
-      const p = list[+b.dataset.delProduct];
-      const ok = await confirmModal({ title: "Eliminar producto", text: `Se quitará "${p.title}" del catálogo.`, okText: "Eliminar", danger: true });
+      const p = PRODUCTS.find((x) => x.id === b.dataset.delProduct);
+      if (!p) return;
+      const ok = await confirmModal({ title: "Eliminar producto", text: `Se quitará "${p.name}" del catálogo. Las órdenes anteriores conservan su detalle.`, okText: "Eliminar", danger: true });
       if (!ok) return;
-      list.splice(+b.dataset.delProduct, 1);
-      store.set("products", list);
-      renderUploaded();
+      const { error } = await sb.from("products").delete().eq("id", p.id);
+      if (error) return toast(error.message, "bad");
+      // Imágenes del bucket
+      const paths = (p.images || []).map((u) => (u.split("/products/")[1] || "")).filter(Boolean);
+      if (paths.length) sb.storage.from("products").remove(paths).then(() => {});
+      if (editingId === p.id) resetForm();
       toast("Producto eliminado", "bad");
     });
     renderUploaded();
 
-    function save(statusOverride) {
+    async function uploadImages(productId) {
+      const urls = [];
+      for (let i = 0; i < images.length; i++) {
+        const im = images[i];
+        if (im.existing) {
+          urls.push(im.url);
+          continue;
+        }
+        const ext = (im.file.name.split(".").pop() || "jpg").toLowerCase();
+        const path = `${productId}/${Date.now()}-${i}.${ext}`;
+        const { error } = await sb.storage.from("products").upload(path, im.file, { contentType: im.file.type, upsert: false });
+        if (error) throw new Error(`No se pudo subir ${im.name}: ${error.message}`);
+        urls.push(sb.storage.from("products").getPublicUrl(path).data.publicUrl);
+      }
+      return urls;
+    }
+
+    async function save(statusOverride) {
       const d = collect();
-      if (statusOverride) d.status = statusOverride;
-      d.createdAt = new Date().toISOString();
-      d.image = ""; // los blobs no sobreviven al recargar; se guarda solo el nombre
-      const list = uploaded();
-      list.push(d);
-      store.set("products", list);
+      const productId = editingId || crypto.randomUUID();
+      const imageUrls = await uploadImages(productId);
+      const row = {
+        id: productId,
+        sku: d.sku,
+        title: d.title,
+        brand: d.brand,
+        category: d.category,
+        subcategory: d.subcategory,
+        description: d.description,
+        tags: d.tags,
+        price: d.price,
+        cost: d.cost,
+        old_price: d.oldPrice,
+        on_sale: d.sale && d.oldPrice > d.price,
+        stock: d.stock,
+        stock_min: d.stockMin,
+        status: statusOverride || d.status,
+        warranty_months: d.warranty,
+        featured: d.featured,
+        installments: d.installments,
+        free_shipping: d.freeShipping,
+        delivery: d.delivery,
+        weight: +d.weight || 0,
+        dimensions: d.dimensions,
+        condition: d.condition,
+        images: imageUrls,
+        specs: d.specs,
+        highlights: d.highlights,
+      };
+      if (!editingId) row.created_by = USER.id;
+      const { error } = await sb.from("products").upsert(row, { onConflict: "id" });
+      if (error) {
+        if (/products_sku_key|duplicate key/i.test(error.message)) throw new Error(`Ya existe un producto con el SKU ${d.sku}`);
+        throw error;
+      }
+      await loadProducts();
       renderUploaded();
+      return row;
+    }
+
+    async function submitWith(statusOverride, okMessage) {
+      const btn = statusOverride ? $("#saveDraft") : $("#publishBtn");
+      btn.disabled = true;
+      try {
+        const row = await save(statusOverride);
+        toast(okMessage(row), "ok");
+        resetForm();
+      } catch (err) {
+        toast(err.message || "No se pudo guardar el producto", "bad");
+      } finally {
+        btn.disabled = false;
+      }
     }
 
     form.addEventListener("submit", (e) => {
@@ -2082,24 +1946,23 @@
         }
         return;
       }
-      save();
-      const d = collect();
-      toast(`"${d.title}" publicado en la tienda`, "ok");
-      resetForm();
+      const wasEditing = !!editingId;
+      submitWith(null, (row) => (wasEditing ? `"${row.title}" actualizado` : row.status === "publicado" ? `"${row.title}" publicado en la tienda` : `"${row.title}" guardado como ${row.status}`));
     });
 
     $("#saveDraft").addEventListener("click", () => {
       if (!title.value.trim()) return toast("Poné al menos un título para guardar el borrador", "bad");
-      save("borrador");
-      toast("Borrador guardado", "ok");
-      resetForm();
+      if (!cat.value) return toast("Elegí una categoría para guardar el borrador", "bad");
+      if (!parsePrice(price.value)) price.value = "0";
+      submitWith("borrador", () => "Borrador guardado");
     });
 
-    function resetForm() {
+    function resetForm(keepEditing) {
       form.reset();
       form.classList.remove("is-submitted");
+      if (!keepEditing) setEditing(null);
       tags = [];
-      images.forEach((i) => URL.revokeObjectURL(i.url));
+      images.forEach((i) => !i.existing && URL.revokeObjectURL(i.url));
       images = [];
       renderTags();
       renderImages();
@@ -2148,10 +2011,20 @@
   };
 
   function applyAvatar() {
-    const data = store.get("avatar", "");
-    const html = data ? `<img src="${data}" alt="" />` : escapeHtml(initials(USER.name));
+    const html = USER.avatar ? `<img src="${escapeHtml(USER.avatar)}" alt="" referrerpolicy="no-referrer" />` : escapeHtml(initials(USER.name));
     $("#sbAvatar").innerHTML = html;
     $("#profileAvatar").innerHTML = html;
+    $("#sbUserName").textContent = USER.name;
+    $("#sbUserEmail").textContent = USER.email;
+    $("#profileName").textContent = USER.name;
+    $("#profileEmail").textContent = USER.email;
+    const inputs = $('.tab-panel[data-tab="perfil"] .formGrid input[disabled]');
+    if (inputs.length >= 4) {
+      inputs[0].value = USER.name;
+      inputs[1].value = USER.email;
+      inputs[2].value = "Administrador";
+      inputs[3].value = USER.profile ? new Date(USER.profile.created_at).toLocaleDateString("es-AR", { month: "long", year: "numeric" }) : "";
+    }
   }
 
   function applyTheme(theme) {
@@ -2168,28 +2041,22 @@
       const f = $("#avatarInput").files[0];
       if (!f) return;
       if (f.size > 2 * 1024 * 1024) return toast("La imagen no puede superar 2 MB", "bad");
-      const reader = new FileReader();
-      reader.onload = () => {
-        // reducimos a 160px para que entre cómodo en localStorage
-        const img = new Image();
-        img.onload = () => {
-          const c = document.createElement("canvas");
-          const s = 160;
-          c.width = c.height = s;
-          const ctx = c.getContext("2d");
-          const m = Math.min(img.width, img.height);
-          ctx.drawImage(img, (img.width - m) / 2, (img.height - m) / 2, m, m, 0, 0, s, s);
-          store.set("avatar", c.toDataURL("image/jpeg", 0.85));
-          applyAvatar();
-          toast("Foto de perfil actualizada", "ok");
-        };
-        img.src = reader.result;
-      };
-      reader.readAsDataURL(f);
+      (async () => {
+        const ext = (f.name.split(".").pop() || "jpg").toLowerCase();
+        const path = `${USER.id}/avatar-${Date.now()}.${ext}`;
+        const { error } = await sb.storage.from("avatars").upload(path, f, { upsert: true, contentType: f.type });
+        if (error) return toast("No se pudo subir la foto", "bad");
+        const url = sb.storage.from("avatars").getPublicUrl(path).data.publicUrl;
+        await sb.from("profiles").update({ avatar_url: url }).eq("id", USER.id);
+        USER.avatar = url;
+        applyAvatar();
+        toast("Foto de perfil actualizada", "ok");
+      })();
       $("#avatarInput").value = "";
     });
-    $("#avatarRemove").addEventListener("click", () => {
-      store.remove("avatar");
+    $("#avatarRemove").addEventListener("click", async () => {
+      await sb.from("profiles").update({ avatar_url: null }).eq("id", USER.id);
+      USER.avatar = "";
       applyAvatar();
       toast("Foto de perfil eliminada");
     });
@@ -2273,14 +2140,14 @@
   const itemInvoice = (i) => ({
     icon: "receipt_long",
     title: `${INV_TYPE[i.type]} ${i.id}`,
-    sub: `${i.customer.name} · ${i.order.id} · ${fmtDate(i.date)}`,
+    sub: `${i.customer.name} · ${i.order ? i.order.id : ""} · ${fmtDate(i.date)}`,
     right: `<span class="meta">$${formatPrice(i.total)}</span>`,
     run: () => { showView("facturas", { tab: "emitidas" }); previewInvoice(i); },
   });
   const itemReceipt = (r) => ({
     icon: "account_balance",
     title: `Comprobante ${r.id} · ${r.customer.name}`,
-    sub: `${r.order.id} · ${r.bank} · ${fmtDateTime(r.date)}`,
+    sub: `${r.order ? r.order.id : ""} · ${r.bank || "transferencia"} · ${fmtDateTime(r.date)}`,
     right: `${badge(RECEIPT_STATUS, r.status)}<span class="meta">$${formatPrice(r.amount)}</span>`,
     run: () => { showView("facturas", { tab: "recibidos" }); previewReceipt(r); },
   });
@@ -2288,21 +2155,21 @@
     icon: n.icon,
     title: n.title,
     sub: truncate(n.body, 90),
-    right: `<span class="meta">${fmtRelative(n.date)}</span>${readIds.has(n.id) ? "" : '<span class="badge is-info is-plain">Nueva</span>'}`,
+    right: `<span class="meta">${fmtRelative(n.date)}</span>${isRead(n) ? "" : '<span class="badge is-info is-plain">Nueva</span>'}`,
     run: () => openNotification(n),
   });
   const itemProduct = (p) => ({
     icon: "inventory_2",
     title: p.name,
-    sub: `${p.sku} · ${CATEGORIES[p.cat].label}${p.sub ? " · " + p.sub : ""}`,
-    right: `<span class="meta">$${formatPrice(p.price)}</span>${p.stock === 0 ? '<span class="badge is-bad">Sin stock</span>' : p.stock <= 2 ? `<span class="badge is-warn">${p.stock} u.</span>` : `<span class="meta">${p.stock} u.</span>`}`,
-    run: () => { showView("analiticas"); $("#productPerf").scrollIntoView({ behavior: "smooth", block: "center" }); toast(`${p.name}: ${p.stock} en stock`); },
+    sub: `${p.sku} · ${(CATEGORIES[p.cat] || { label: "" }).label}${p.sub ? " · " + p.sub : ""}`,
+    right: `<span class="meta">${formatPrice(p.price)}</span>${p.stock === 0 ? '<span class="badge is-bad">Sin stock</span>' : p.stock <= p.stockMin ? `<span class="badge is-warn">${p.stock} u.</span>` : `<span class="meta">${p.stock} u.</span>`}`,
+    run: () => { showView("cargas"); RENDERERS._editProduct && RENDERERS._editProduct(p.id); },
   });
   const itemCustomer = (c) => ({
     icon: "person",
     title: c.name,
     sub: `${c.email} · ${c.phone}`,
-    right: `<span class="meta">${ORDERS.filter((o) => o.customer === c).length} órdenes</span>`,
+    right: `<span class="meta">${ORDERS.filter((o) => o.customer.id === c.id).length} órdenes</span>`,
     run: () => { showView("ordenes", { tab: "ventas" }); $("#ordersSearch").value = c.name; $("#ordersSearch").dispatchEvent(new Event("input")); },
   });
 
@@ -2514,7 +2381,10 @@
 
   $("#logoutBtn").addEventListener("click", async () => {
     const ok = await confirmModal({ title: "Cerrar sesión", text: `Vas a salir del panel con la cuenta ${USER.email}.`, okText: "Cerrar sesión" });
-    if (ok) window.location.href = "/admin-login.html#login";
+    if (ok) {
+      await signOut();
+      window.location.href = "/admin-login.html#login";
+    }
   });
 
   // =====================================================================
@@ -2533,6 +2403,35 @@
 
   applyAvatar();
   applyTheme(store.get("theme", "dark"));
+
+  // Realtime: cada cambio en la base refresca la vista que corresponda
+  onChange((what) => {
+    updateNotifBadges();
+    if (rendered.notificaciones && what === "notifs") renderNotifs();
+    if (rendered.dashboard && what !== "notifs") renderDashboard();
+    if (rendered.analiticas && (what === "orders" || what === "products" || what === "reservas")) renderAnalytics();
+    if (rendered.ordenes && RENDERERS._redrawOrders && what !== "notifs") RENDERERS._redrawOrders();
+    if (rendered.facturas && (what === "orders" || what === "invoices" || what === "receipts")) {
+      RENDERERS._redrawInvoices && RENDERERS._redrawInvoices();
+      RENDERERS._redrawReceipts && RENDERERS._redrawReceipts();
+    }
+    if (rendered.cargas && what === "products" && RENDERERS._redrawUploaded) RENDERERS._redrawUploaded();
+    if (drawerOpen && drawer.classList.contains("is-open")) {
+      if (drawerOpen.type === "order" && (what === "orders" || what === "invoices" || what === "receipts")) {
+        const o = ORDERS.find((x) => x.uuid === drawerOpen.uuid);
+        o && openOrderDrawer(o);
+      }
+      if (drawerOpen.type === "reserva" && what === "reservas") {
+        const r = RESERVAS.find((x) => x.uuid === drawerOpen.uuid);
+        r && openReservaDrawer(r);
+      }
+    }
+    if (what === "notifs") {
+      const latest = NOTIFS[0];
+      if (latest && !isRead(latest) && Date.now() - latest.date.getTime() < 15000) toast(latest.title);
+    }
+  });
+  startRealtime();
   window.matchMedia("(prefers-color-scheme: light)").addEventListener("change", () => applyTheme(store.get("theme", "dark")));
   updateNotifBadges();
 

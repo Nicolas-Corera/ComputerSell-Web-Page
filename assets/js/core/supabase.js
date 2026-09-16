@@ -1,0 +1,162 @@
+// Cliente de Supabase compartido por todo el sitio (tienda y panel).
+// Lee la configuración pública de window.CS_ENV (assets/js/core/env.js,
+// generado desde el .env con `npm run env`).
+import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+
+const ENV = window.CS_ENV || {};
+if (!ENV.SUPABASE_URL || !ENV.SUPABASE_ANON_KEY) {
+  console.error("[supabase] Falta la configuración. Corré `npm run env` (o `npm run dev`).");
+}
+
+export const sb = createClient(ENV.SUPABASE_URL || "https://invalid.supabase.co", ENV.SUPABASE_ANON_KEY || "anon", {
+  auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, flowType: "pkce" },
+  realtime: { params: { eventsPerSecond: 10 } },
+});
+window.sb = sb; // útil para depurar desde la consola
+
+export const ADMIN_EMAILS = (ENV.ADMIN_EMAILS || []).map((e) => String(e).toLowerCase());
+
+// ---------- Sesión ----------
+export async function getSession() {
+  const { data } = await sb.auth.getSession();
+  return data.session;
+}
+
+export async function getUser() {
+  const s = await getSession();
+  return s ? s.user : null;
+}
+
+let profileCache = null;
+let profileFor = null;
+
+// Perfil de la tabla public.profiles (cacheado por usuario)
+export async function getProfile(force) {
+  const user = await getUser();
+  if (!user) {
+    profileCache = null;
+    profileFor = null;
+    return null;
+  }
+  if (!force && profileCache && profileFor === user.id) return profileCache;
+  const { data } = await sb.from("profiles").select("*").eq("id", user.id).maybeSingle();
+  // Con Google, si el perfil no tiene foto, se toma la de la cuenta
+  const meta = user.user_metadata || {};
+  if (data && !data.avatar_url && (meta.avatar_url || meta.picture)) {
+    data.avatar_url = meta.avatar_url || meta.picture;
+    sb.from("profiles").update({ avatar_url: data.avatar_url }).eq("id", user.id).then(() => {});
+  }
+  profileCache = data;
+  profileFor = user.id;
+  return data;
+}
+
+export function fullName(p) {
+  if (!p) return "";
+  return `${p.first_name || ""} ${p.last_name || ""}`.trim() || p.email || "";
+}
+
+export function initials(name) {
+  return String(name || "")
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((w) => w[0].toUpperCase())
+    .join("") || "?";
+}
+
+// Redirige al login si no hay sesión. Devuelve el usuario si la hay.
+export async function requireAuth(loginUrl) {
+  const user = await getUser();
+  if (!user) {
+    const next = encodeURIComponent(location.pathname + location.search);
+    location.replace((loginUrl || "/acceso.html") + "?next=" + next + "#login");
+    return null;
+  }
+  return user;
+}
+
+export async function signOut() {
+  profileCache = null;
+  await sb.auth.signOut();
+}
+
+// Escucha cambios de sesión (login/logout en esta u otra pestaña)
+export function onAuth(cb) {
+  sb.auth.onAuthStateChange((event, session) => {
+    if (event === "SIGNED_OUT") profileCache = null;
+    cb(session ? session.user : null, event);
+  });
+}
+
+// ---------- Realtime ----------
+// Suscribe a cambios de una tabla y llama cb(payload). Devuelve la función para cancelar.
+let channelSeq = 0;
+export function subscribe(table, cb, filter) {
+  const opts = { event: "*", schema: "public", table };
+  if (filter) opts.filter = filter;
+  const ch = sb.channel(`${table}-${++channelSeq}-${Math.random().toString(36).slice(2, 7)}`)
+    .on("postgres_changes", opts, (payload) => cb(payload))
+    .subscribe();
+  return () => sb.removeChannel(ch);
+}
+
+// ---------- Storage ----------
+export function publicUrl(bucket, path) {
+  if (!path) return "";
+  if (/^https?:\/\//.test(path)) return path;
+  return sb.storage.from(bucket).getPublicUrl(path).data.publicUrl;
+}
+
+// ---------- Productos ----------
+export const CATEGORIES = {
+  computadoras: { label: "Computadoras", subs: [] },
+  notebooks: { label: "Notebooks", subs: [] },
+  componentes: {
+    label: "Componentes",
+    subs: ["Placas de video", "Procesadores", "Memorias RAM", "Almacenamiento", "Motherboards", "Fuentes", "Gabinetes", "Refrigeración"],
+  },
+  perifericos: {
+    label: "Periféricos",
+    subs: ["Teclados", "Mouse", "Auriculares", "Monitores", "Micrófonos", "Parlantes", "Webcams", "Mousepads"],
+  },
+};
+
+export const slugify = (s) =>
+  String(s || "")
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, "-");
+
+export function productUrl(p) {
+  return `/detail.html?id=${p.id}`;
+}
+
+// Forma que usan las tarjetas / carrito / favoritos
+export function toCard(p) {
+  return {
+    id: p.id,
+    name: p.title,
+    price: p.price,
+    oldPrice: p.on_sale && p.old_price > p.price ? p.old_price : 0,
+    cuotas: p.installments ? `${p.installments} cuotas sin interés` : "",
+    image: p.images && p.images[0] ? p.images[0] : "",
+    stock: p.stock,
+    freeShipping: p.free_shipping,
+    category: p.category,
+    subcategory: p.subcategory,
+    brand: p.brand,
+    qty: 1,
+  };
+}
+
+export function fetchPublished(extra) {
+  let q = sb.from("products").select("*").eq("status", "publicado").order("created_at", { ascending: false });
+  if (extra) q = extra(q);
+  return q.then(({ data, error }) => {
+    if (error) console.error(error);
+    return data || [];
+  });
+}

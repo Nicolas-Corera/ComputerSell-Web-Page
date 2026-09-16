@@ -1,9 +1,19 @@
 // Página de pago (checkout): datos personales, envío, medio de pago con
 // tarjeta animada y resumen lateral con envío + recargo + total.
-// Se alimenta de window.CartStore (cart.js).
-(function () {
-  const { formatPrice, escapeHtml } = window.CS;
+// Requiere sesión. La orden se crea con la RPC place_order (valida stock y
+// precios en la base y los descuenta). El pago con tarjeta es una simulación
+// (Mercado Pago llega después); con transferencia se sube el comprobante.
+import { sb, requireAuth, getProfile } from "../core/supabase.js";
+import { createCatalog } from "../core/catalog.js";
+
+(async function () {
+  const { formatPrice, escapeHtml, toast } = window.CS;
   const store = window.CartStore;
+
+  const user = await requireAuth();
+  if (!user) return;
+  const profile = await getProfile();
+  createCatalog(); // precio/stock del carrito al día
 
   // ---------- Configuración (valores de la demo) ----------
   // Envío a domicilio: se cobra siempre
@@ -21,6 +31,16 @@
   const empty = document.getElementById("checkoutEmpty");
   const success = document.getElementById("checkoutSuccess");
   const form = document.getElementById("checkoutForm");
+
+  // Datos del perfil precargados (solo los campos vacíos)
+  if (profile) {
+    const addr = profile.address || {};
+    const fill = { nombre: profile.first_name, apellido: profile.last_name, email: profile.email, telefono: profile.phone, dni: addr.dni, calle: addr.calle, numero: addr.numero, piso: addr.piso, cp: addr.cp, ciudad: addr.ciudad, provincia: addr.provincia };
+    Object.entries(fill).forEach(([k, v]) => {
+      const el = form.elements[k];
+      if (el && !el.value && v) el.value = v;
+    });
+  }
   const countEl = document.getElementById("payCount");
 
   const summaryItems = document.getElementById("summaryItems");
@@ -46,7 +66,9 @@
   // ---------- Resumen ----------
   function totals() {
     const subtotal = store.totalPrice();
-    const shipping = SHIPPING.cost;
+    const items = store.getItems();
+    const allFree = items.length > 0 && items.every((it) => it.freeShipping);
+    const shipping = allFree ? 0 : SHIPPING.cost;
     const rate = PAYMENT[state.method].surcharge;
     const surcharge = Math.round(subtotal * rate);
     return { subtotal, shipping, surcharge, rate, total: subtotal + shipping + surcharge };
@@ -81,7 +103,7 @@
     sumSubtotal.textContent = formatPrice(t.subtotal);
 
     sumShippingLabel.textContent = SHIPPING.label;
-    sumShipping.textContent = formatPrice(t.shipping);
+    sumShipping.textContent = t.shipping ? formatPrice(t.shipping) : "Gratis";
 
     const pct = Math.round(t.rate * 100);
     sumPaymentLabel.textContent = PAYMENT[state.method].label;
@@ -494,7 +516,7 @@
   });
 
   // ---------- Envío del formulario ----------
-  form.addEventListener("submit", (e) => {
+  form.addEventListener("submit", async (e) => {
     e.preventDefault();
     form.classList.add("is-submitted");
     if (PAYMENT[state.method].card) validateCard();
@@ -510,17 +532,69 @@
       return;
     }
 
-    const orderNumber = "CS-" + String(Date.now()).slice(-6);
-    document.getElementById("orderNumber").textContent = orderNumber;
-    document.getElementById("orderMethod").textContent = PAYMENT[state.method].label.toLowerCase();
-    document.getElementById("orderTotal").textContent = formatPrice(totals().total);
+    const items = store.getItems().map((it) => ({ product_id: it.id, qty: it.qty }));
+    const f = form.elements;
+    const customer = {
+      name: `${f.nombre.value.trim()} ${f.apellido.value.trim()}`.trim(),
+      email: f.email.value.trim(),
+      phone: f.telefono.value.trim(),
+      dni: f.dni.value.trim(),
+      address: [`${f.calle.value.trim()} ${f.numero.value.trim()}`.trim(), f.piso.value.trim(), f.cp.value.trim(), f.ciudad.value.trim(), f.provincia.value].filter(Boolean).join(", "),
+    };
+    const installments = state.method === "credito" ? parseInt(cuotasSelect.value, 10) || 1 : 1;
 
-    state.completed = true;
-    store.clear();
-    countEl.textContent = "";
-    checkout.hidden = true;
-    success.hidden = false;
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    payBtn.disabled = true;
+    const prevLabel = payBtn.textContent;
+    payBtn.textContent = "Procesando…";
+    try {
+      const { data, error } = await sb.rpc("place_order", {
+        p_items: items,
+        p_payment_method: state.method,
+        p_shipping_method: "domicilio",
+        p_customer: customer,
+        p_installments: installments,
+        p_note: "",
+      });
+      if (error) throw error;
+      const order = Array.isArray(data) ? data[0] : data;
+
+      // Transferencia: comprobante al storage privado + registro para revisar en el panel
+      if (state.method === "transferencia" && receiptInput.files[0]) {
+        const file = receiptInput.files[0];
+        const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
+        const path = `${user.id}/${order.id}.${ext}`;
+        const up = await sb.storage.from("receipts").upload(path, file, { upsert: true, contentType: file.type });
+        if (up.error) throw up.error;
+        const ins = await sb.from("payment_receipts").insert({ order_id: order.id, user_id: user.id, file_path: path, amount: order.total });
+        if (ins.error) throw ins.error;
+      }
+
+      // Guarda la dirección en el perfil para la próxima compra
+      sb.from("profiles")
+        .update({ phone: customer.phone, address: { dni: customer.dni, calle: f.calle.value.trim(), numero: f.numero.value.trim(), piso: f.piso.value.trim(), cp: f.cp.value.trim(), ciudad: f.ciudad.value.trim(), provincia: f.provincia.value } })
+        .eq("id", user.id)
+        .then(() => {});
+
+      document.getElementById("orderNumber").textContent = "CS-" + order.number;
+      document.getElementById("orderMethod").textContent = PAYMENT[state.method].label.toLowerCase();
+      document.getElementById("orderTotal").textContent = formatPrice(order.total);
+      document.getElementById("orderDetailLink").href = "/compra-detalle.html?id=" + order.id;
+      if (state.method === "transferencia") {
+        document.getElementById("orderSuccessText").innerHTML = `Recibimos tu comprobante. El pedido queda <strong>pendiente</strong> hasta que verifiquemos la transferencia de <strong>${formatPrice(order.total)}</strong>.`;
+      }
+
+      state.completed = true;
+      store.clear();
+      countEl.textContent = "";
+      checkout.hidden = true;
+      success.hidden = false;
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } catch (err) {
+      console.error(err);
+      toast(err.message || "No pudimos procesar el pedido", "bad");
+      payBtn.disabled = false;
+      payBtn.textContent = prevLabel;
+    }
   });
 
   // ---------- Estado general ----------

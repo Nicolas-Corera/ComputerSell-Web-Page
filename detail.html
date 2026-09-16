@@ -14,16 +14,18 @@
     <link rel="stylesheet" href="/assets/css/header.css" />
     <link rel="stylesheet" href="/assets/css/footer.css" />
     <link rel="stylesheet" href="/assets/css/components/buttons.css" />
+    <link rel="stylesheet" href="/assets/css/components/toast.css" />
     <link rel="stylesheet" href="/assets/css/components/product-card.css" />
     <link rel="stylesheet" href="/assets/css/components/cart-drawer.css" />
     <link rel="stylesheet" href="/assets/css/components/menu-drawer.css" />
     <link rel="stylesheet" href="/assets/css/components/qty-selector.css" />
+    <link rel="stylesheet" href="/assets/css/components/page.css" />
     <link rel="stylesheet" href="/assets/css/pages/detail.css" />
     <link rel="stylesheet" href="/assets/css/responsive.css" />
   </head>
 
   <body>
-    <script src="/assets/js/sprite.js"></script>
+    <script src="/assets/js/sprites/sprite.js"></script>
 
     <div class="site" id="site">
       <div class="marquee">
@@ -76,7 +78,7 @@
             </span>
             <span class="actLabel">FAVORITOS</span>
           </li>
-          <li class="actIcon" onclick="window.location.href = '/acceso.html'">
+          <li class="actIcon" id="accountBtn">
             <svg class="ic-md"><use href="#ic-person" /></svg>
             <span class="actLabel">ACCEDER</span>
           </li>
@@ -97,159 +99,72 @@
         <div class="breadcrumb">
           <a href="/">Inicio</a>
           <span class="sep">/</span>
-          <a href="productos.html?categoria=computadoras">Computadoras</a>
+          <a href="/productos.html" id="crumbCategory">Productos</a>
           <span class="sep">/</span>
-          <span class="current">PC Armada AMD Ryzen 5 5500 RTX 3050</span>
+          <span class="current" id="crumbTitle">Cargando…</span>
         </div>
 
-        <section class="product-detail">
+        <section class="product-detail" id="productDetail">
           <div class="gallery">
             <div class="gallery-main">
-              <span class="discount-badge">
+              <span class="discount-badge" id="discountBadge" hidden>
                 <svg class="ic-sm"><use href="#ic-sell_tag" /></svg>
-                19% OFF
+                <span></span>
               </span>
-              <img
-                id="mainImage"
-                src="/assets/images/pc1.webp"
-                alt="PC Armada AMD Ryzen 5 5500 RTX 3050 16GB 512GB"
-              />
+              <img id="mainImage" src="" alt="" />
             </div>
-            <div class="gallery-thumbs">
-              <div
-                class="thumb is-active"
-                onclick="setMainImage(this, '/assets/images/pc1.webp')"
-              >
-                <img src="/assets/images/pc1.webp" alt="Vista frontal" />
-              </div>
-              <div
-                class="thumb"
-                onclick="setMainImage(this, '/assets/images/pc2.webp')"
-              >
-                <img src="/assets/images/pc2.webp" alt="Vista lateral" />
-              </div>
-              <div
-                class="thumb"
-                onclick="setMainImage(this, '/assets/images/pc3.webp')"
-              >
-                <img src="/assets/images/pc3.webp" alt="Panel trasero" />
-              </div>
-              <div
-                class="thumb"
-                onclick="setMainImage(this, '/assets/images/pc.png')"
-              >
-                <img src="/assets/images/pc.png" alt="Interior del gabinete" />
-              </div>
-              <div
-                class="thumb"
-                onclick="setMainImage(this, '/assets/images/pc1.webp')"
-              >
-                <img src="/assets/images/pc1.webp" alt="RGB encendido" />
-              </div>
-            </div>
+            <div class="gallery-thumbs" id="galleryThumbs"></div>
           </div>
 
           <div class="product-info">
             <div class="brand-line">
-              <span>ComputerSell Gaming</span>
-              <span class="sku">· SKU CS-5500-3050-16-512</span>
+              <span id="pBrand"></span>
+              <span class="sku" id="pSku"></span>
             </div>
 
-            <h1>PC Armada AMD Ryzen 5 5500, RTX 3050, 16GB RAM, 512GB SSD</h1>
-
-            <div class="rating">
-              <span class="stars">
-                <svg><use href="#ic-star-fill" /></svg>
-                <svg><use href="#ic-star-fill" /></svg>
-                <svg><use href="#ic-star-fill" /></svg>
-                <svg><use href="#ic-star-fill" /></svg>
-                <svg><use href="#ic-star" /></svg>
-              </span>
-              <a href="#opiniones">4.4 · 128 opiniones</a>
-            </div>
+            <h1 id="pTitle">Cargando producto…</h1>
 
             <div class="price-block">
               <div class="prices">
-                <span class="dashed">$1.610.400</span>
-                <span class="priceNow">1.304.424</span>
+                <span class="dashed" id="pOld" hidden></span>
+                <span class="priceNow" id="pPrice"></span>
               </div>
-              <span class="cuotas">3 cuotas sin interés de $434.808</span>
+              <span class="cuotas" id="pCuotas" hidden></span>
               <div class="stock-line">
-                <span class="stock-dot"></span>
-                <span>Stock disponible · Envío en 24/48hs</span>
+                <span class="stock-dot" id="stockDot"></span>
+                <span id="stockText"></span>
               </div>
             </div>
-
-            <!-- <div class="variant-block">
-            <span class="label"
-              >Almacenamiento: <strong>512GB SSD NVMe</strong></span
-            >
-            <div class="chip-row">
-              <button class="chip is-selected">512GB SSD</button>
-              <button class="chip">1TB SSD</button>
-              <button class="chip">1TB SSD + 1TB HDD</button>
-            </div>
-          </div>
-
-          <div class="variant-block">
-            <span class="label"
-              >Memoria RAM: <strong>16GB (2x8GB) 3200MHz</strong></span
-            >
-            <div class="chip-row">
-              <button class="chip is-selected">16GB</button>
-              <button class="chip">32GB</button>
-            </div>
-          </div> -->
 
             <div class="purchase-row">
               <div class="qty-selector">
                 <button type="button" onclick="changeQty(-1)">−</button>
-                <input
-                  id="qtyInput"
-                  type="text"
-                  inputmode="numeric"
-                  value="1"
-                  data-qty="1"
-                  readonly
-                />
+                <input id="qtyInput" type="text" inputmode="numeric" value="1" data-qty="1" readonly />
                 <button type="button" onclick="changeQty(1)">+</button>
               </div>
-              <button class="btn btn-secondary">
+              <button class="btn btn-secondary" id="addCartBtn" type="button">
                 <svg class="ic-md"><use href="#ic-shopping_bag" /></svg>
                 <span>Agregar al carrito</span>
               </button>
-              <button class="btn btn-third">
-                <svg class="ic-md">
-                  <use class="favorite-icon" href="#ic-favorite" />
-                </svg>
+              <button class="btn btn-third" type="button" aria-label="Favorito">
+                <svg class="ic-md"><use class="favorite-icon" href="#ic-favorite" /></svg>
               </button>
             </div>
 
-            <button class="btn btn-ghost" id="buyNowBtn">Comprar ahora</button>
+            <button class="btn btn-ghost" id="buyNowBtn" type="button">Comprar ahora</button>
 
             <ul class="shipping-info">
-              <li>
+              <li id="shipLine">
                 <svg><use href="#ic-shipping_truck" /></svg>
-                <span
-                  ><strong>Envío gratis</strong> a todo el país comprando
-                  hoy</span
-                >
+                <span></span>
               </li>
               <li>
                 <svg><use href="#ic-sell_tag" /></svg>
-                <span
-                  ><strong>12 meses de garantía oficial</strong>
-                  ComputerSell</span
-                >
+                <span id="warrantyLine"></span>
               </li>
               <li>
                 <svg><use href="#ic-whatsapp" /></svg>
-                <span
-                  >¿Tenés dudas?
-                  <a href="#" style="color: var(--blue)"
-                    >Escribinos por WhatsApp</a
-                  ></span
-                >
+                <span>¿Tenés dudas? <a href="/contacto.html" style="color: var(--blue)">Escribinos</a></span>
               </li>
             </ul>
           </div>
@@ -257,264 +172,33 @@
 
         <section class="tabs">
           <div class="tab-nav">
-            <button
-              class="tab-btn is-active"
-              onclick="switchTab(this, 'descripcion')"
-            >
-              Descripción
-            </button>
-            <button
-              class="tab-btn"
-              onclick="switchTab(this, 'especificaciones')"
-            >
-              Especificaciones
-            </button>
-            <button class="tab-btn" onclick="switchTab(this, 'opiniones')">
-              Opiniones (128)
-            </button>
+            <button class="tab-btn is-active" onclick="switchTab(this, 'descripcion')">Descripción</button>
+            <button class="tab-btn" onclick="switchTab(this, 'especificaciones')">Especificaciones</button>
           </div>
 
           <div class="tab-panel is-active" id="descripcion">
-            <p>
-              Equipo armado y testeado en nuestro taller, pensado para gaming en
-              1080p alto y trabajo exigente. El AMD Ryzen 5 5500 junto a la RTX
-              3050 mueven los títulos actuales con buena estabilidad de cuadros,
-              mientras que el SSD NVMe reduce los tiempos de carga a segundos.
-            </p>
-            <p>
-              Gabinete con flujo de aire optimizado, fuente certificada 80 Plus
-              y cableado prolijo para mejor circulación térmica. Ideal para
-              quienes buscan una base sólida y actualizable a futuro sin
-              resignar rendimiento hoy.
-            </p>
-            <ul class="check-list">
-              <li>
-                <svg><use href="#ic-check" /></svg> Armado y testeado en
-                Argentina, listo para usar
-              </li>
-              <li>
-                <svg><use href="#ic-check" /></svg> Windows 11 preinstalado con
-                licencia original
-              </li>
-              <li>
-                <svg><use href="#ic-check" /></svg> Soporte técnico directo
-                durante toda la garantía
-              </li>
-            </ul>
+            <div id="pDescription"></div>
+            <ul class="check-list" id="pHighlights"></ul>
           </div>
 
           <div class="tab-panel" id="especificaciones">
-            <table class="specs-table">
-              <tr>
-                <td>Procesador</td>
-                <td>AMD Ryzen 5 5500, 6 núcleos / 12 hilos, hasta 4.2GHz</td>
-              </tr>
-              <tr>
-                <td>Placa de video</td>
-                <td>NVIDIA GeForce RTX 3050 8GB GDDR6</td>
-              </tr>
-              <tr>
-                <td>Memoria RAM</td>
-                <td>16GB (2x8GB) DDR4 3200MHz</td>
-              </tr>
-              <tr>
-                <td>Almacenamiento</td>
-                <td>512GB SSD NVMe M.2</td>
-              </tr>
-              <tr>
-                <td>Motherboard</td>
-                <td>Chipset A520, soporte PCIe 4.0</td>
-              </tr>
-              <tr>
-                <td>Fuente</td>
-                <td>600W Certificación 80 Plus Bronze</td>
-              </tr>
-              <tr>
-                <td>Gabinete</td>
-                <td>
-                  ATX Mid Tower, panel lateral en vidrio templado, 3 coolers RGB
-                </td>
-              </tr>
-              <tr>
-                <td>Sistema operativo</td>
-                <td>Windows 11 Home (licencia original incluida)</td>
-              </tr>
-              <tr>
-                <td>Garantía</td>
-                <td>12 meses de garantía oficial ComputerSell</td>
-              </tr>
-            </table>
-          </div>
-
-          <div class="tab-panel" id="opiniones">
-            <div class="review-summary">
-              <div class="review-score">
-                <div class="num">4.4</div>
-                <span class="stars">
-                  <svg><use href="#ic-star-fill" /></svg>
-                  <svg><use href="#ic-star-fill" /></svg>
-                  <svg><use href="#ic-star-fill" /></svg>
-                  <svg><use href="#ic-star-fill" /></svg>
-                  <svg><use href="#ic-star" /></svg>
-                </span>
-              </div>
-              <p style="margin: 0; color: var(--ink-soft); max-width: 420px">
-                Basado en 128 compras verificadas en los últimos 6 meses.
-              </p>
-            </div>
-
-            <div class="review-item">
-              <div class="review-head">
-                <span class="name">Martín G.</span>
-                <span class="stars">
-                  <svg><use href="#ic-star-fill" /></svg>
-                  <svg><use href="#ic-star-fill" /></svg>
-                  <svg><use href="#ic-star-fill" /></svg>
-                  <svg><use href="#ic-star-fill" /></svg>
-                  <svg><use href="#ic-star-fill" /></svg>
-                </span>
-                <span class="date">· hace 2 semanas</span>
-              </div>
-              <p>
-                Llegó bien embalado y anduvo perfecto desde el primer arranque.
-                Corre todo lo que juego sin problema.
-              </p>
-            </div>
-
-            <div class="review-item">
-              <div class="review-head">
-                <span class="name">Rocío P.</span>
-                <span class="stars">
-                  <svg><use href="#ic-star-fill" /></svg>
-                  <svg><use href="#ic-star-fill" /></svg>
-                  <svg><use href="#ic-star-fill" /></svg>
-                  <svg><use href="#ic-star-fill" /></svg>
-                  <svg><use href="#ic-star" /></svg>
-                </span>
-                <span class="date">· hace 1 mes</span>
-              </div>
-              <p>
-                Muy buena relación precio-rendimiento. El envío tardó un par de
-                días más de lo esperado pero valió la pena.
-              </p>
-            </div>
+            <table class="specs-table" id="pSpecs"></table>
           </div>
         </section>
 
-        <section class="section relacionados">
+        <section class="section relacionados" id="relatedSection" hidden>
           <div class="destacados-head">
             <h2>También te puede interesar</h2>
           </div>
-          <div class="listDestacados">
-            <div class="itemDestacado">
-              <div class="imageDestacado">
-                <img src="/assets/images/pc1.webp" alt="" />
-              </div>
-              <div class="textCard">
-                <span>PC Armada AMD Ryzen 5 5500 RTX 3050 16GB 512GB</span>
-                <div class="prices">
-                  <span class="dashed">$1.610.400</span>
-                  <span class="priceNow">1.304.424</span>
-                </div>
-                <span class="cuotas">3 cuotas sin interés</span>
-              </div>
-              <div class="actionsDestacados">
-                <button class="btn btn-secondary">
-                  <span>Seleccionar</span>
-                </button>
-                <button
-                  class="btn btn-third"
-                  onclick="window.location.href = '/detail.html'"
-                >
-                  <svg class="ic-md"><use href="#ic-info" /></svg>
-                </button>
-                <button class="btn btn-third">
-                  <svg class="ic-md">
-                    <use class="favorite-icon" href="#ic-favorite" />
-                  </svg>
-                </button>
-              </div>
-            </div>
-            <div class="itemDestacado">
-              <div class="imageDestacado">
-                <img src="/assets/images/pc1.webp" alt="" />
-              </div>
-              <div class="textCard">
-                <span>PC Armada AMD Ryzen 5 5500 RTX 3050 16GB 512GB</span>
-                <div class="prices">
-                  <span class="dashed">$1.610.400</span>
-                  <span class="priceNow">1.304.424</span>
-                </div>
-                <span class="cuotas">3 cuotas sin interés</span>
-              </div>
-              <div class="actionsDestacados">
-                <button class="btn btn-secondary">
-                  <span>Seleccionar</span>
-                </button>
-                <button class="btn btn-third">
-                  <svg class="ic-md"><use href="#ic-info" /></svg>
-                </button>
-                <button class="btn btn-third">
-                  <svg class="ic-md">
-                    <use class="favorite-icon" href="#ic-favorite" />
-                  </svg>
-                </button>
-              </div>
-            </div>
-            <div class="itemDestacado">
-              <div class="imageDestacado">
-                <img src="/assets/images/pc1.webp" alt="" />
-              </div>
-              <div class="textCard">
-                <span>PC Armada AMD Ryzen 5 5500 RTX 3050 16GB 512GB</span>
-                <div class="prices">
-                  <span class="dashed">$1.610.400</span>
-                  <span class="priceNow">1.304.424</span>
-                </div>
-                <span class="cuotas">3 cuotas sin interés</span>
-              </div>
-              <div class="actionsDestacados">
-                <button class="btn btn-secondary">
-                  <span>Seleccionar</span>
-                </button>
-                <button class="btn btn-third">
-                  <svg class="ic-md"><use href="#ic-info" /></svg>
-                </button>
-                <button class="btn btn-third">
-                  <svg class="ic-md">
-                    <use class="favorite-icon" href="#ic-favorite" />
-                  </svg>
-                </button>
-              </div>
-            </div>
-            <div class="itemDestacado">
-              <div class="imageDestacado">
-                <img src="/assets/images/pc1.webp" alt="" />
-              </div>
-              <div class="textCard">
-                <span>PC Armada AMD Ryzen 5 5500 RTX 3050 16GB 512GB</span>
-                <div class="prices">
-                  <span class="dashed">$1.610.400</span>
-                  <span class="priceNow">1.304.424</span>
-                </div>
-                <span class="cuotas">3 cuotas sin interés</span>
-              </div>
-              <div class="actionsDestacados">
-                <button class="btn btn-secondary">
-                  <span>Seleccionar</span>
-                </button>
-                <button class="btn btn-third">
-                  <svg class="ic-md"><use href="#ic-info" /></svg>
-                </button>
-                <button class="btn btn-third">
-                  <svg class="ic-md">
-                    <use class="favorite-icon" href="#ic-favorite" />
-                  </svg>
-                </button>
-              </div>
-            </div>
-          </div>
+          <div class="listDestacados" id="relatedGrid"></div>
         </section>
+
+        <div class="emptyState" id="productMissing" hidden>
+          <svg><use href="#ic-search" /></svg>
+          <h2>No encontramos este producto</h2>
+          <p>Puede que ya no esté disponible.</p>
+          <a class="btn btn-secondary" href="/productos.html">Ver productos</a>
+        </div>
       </main>
 
       <footer class="site-footer">
@@ -593,11 +277,13 @@
       </footer>
     </div>
 
-    <script src="/assets/js/navbar.js"></script>
-    <script src="/assets/js/menu.js"></script>
-    <script src="/assets/js/pages/detail.js"></script>
-    <script src="/assets/js/utils.js"></script>
-    <script src="/assets/js/cart.js"></script>
-    <script src="/assets/js/favorites.js"></script>
+    <script src="/assets/js/components/navbar.js"></script>
+    <script src="/assets/js/components/menu.js"></script>
+    <script type="module" src="/assets/js/pages/detail.js"></script>
+    <script src="/assets/js/core/env.js"></script>
+    <script src="/assets/js/core/utils.js"></script>
+    <script src="/assets/js/core/cart.js"></script>
+    <script type="module" src="/assets/js/core/favorites.js"></script>
+    <script type="module" src="/assets/js/core/account.js"></script>
   </body>
 </html>

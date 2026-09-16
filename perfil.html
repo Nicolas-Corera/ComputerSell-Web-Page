@@ -16,6 +16,7 @@
     <link rel="stylesheet" href="/assets/css/header.css" />
     <link rel="stylesheet" href="/assets/css/footer.css" />
     <link rel="stylesheet" href="/assets/css/components/buttons.css" />
+    <link rel="stylesheet" href="/assets/css/components/toast.css" />
     <link rel="stylesheet" href="/assets/css/components/product-card.css" />
     <link rel="stylesheet" href="/assets/css/components/cart-drawer.css" />
     <link rel="stylesheet" href="/assets/css/components/menu-drawer.css" />
@@ -26,7 +27,7 @@
   </head>
 
   <body class="is-loading" id="inicio">
-    <script src="/assets/js/sprite.js"></script>
+    <script src="/assets/js/sprites/sprite.js"></script>
     <!-- <div class="loader-wrap">
       <div class="loader-number" id="loaderNumber">0</div>
     </div> -->
@@ -85,7 +86,7 @@
             </span>
             <span class="actLabel">FAVORITOS</span>
           </li>
-          <li class="actIcon" onclick="window.location.href = '/acceso.html'">
+          <li class="actIcon" id="accountBtn">
             <svg class="ic-md"><use href="#ic-person" /></svg>
             <span class="actLabel">ACCEDER</span>
           </li>
@@ -135,6 +136,9 @@
               <svg class="ic-sm"><use href="#ic-close" /></svg>
               Quitar foto
             </button>
+            <button class="btn btn-third" id="logoutBtn" type="button" style="margin-top: 14px">
+              Cerrar sesión
+            </button>
           </div>
 
           <div class="card form-card">
@@ -160,11 +164,7 @@
                   </div>
                   <div class="field">
                     <label for="email">Email</label>
-                    <input
-                      type="email"
-                      id="email"
-                      placeholder="juan.perez@email.com"
-                    />
+                    <input type="email" id="email" placeholder="juan.perez@email.com" readonly title="El correo no se puede modificar" />
                   </div>
                   <div class="field">
                     <label for="telefono">Número de teléfono</label>
@@ -252,6 +252,10 @@
               <svg><use href="#ic-document" /></svg>
               Mis facturas
             </button>
+            <button class="tab-btn" data-tab="avisos" type="button">
+              <svg><use href="#ic-info" /></svg>
+              Avisos <span class="favBadge" id="avisosBadge" style="position:static;margin-left:6px"></span>
+            </button>
             <a class="tab-btn tab-help" href="/contacto.html">
               <svg><use href="#ic-help" /></svg>
               ¿Necesitás ayuda?
@@ -260,140 +264,20 @@
 
           <!-- Mis compras -->
           <div class="tab-panel is-active" id="panel-compras">
-            <div class="list-card">
-              <div class="list-card-icon">
-                <svg class="ic-md"><use href="#ic-shopping_bag" /></svg>
-              </div>
-              <div class="list-card-body">
-                <div class="title-row">
-                  <strong>Pedido #48213</strong>
-                  <span class="badge badge-ok">Entregado</span>
-                </div>
-                <div class="meta">
-                  12 ago 2026 · 2 productos · PC Gamer Ryzen 5 + Mouse RGB
-                </div>
-              </div>
-              <div class="list-card-right">
-                <span class="list-card-amount">1.450.000</span>
-                <a
-                  class="icon-btn"
-                  href="/compra-detalle.html?id=48213"
-                  aria-label="Ver detalle del pedido"
-                >
-                  <svg><use href="#ic-arrow_forward" /></svg>
-                </a>
-              </div>
-            </div>
-
-            <div class="list-card">
-              <div class="list-card-icon">
-                <svg class="ic-md"><use href="#ic-shopping_bag" /></svg>
-              </div>
-              <div class="list-card-body">
-                <div class="title-row">
-                  <strong>Pedido #47950</strong>
-                  <span class="badge badge-pending">En camino</span>
-                </div>
-                <div class="meta">
-                  30 ago 2026 · 1 producto · Notebook 15" i5
-                </div>
-              </div>
-              <div class="list-card-right">
-                <span class="list-card-amount">980.000</span>
-                <a
-                  class="icon-btn"
-                  href="/compra-detalle.html?id=47950"
-                  aria-label="Ver detalle del pedido"
-                >
-                  <svg><use href="#ic-arrow_forward" /></svg>
-                </a>
-              </div>
-            </div>
-
-            <div class="list-card">
-              <div class="list-card-icon">
-                <svg class="ic-md"><use href="#ic-shopping_bag" /></svg>
-              </div>
-              <div class="list-card-body">
-                <div class="title-row">
-                  <strong>Pedido #46102</strong>
-                  <span class="badge badge-ok">Entregado</span>
-                </div>
-                <div class="meta">
-                  02 jul 2026 · 3 productos · Teclado, mouse y auriculares
-                </div>
-              </div>
-              <div class="list-card-right">
-                <span class="list-card-amount">210.500</span>
-                <a
-                  class="icon-btn"
-                  href="/compra-detalle.html?id=46102"
-                  aria-label="Ver detalle del pedido"
-                >
-                  <svg><use href="#ic-arrow_forward" /></svg>
-                </a>
-              </div>
-            </div>
+            <p class="form-sub" id="ordersEmpty" hidden>Todavía no hiciste compras. <a href="/productos.html">Ver productos</a></p>
+            <div id="ordersList"></div>
           </div>
 
           <!-- Mis facturas -->
           <div class="tab-panel" id="panel-facturas">
-            <div class="list-card">
-              <div class="list-card-icon">
-                <svg class="ic-md"><use href="#ic-document" /></svg>
-              </div>
-              <div class="list-card-body">
-                <div class="title-row">
-                  <strong>Factura A-0001-00048213</strong>
-                  <span class="badge badge-ok">Pagada</span>
-                </div>
-                <div class="meta">Emitida el 12 ago 2026 · Pedido #48213</div>
-              </div>
-              <div class="list-card-right">
-                <span class="list-card-amount">1.450.000</span>
-                <button class="icon-btn" aria-label="Descargar factura">
-                  <svg><use href="#ic-download" /></svg>
-                </button>
-              </div>
-            </div>
+            <p class="form-sub" id="invoicesEmpty" hidden>Las facturas aparecen acá cuando se acredita el pago de un pedido.</p>
+            <div id="invoicesList"></div>
+          </div>
 
-            <div class="list-card">
-              <div class="list-card-icon">
-                <svg class="ic-md"><use href="#ic-document" /></svg>
-              </div>
-              <div class="list-card-body">
-                <div class="title-row">
-                  <strong>Factura A-0001-00047950</strong>
-                  <span class="badge badge-sent">Enviada</span>
-                </div>
-                <div class="meta">Emitida el 30 ago 2026 · Pedido #47950</div>
-              </div>
-              <div class="list-card-right">
-                <span class="list-card-amount">980.000</span>
-                <button class="icon-btn" aria-label="Descargar factura">
-                  <svg><use href="#ic-download" /></svg>
-                </button>
-              </div>
-            </div>
-
-            <div class="list-card">
-              <div class="list-card-icon">
-                <svg class="ic-md"><use href="#ic-document" /></svg>
-              </div>
-              <div class="list-card-body">
-                <div class="title-row">
-                  <strong>Factura A-0001-00046102</strong>
-                  <span class="badge badge-ok">Pagada</span>
-                </div>
-                <div class="meta">Emitida el 02 jul 2026 · Pedido #46102</div>
-              </div>
-              <div class="list-card-right">
-                <span class="list-card-amount">210.500</span>
-                <button class="icon-btn" aria-label="Descargar factura">
-                  <svg><use href="#ic-download" /></svg>
-                </button>
-              </div>
-            </div>
+          <!-- Avisos -->
+          <div class="tab-panel" id="panel-avisos">
+            <p class="form-sub" id="notifsEmpty" hidden>Sin avisos por ahora.</p>
+            <div id="notifsList"></div>
           </div>
         </section>
       </main>
@@ -479,12 +363,14 @@
       </div>
     </footer>
 
-    <script src="/assets/js/loader.js"></script>
-    <script src="/assets/js/navbar.js"></script>
-    <script src="/assets/js/menu.js"></script>
-    <script src="/assets/js/utils.js"></script>
-    <script src="/assets/js/perfil.js"></script>
-    <script src="/assets/js/favorites.js"></script>
-    <script src="/assets/js/cart.js"></script>
+    <script src="/assets/js/components/loader.js"></script>
+    <script src="/assets/js/components/navbar.js"></script>
+    <script src="/assets/js/components/menu.js"></script>
+    <script src="/assets/js/core/env.js"></script>
+    <script src="/assets/js/core/utils.js"></script>
+    <script type="module" src="/assets/js/pages/perfil.js"></script>
+    <script type="module" src="/assets/js/core/favorites.js"></script>
+    <script type="module" src="/assets/js/core/account.js"></script>
+    <script src="/assets/js/core/cart.js"></script>
   </body>
 </html>

@@ -13,6 +13,7 @@
     <link rel="stylesheet" href="/assets/css/base.css" />
     <link rel="stylesheet" href="/assets/css/header.css" />
     <link rel="stylesheet" href="/assets/css/components/buttons.css" />
+    <link rel="stylesheet" href="/assets/css/components/toast.css" />
     <link rel="stylesheet" href="/assets/css/components/forms.css" />
     <link rel="stylesheet" href="/assets/css/pages/auth.css" />
   </head>
@@ -22,13 +23,13 @@
     data-auth="admin"
     data-start="login"
     data-title-registro="Crear cuenta de administrador"
-    data-sub-registro="Solo con código de invitación. Vas a poder gestionar ventas, reservas, facturas y cargas."
+    data-sub-registro="Solo para correos habilitados por ComputerSell. Vas a poder gestionar ventas, reservas, facturas y cargas."
     data-title-login="Ingresar al panel"
     data-sub-login="Accedé a tu panel de control para gestionar la tienda desde un solo lugar."
   >
-    <script src="/assets/js/sprite.js"></script>
-    <script src="/assets/js/sprite-admin.js"></script>
-    <script src="/assets/js/sprite-brands.js"></script>
+    <script src="/assets/js/sprites/sprite.js"></script>
+    <script src="/assets/js/sprites/sprite-admin.js"></script>
+    <script src="/assets/js/sprites/sprite-brands.js"></script>
 
     <div class="auth">
       <!-- ===== Panel visual ===== -->
@@ -158,11 +159,6 @@
                   <li data-rule="number"><svg><use href="#ic-check" /></svg> Al menos un número</li>
                   <li data-rule="symbol"><svg><use href="#ic-check" /></svg> Un símbolo (!@#$%…)</li>
                 </ul>
-                <label class="field is-full">
-                  <span>Código de invitación</span>
-                  <input type="text" name="codigo" data-invite="CS-ADMIN-2026" placeholder="CS-XXXX-XXXX · te lo enviamos por correo al sumarte al equipo" style="text-transform: uppercase" required />
-                  <span class="field-error"></span>
-                </label>
               </div>
               <label class="checkOption">
                 <input type="checkbox" name="terminos" required />
@@ -201,11 +197,48 @@
                 <p>Te enviamos un enlace a <strong></strong> para crear una contraseña nueva. Vence en 30 minutos.</p>
               </div>
             </form>
+
+            <!-- Nueva contraseña (llega desde el enlace de recuperación) -->
+            <form class="auth-form" data-panel="nueva" novalidate>
+              <div class="auth-alert">
+                <svg><use href="#ic-error" /></svg>
+                <span></span>
+              </div>
+              <label class="field">
+                <span>Nueva contraseña</span>
+                <div class="pwField">
+                  <input type="password" name="password" id="newPass" data-pw data-rules="pwRulesNew" autocomplete="new-password" placeholder="••••••••••" required />
+                  <button class="pwToggle" type="button" aria-label="Mostrar contraseña">
+                    <svg><use href="#ic-visibility" /></svg>
+                  </button>
+                </div>
+                <span class="field-error"></span>
+              </label>
+              <ul class="pwRules" id="pwRulesNew">
+                <li data-rule="length"><svg><use href="#ic-check" /></svg> Mínimo 8 caracteres</li>
+                <li data-rule="case"><svg><use href="#ic-check" /></svg> Mayúsculas y minúsculas</li>
+                <li data-rule="number"><svg><use href="#ic-check" /></svg> Al menos un número</li>
+                <li data-rule="symbol"><svg><use href="#ic-check" /></svg> Un símbolo (!@#$%…)</li>
+              </ul>
+              <label class="field">
+                <span>Repetir contraseña</span>
+                <div class="pwField">
+                  <input type="password" name="password2" data-pw data-confirm="newPass" autocomplete="new-password" placeholder="••••••••••" required />
+                  <button class="pwToggle" type="button" aria-label="Mostrar contraseña">
+                    <svg><use href="#ic-visibility" /></svg>
+                  </button>
+                </div>
+                <span class="field-error"></span>
+              </label>
+              <button class="btn btn-secondary auth-submit" type="submit">Guardar contraseña</button>
+            </form>
           </div>
         </div>
       </main>
     </div>
 
-    <script src="/assets/js/pages/auth.js"></script>
+    <script src="/assets/js/core/env.js"></script>
+    <script src="/assets/js/core/utils.js"></script>
+    <script type="module" src="/assets/js/pages/auth.js"></script>
   </body>
 </html>

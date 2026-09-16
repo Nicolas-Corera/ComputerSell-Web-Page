@@ -417,3 +417,9 @@
   margin-bottom: 12px;
   color: var(--ink-soft);
 }
+.badge-cancel {
+  color: #ff6b6b;
+  background: rgba(255, 107, 107, 0.12);
+  border: 1px solid rgba(255, 107, 107, 0.25);
+}
+

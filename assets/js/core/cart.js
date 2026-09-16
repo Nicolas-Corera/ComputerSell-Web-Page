@@ -1,8 +1,10 @@
 // Carrito de compras — compartido por todas las páginas.
+// Vive en localStorage (funciona sin sesión); al pagar se valida contra la
+// base de datos (precio y stock reales) con la RPC place_order.
 // Expone window.CartStore (estado + persistencia) y monta el drawer lateral.
 // Requiere utils.js (window.CS).
 (function () {
-  const { formatPrice, escapeHtml, loadList, saveList, productForButton } =
+  const { formatPrice, escapeHtml, loadList, saveList, productForButton, toast } =
     window.CS;
   const STORAGE_KEY = "computersell-cart";
   const CART_URL = "/carrito.html";
@@ -29,17 +31,62 @@
     getItems: () => cart.map((it) => ({ ...it })),
     totalQty: () => cart.reduce((sum, it) => sum + it.qty, 0),
     totalPrice: () => cart.reduce((sum, it) => sum + it.price * it.qty, 0),
+    // Devuelve false si no hay stock suficiente
     add(product) {
       const qty = Math.max(1, product.qty || 1);
       const existing = cart.find((it) => it.id === product.id);
-      if (existing) existing.qty += qty;
-      else cart.push({ ...product, qty });
+      const wanted = (existing ? existing.qty : 0) + qty;
+      if (typeof product.stock === "number" && wanted > product.stock) {
+        toast(
+          product.stock > 0
+            ? `Solo quedan ${product.stock} unidad${product.stock === 1 ? "" : "es"} de este producto`
+            : "Este producto no tiene stock",
+          "bad",
+        );
+        return false;
+      }
+      if (existing) existing.qty = wanted;
+      else
+        cart.push({
+          id: product.id,
+          name: product.name,
+          price: product.price,
+          oldPrice: product.oldPrice || 0,
+          cuotas: product.cuotas || "",
+          image: product.image || "",
+          stock: product.stock,
+          freeShipping: !!product.freeShipping,
+          qty,
+        });
       commit();
+      return true;
+    },
+    // Actualiza precio/stock/nombre desde la base (lo llaman las páginas al
+    // cargar y en cada cambio realtime). Quita lo que ya no está publicado.
+    refresh(products, validIds) {
+      let changed = false;
+      products.forEach((p) => {
+        const it = cart.find((x) => x.id === p.id);
+        if (!it) return;
+        if (it.price !== p.price || it.stock !== p.stock || it.name !== p.name || it.image !== p.image) {
+          Object.assign(it, { price: p.price, stock: p.stock, name: p.name, image: p.image, oldPrice: p.oldPrice || 0, cuotas: p.cuotas || "", freeShipping: !!p.freeShipping });
+          if (typeof p.stock === "number" && it.qty > p.stock) it.qty = Math.max(0, p.stock);
+          changed = true;
+        }
+      });
+      const before = cart.length;
+      cart = cart.filter((it) => it.qty > 0 && (!validIds || validIds.includes(it.id)));
+      if (changed || cart.length !== before) commit();
     },
     setQty(id, qty) {
       const item = cart.find((it) => it.id === id);
       if (!item) return;
-      item.qty = Math.max(1, qty | 0);
+      let q = Math.max(1, qty | 0);
+      if (typeof item.stock === "number" && q > item.stock) {
+        q = Math.max(1, item.stock);
+        toast(`Solo quedan ${item.stock} unidad${item.stock === 1 ? "" : "es"}`, "bad");
+      }
+      item.qty = q;
       commit();
     },
     remove(id) {
@@ -211,9 +258,9 @@
     );
     if (addBtn) {
       const product = productForButton(addBtn);
-      if (product) {
-        CartStore.add(product);
+      if (product && CartStore.add(product)) {
         bumpBadge();
+        toast("Agregado al carrito", "ok");
       }
       return;
     }
@@ -222,7 +269,7 @@
     const buyNow = e.target.closest("#buyNowBtn");
     if (buyNow) {
       const product = productForButton(buyNow);
-      if (product) CartStore.add(product);
+      if (product && !CartStore.add(product)) return;
       window.location.href = CART_URL;
     }
   });
