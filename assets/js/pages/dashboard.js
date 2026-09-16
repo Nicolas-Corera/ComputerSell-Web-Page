@@ -1067,7 +1067,7 @@ import {
               (it) => `
             <div class="list-item">
               <span class="thumb">${it.product.img ? `<img src="${it.product.img}" alt="" />` : '<svg><use href="#ic-image" /></svg>'}</span>
-              <div class="body"><strong>${escapeHtml(it.product.name)}</strong><small>x${it.qty} · ${formatPrice(it.price)} c/u${it.product.sku ? " · SKU " + escapeHtml(it.product.sku) : ""}</small></div>
+              <div class="body"><strong>${escapeHtml(it.product.name)}</strong><small>x${it.qty} · $${formatPrice(it.price)} c/u${it.product.sku ? " · SKU " + escapeHtml(it.product.sku) : ""}</small></div>
               <span class="val is-money">${formatPrice(it.price * it.qty)}</span>
             </div>`,
             )
@@ -1403,7 +1403,7 @@ import {
         <dl class="kv">
           <dt>Estado</dt><dd>${badge(RECEIPT_STATUS, r.status)}</dd>
           <dt>Cliente</dt><dd>${escapeHtml(r.customer.name)}</dd>
-          <dt>Orden</dt><dd>${r.order ? `${r.order.id} · ${formatPrice(r.order.total)}` : "—"}</dd>
+          <dt>Orden</dt><dd>${r.order ? `${r.order.id} · $${formatPrice(r.order.total)}` : "—"}</dd>
           <dt>Banco</dt><dd>${r.bank || "—"}</dd>
           <dt>Referencia</dt><dd>${r.reference || "—"}</dd>
           <dt>Monto</dt><dd>$${formatPrice(r.amount)}</dd>
@@ -2018,12 +2018,13 @@ import {
     $("#sbUserEmail").textContent = USER.email;
     $("#profileName").textContent = USER.name;
     $("#profileEmail").textContent = USER.email;
-    const inputs = $('.tab-panel[data-tab="perfil"] .formGrid input[disabled]');
+    const inputs = $$('.tab-panel[data-tab="perfil"] .formGrid input[disabled]');
     if (inputs.length >= 4) {
       inputs[0].value = USER.name;
       inputs[1].value = USER.email;
       inputs[2].value = "Administrador";
-      inputs[3].value = USER.profile ? new Date(USER.profile.created_at).toLocaleDateString("es-AR", { month: "long", year: "numeric" }) : "";
+      const since = USER.profile ? new Date(USER.profile.created_at).toLocaleDateString("es-AR", { month: "long", year: "numeric" }) : "";
+      inputs[3].value = since.charAt(0).toUpperCase() + since.slice(1);
     }
   }
 

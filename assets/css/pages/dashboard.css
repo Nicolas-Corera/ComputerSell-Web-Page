@@ -293,7 +293,6 @@ body.admin-body {
   flex-shrink: 0;
   border-radius: 50%;
   overflow: hidden;
-  background: linear-gradient(135deg, var(--blue), #7c3aed);
   color: #fff;
   display: flex;
   align-items: center;
