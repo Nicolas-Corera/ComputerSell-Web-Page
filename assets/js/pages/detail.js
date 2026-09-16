@@ -85,7 +85,9 @@ function render(p) {
   changeQty(0);
 
   $("#shipLine span").innerHTML = p.free_shipping ? "<strong>Envío gratis</strong> a todo el país" : "<strong>Envío a domicilio</strong> o retiro en el local";
-  $("#warrantyLine").innerHTML = p.warranty_months ? `<strong>${p.warranty_months} meses de garantía oficial</strong> ComputerSell` : "Garantía oficial ComputerSell";
+  const UNIT = { dias: ["día", "días"], meses: ["mes", "meses"], anios: ["año", "años"] };
+  const warranty = p.warranty ? `${p.warranty} ${(UNIT[p.warranty_unit] || UNIT.meses)[p.warranty === 1 ? 0 : 1]} de garantía oficial` : "";
+  $("#warrantyLine").innerHTML = warranty ? `<strong>${warranty}</strong> ComputerSell` : "Garantía oficial ComputerSell";
 
   // Descripción / especificaciones
   $("#pDescription").innerHTML = String(p.description || "")
@@ -95,7 +97,9 @@ function render(p) {
     .join("");
   $("#pHighlights").innerHTML = (p.highlights || []).map((h) => `<li><svg><use href="#ic-check" /></svg> ${escapeHtml(h)}</li>`).join("");
   const specs = (p.specs || []).map((s) => `<tr><td>${escapeHtml(s.k)}</td><td>${escapeHtml(s.v)}</td></tr>`);
-  if (p.warranty_months) specs.push(`<tr><td>Garantía</td><td>${p.warranty_months} meses de garantía oficial ComputerSell</td></tr>`);
+  if (p.weight > 0) specs.push(`<tr><td>Peso</td><td>${p.weight} ${p.weight_unit || "kg"}</td></tr>`);
+  if (p.dimensions) specs.push(`<tr><td>Dimensiones</td><td>${escapeHtml(p.dimensions)} ${p.dimensions_unit || "cm"}</td></tr>`);
+  if (warranty) specs.push(`<tr><td>Garantía</td><td>${warranty} ComputerSell</td></tr>`);
   $("#pSpecs").innerHTML = specs.join("") || `<tr><td colspan="2">Sin especificaciones cargadas.</td></tr>`;
 
   if (window.syncFavorites) window.syncFavorites();

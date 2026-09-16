@@ -1701,6 +1701,9 @@ import {
         stockMin: +$("#pStockMin").value || 0,
         status: status.value,
         warranty: +$("#pWarranty").value || 0,
+        warrantyUnit: $("#pWarrantyUnit").value,
+        weightUnit: $("#pWeightUnit").value,
+        dimensionsUnit: $("#pDimsUnit").value,
         sale: sale.checked,
         oldPrice: parsePrice(oldPrice.value),
         featured: $("#pFeatured").checked,
@@ -1792,7 +1795,10 @@ import {
       stock.value = r.stock;
       $("#pStockMin").value = r.stock_min;
       status.value = r.status;
-      $("#pWarranty").value = r.warranty_months;
+      $("#pWarranty").value = r.warranty;
+      $("#pWarrantyUnit").value = r.warranty_unit || "meses";
+      $("#pWeightUnit").value = r.weight_unit || "kg";
+      $("#pDimsUnit").value = r.dimensions_unit || "cm";
       sale.checked = r.on_sale;
       oldPrice.value = r.old_price ? formatPrice(r.old_price) : "";
       discount.value = r.on_sale && r.old_price > r.price ? Math.round((1 - r.price / r.old_price) * 100) : "";
@@ -1900,7 +1906,10 @@ import {
         stock: d.stock,
         stock_min: d.stockMin,
         status: statusOverride || d.status,
-        warranty_months: d.warranty,
+        warranty: d.warranty,
+        warranty_unit: d.warrantyUnit,
+        weight_unit: d.weightUnit,
+        dimensions_unit: d.dimensionsUnit,
         featured: d.featured,
         installments: d.installments,
         free_shipping: d.freeShipping,

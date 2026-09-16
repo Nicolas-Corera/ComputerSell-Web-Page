@@ -734,14 +734,13 @@
                     </label>
                     <label class="field">
                       <span>Garantía</span>
-                      <div class="input-affix is-suffix" data-suffix="meses">
-                        <input
-                          type="number"
-                          name="warranty"
-                          id="pWarranty"
-                          min="0"
-                          value="12"
-                        />
+                      <div class="input-unit">
+                        <input type="number" name="warranty" id="pWarranty" min="0" value="12" />
+                        <select name="warrantyUnit" id="pWarrantyUnit" aria-label="Unidad de garantía">
+                          <option value="dias">días</option>
+                          <option value="meses" selected>meses</option>
+                          <option value="anios">años</option>
+                        </select>
                       </div>
                     </label>
                   </div>
@@ -850,26 +849,23 @@
                     </label>
                     <label class="field">
                       <span>Peso</span>
-                      <div class="input-affix is-suffix" data-suffix="kg">
-                        <input
-                          type="number"
-                          name="weight"
-                          id="pWeight"
-                          min="0"
-                          step="0.1"
-                          placeholder="0.0"
-                        />
+                      <div class="input-unit">
+                        <input type="number" name="weight" id="pWeight" min="0" step="0.01" placeholder="0.0" />
+                        <select name="weightUnit" id="pWeightUnit" aria-label="Unidad de peso">
+                          <option value="g">g</option>
+                          <option value="kg" selected>kg</option>
+                        </select>
                       </div>
                     </label>
                     <label class="field">
                       <span>Dimensiones (largo × ancho × alto)</span>
-                      <div class="input-affix is-suffix" data-suffix="cm">
-                        <input
-                          type="text"
-                          name="dimensions"
-                          id="pDims"
-                          placeholder="45 × 20 × 45"
-                        />
+                      <div class="input-unit">
+                        <input type="text" name="dimensions" id="pDims" placeholder="45 × 20 × 45" />
+                        <select name="dimensionsUnit" id="pDimsUnit" aria-label="Unidad de dimensiones">
+                          <option value="mm">mm</option>
+                          <option value="cm" selected>cm</option>
+                          <option value="m">m</option>
+                        </select>
                       </div>
                     </label>
                     <label class="field">
