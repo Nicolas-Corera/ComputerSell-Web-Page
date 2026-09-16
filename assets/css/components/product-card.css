@@ -203,3 +203,52 @@
   from { background-position: 200% 0; }
   to { background-position: -200% 0; }
 }
+
+/* Estado vacío de una grilla/carrusel de productos */
+.catalogEmpty {
+  grid-column: 1 / -1;
+  width: 100%;
+  min-height: 260px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 8px;
+  padding: 40px 24px;
+  border: 1px dashed var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--bg-1);
+  color: var(--ink-soft);
+}
+
+.catalogEmpty svg {
+  width: 44px;
+  height: 44px;
+  fill: currentColor;
+  opacity: 0.5;
+  margin-bottom: 6px;
+}
+
+.catalogEmpty h3 {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 0;
+}
+
+.catalogEmpty p {
+  margin: 0;
+  font-size: 14px;
+  max-width: 420px;
+}
+
+.catalogEmpty .btn,
+.catalogEmpty .btn-text {
+  margin-top: 12px;
+}
+
+.carouselWrap.is-empty .carousel-arrow {
+  display: none !important;
+}

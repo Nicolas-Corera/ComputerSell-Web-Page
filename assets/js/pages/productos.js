@@ -4,7 +4,7 @@
 import { createCatalog } from "../core/catalog.js";
 import { toCard, slugify } from "../core/supabase.js";
 
-const { formatPrice, escapeHtml, cardHtml } = window.CS;
+const { formatPrice, escapeHtml, cardHtml, emptyHtml } = window.CS;
 
 const aside = document.getElementById("filtersAside");
 const backdrop = document.getElementById("filtersBackdrop");
@@ -165,8 +165,13 @@ function applyFilters() {
     const n = visible.length;
     resultsCount.innerHTML = `<strong>${n}</strong> ${n === 1 ? "producto encontrado" : "productos encontrados"}`;
   }
-  emptyState.hidden = visible.length > 0;
-  grid.hidden = visible.length === 0;
+  // Sin resultados: catálogo vacío (mensaje simple) o filtros sin coincidencias (con "limpiar")
+  const catalogEmpty = items.length === 0;
+  emptyState.hidden = visible.length > 0 || catalogEmpty;
+  grid.hidden = visible.length === 0 && !catalogEmpty;
+  if (catalogEmpty) {
+    grid.innerHTML = emptyHtml("Todavía no hay productos publicados", "Estamos cargando el catálogo. Volvé a pasar en un rato o escribinos para consultar disponibilidad.", { href: "/contacto.html", label: "Contactanos", icon: "ic-info" });
+  }
   renderPagination(pages);
 }
 

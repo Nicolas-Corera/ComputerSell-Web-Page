@@ -101,6 +101,23 @@ window.CS = (function () {
       </div>`;
   }
 
+  // Bloque "sin productos" para grillas y carruseles
+  function emptyHtml(title, text, opts) {
+    opts = opts || {};
+    const action = opts.href
+      ? `<a class="btn btn-secondary" href="${escapeHtml(opts.href)}">${escapeHtml(opts.label || "Ver productos")}</a>`
+      : opts.buttonId
+        ? `<button class="btn btn-secondary" type="button" id="${escapeHtml(opts.buttonId)}">${escapeHtml(opts.label || "Limpiar filtros")}</button>`
+        : "";
+    return `
+      <div class="catalogEmpty">
+        <svg><use href="#${escapeHtml(opts.icon || "ic-shopping_bag")}" /></svg>
+        <h3>${escapeHtml(title)}</h3>
+        <p>${escapeHtml(text)}</p>
+        ${action}
+      </div>`;
+  }
+
   // Aviso flotante simple (tienda)
   let toastEl;
   function toast(text, type) {
@@ -127,6 +144,7 @@ window.CS = (function () {
     readDetailProduct,
     productForButton,
     cardHtml,
+    emptyHtml,
     toast,
   };
 })();
