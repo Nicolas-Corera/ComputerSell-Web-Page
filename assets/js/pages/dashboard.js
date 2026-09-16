@@ -611,13 +611,14 @@ import {
     const cur = ordersBetween(monthStart, new Date(TODAY.getTime() + DAY)).filter(isPaid);
     const prev = ordersBetween(prevStart, prevSame).filter(isPaid);
     const curRev = cur.reduce((s, o) => s + o.total, 0);
-    const prevRev = prev.reduce((s, o) => s + o.total, 0) || 1;
+    const prevRev = prev.reduce((s, o) => s + o.total, 0);
     const ticket = cur.length ? Math.round(curRev / cur.length) : 0;
-    const prevTicket = prev.length ? Math.round(prevRev / prev.length) : 1;
+    const prevTicket = prev.length ? Math.round(prevRev / prev.length) : 0;
     const activeRes = RESERVAS.filter((r) => r.status === "activa" || r.status === "por-vencer").length;
     const pending = ORDERS.filter((o) => o.status === "pendiente").length;
 
-    const delta = (a, b) => Math.round(((a - b) / (b || 1)) * 100);
+    // Variación vs. el mes anterior; sin datos previos no hay porcentaje que mostrar
+    const delta = (a, b) => (b > 0 ? Math.round(((a - b) / b) * 100) : null);
     const spark = dailyRevenue(14).values;
     const sparkOrders = (() => {
       const arr = [];
@@ -628,19 +629,28 @@ import {
       return arr;
     })();
 
-    const kpi = (icon, label, value, d, sparkVals, money) => `
+    // d: variación % (null = sin mes anterior) · sub: texto alternativo · sparkVals: mini gráfico
+    const kpi = (icon, label, value, d, sparkVals, money, sub) => {
+      let line;
+      if (typeof d === "number") {
+        line = `<span class="kpi-delta ${d >= 0 ? "is-up" : "is-down"}"><svg><use href="#ic-${d >= 0 ? "trending_up" : "trending_down"}" /></svg><strong>${d >= 0 ? "+" : ""}${Math.abs(d) > 999 ? ">999" : d}%</strong> vs. mes anterior</span>`;
+      } else {
+        line = `<span class="kpi-delta">${sub || "Sin datos del mes anterior"}</span>`;
+      }
+      return `
       <div class="kpi">
         <div class="kpi-head"><span>${label}</span><svg><use href="#ic-${icon}" /></svg></div>
         <div class="kpi-value ${money ? "is-money" : ""}">${value}</div>
-        ${d !== null ? `<span class="kpi-delta ${d >= 0 ? "is-up" : "is-down"}"><svg><use href="#ic-${d >= 0 ? "trending_up" : "trending_down"}" /></svg><strong>${d >= 0 ? "+" : ""}${d}%</strong> vs. mes anterior</span>` : `<span class="kpi-delta">${sparkVals}</span>`}
-        ${Array.isArray(sparkVals) ? sparkline(sparkVals, "#3b82f6") : ""}
+        ${line}
+        ${Array.isArray(sparkVals) && sparkVals.some((v) => v > 0) ? sparkline(sparkVals, "#3b82f6") : ""}
       </div>`;
+    };
 
     $("#kpis").innerHTML =
       kpi("payments", "Ingresos del mes", formatPrice(curRev), delta(curRev, prevRev), spark, true) +
       kpi("orders", "Órdenes del mes", cur.length, delta(cur.length, prev.length), sparkOrders) +
       kpi("point_of_sale", "Ticket promedio", formatPrice(ticket), delta(ticket, prevTicket), null, true) +
-      kpi("event", "Reservas activas", activeRes, null, `${pending} órdenes pendientes de pago`);
+      kpi("event", "Reservas activas", activeRes, null, null, false, `${pending} órdenes pendientes de pago`);
 
     // Ingresos con rango
     const revEl = $("#revenueChart");

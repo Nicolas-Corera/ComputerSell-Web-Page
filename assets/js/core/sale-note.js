@@ -99,7 +99,7 @@ export function saleNoteHtml(inv, order) {
         <img src="${location.origin}/assets/images/isotipo.png" alt="" />
         <div>
           <strong>${esc(SELLER.name)}</strong>
-          <small>${esc([SELLER.address, SELLER.phone, SELLER.email].filter(Boolean).join(" · "))}</small>
+          <small>${esc([SELLER.address, SELLER.email].filter(Boolean).join(" · "))}</small>
         </div>
       </div>
       <div class="sn-title">
@@ -114,7 +114,8 @@ export function saleNoteHtml(inv, order) {
       <div class="sn-box">
         <small>Vendedor</small>
         <strong>${esc(sellerName)}</strong><br />
-        ${SELLER.doc ? esc(SELLER.doc) : '<span style="color:#999">DNI / CUIT sin cargar</span>'}
+        ${SELLER.doc ? esc(SELLER.doc) : '<span style="color:#999">DNI / CUIT sin cargar</span>'}<br />
+        ${SELLER.phone ? esc(SELLER.phone) : '<span style="color:#999">DNI / CUIT sin cargar</span>'}
       </div>
       <div class="sn-box">
         <small>Comprador</small>
