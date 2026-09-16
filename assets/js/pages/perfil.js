@@ -17,8 +17,7 @@ const ORDER_STATUS = {
   pendiente: ["Pendiente de pago", "badge-pending"],
   pagado: ["Pagado", "badge-ok"],
   preparando: ["En preparación", "badge-pending"],
-  enviado: ["En camino", "badge-sent"],
-  entregado: ["Entregado", "badge-ok"],
+  enviado: ["Despachado", "badge-ok"],
   cancelado: ["Cancelado", "badge-cancel"],
 };
 const PAYMENT = { credito: "Tarjeta de crédito", debito: "Tarjeta de débito", transferencia: "Transferencia", mercadopago: "Mercado Pago" };
@@ -182,8 +181,8 @@ const fmtDate = (d) => new Date(d).toLocaleDateString("es-AR", { day: "2-digit",
         <div class="list-card">
           <div class="list-card-icon"><svg class="ic-md"><use href="#ic-document" /></svg></div>
           <div class="list-card-body">
-            <div class="title-row"><strong>${i.type === "NC" ? "Nota de crédito" : "Factura"} ${escapeHtml(i.number)}</strong><span class="badge ${i.type === "NC" ? "badge-cancel" : "badge-ok"}">${i.type === "NC" ? "Acreditada" : "Pagada"}</span></div>
-            <div class="meta">Emitida el ${fmtDate(i.issued_at)} · Pedido CS-${i.orders.number}</div>
+            <div class="title-row"><strong>${i.type === "NC" ? "Nota de crédito" : "Nota de venta"} ${escapeHtml(i.number)}</strong><span class="badge ${i.type === "NC" ? "badge-cancel" : "badge-ok"}">${i.type === "NC" ? "Acreditada" : "Pagada"}</span></div>
+            <div class="meta">Emitida el ${fmtDate(i.issued_at)} · Pedido CS-${i.orders.number} · No es comprobante fiscal</div>
           </div>
           <div class="list-card-right">
             <span class="list-card-amount">${formatPrice(i.total)}</span>

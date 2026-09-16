@@ -4,6 +4,7 @@
 // al día con realtime (ver dashboard/data.js). Preferencias de UI (tema,
 // colapso del menú, etc.) se guardan en localStorage con prefijo "cs_admin_".
 import { sb, signOut, CATEGORIES } from "../core/supabase.js";
+import { saleNoteHtml, printSaleNote } from "../core/sale-note.js";
 import {
   PRODUCTS, ORDERS, RESERVAS, INVOICES, RECEIPTS, NOTIFS, CUSTOMERS, USER,
   requireAdmin, loadAll, onChange, startRealtime, setOrderStatus, reviewReceipt, markRead, receiptUrl, loadProducts,
@@ -176,8 +177,7 @@ import {
     pendiente: { label: "Pendiente de pago", cls: "is-warn" },
     pagado: { label: "Pagado", cls: "is-info" },
     preparando: { label: "En preparación", cls: "is-info" },
-    enviado: { label: "Enviado", cls: "is-info" },
-    entregado: { label: "Entregado", cls: "is-ok" },
+    enviado: { label: "Despachado", cls: "is-ok" },
     cancelado: { label: "Cancelado", cls: "is-bad" },
   };
 
@@ -1014,13 +1014,38 @@ import {
   $("#drawerClose").addEventListener("click", closeDrawer);
   drawerBackdrop.addEventListener("click", closeDrawer);
 
-  const NEXT_STATUS = { pendiente: "pagado", pagado: "preparando", preparando: "enviado", enviado: "entregado" };
-  const NEXT_LABEL = { pendiente: "Marcar como pagado", pagado: "Pasar a preparación", preparando: "Marcar como enviado", enviado: "Marcar como entregado" };
+  const NEXT_STATUS = { pendiente: "pagado", pagado: "preparando", preparando: "enviado" };
+  const NEXT_LABEL = { pendiente: "Marcar como pagado", pagado: "Pasar a preparación", preparando: "Marcar como despachado" };
+
+  // Pide el código de seguimiento del correo antes de marcar como despachado
+  function trackingModal(o) {
+    return new Promise((resolve) => {
+      openModal(`
+        <h3>Despachar ${escapeHtml(o.id)}</h3>
+        <p>Ingresá el código de seguimiento del correo. El cliente lo ve en "Seguimiento" del pedido y recibe un aviso.</p>
+        <label class="field" style="margin-top:12px">
+          <span>Código de seguimiento</span>
+          <input type="text" id="trackingInput" placeholder="Ej: AB123456789AR" value="${escapeHtml(o.tracking || "")}" autocomplete="off" />
+          <span class="field-help">Podés dejarlo vacío y cargarlo después.</span>
+        </label>
+        <div class="modal-actions">
+          <button class="btn btn-ghost" type="button" data-close>Cancelar</button>
+          <button class="btn btn-secondary" type="button" id="modalOk"><svg><use href="#ic-check_circle" /></svg>Marcar como despachado</button>
+        </div>`);
+      setTimeout(() => $("#trackingInput").focus(), 50);
+      $("#modalOk").addEventListener("click", () => {
+        const code = $("#trackingInput").value.trim();
+        closeModal();
+        resolve({ ok: true, code });
+      });
+      $$("[data-close]", modal).forEach((b) => b.addEventListener("click", () => resolve({ ok: false })));
+    });
+  }
 
   function orderTimeline(o) {
-    const steps = ["pendiente", "pagado", "preparando", "enviado", "entregado"];
+    const steps = ["pendiente", "pagado", "preparando", "enviado"];
     const idx = o.status === "cancelado" ? -1 : steps.indexOf(o.status);
-    const labels = { pendiente: "Orden creada", pagado: "Pago confirmado", preparando: "En preparación", enviado: "Despachado", entregado: "Entregado" };
+    const labels = { pendiente: "Orden creada", pagado: "Pago confirmado", preparando: "En preparación", enviado: "Despachado" };
     const when = (st) => {
       const ev = o.events.find((e) => e.status === st);
       return ev ? `<small>${fmtDateTime(new Date(ev.created_at))}${ev.note ? " · " + escapeHtml(ev.note) : ""}</small>` : "";
@@ -1083,6 +1108,7 @@ import {
           <dt>Envío</dt><dd>${o.shipping ? "$" + formatPrice(o.shipping) : "Gratis"}</dd>
           <dt>Recargo</dt><dd>${o.surcharge ? "$" + formatPrice(o.surcharge) : "—"}</dd>
           <dt><strong>Total</strong></dt><dd><strong style="font-family:var(--font-display);font-size:16px">$${formatPrice(o.total)}</strong></dd>
+          ${o.status === "enviado" ? `<dt>Seguimiento</dt><dd>${o.tracking ? `<span class="mono">${escapeHtml(o.tracking)}</span>` : '<span class="muted">Sin código</span>'} <button class="btn-text" type="button" id="editTracking" style="margin-left:6px">Editar</button></dd>` : ""}
         </dl>
       </div>
       <div>
@@ -1093,21 +1119,40 @@ import {
     const rec = RECEIPTS.find((r) => r.order && r.order.uuid === o.uuid);
     drawerFoot.innerHTML = `
       ${NEXT_STATUS[o.status] ? `<button class="btn btn-secondary is-sm" type="button" id="advanceOrder"><svg><use href="#ic-check_circle" /></svg>${NEXT_LABEL[o.status]}</button>` : ""}
-      ${inv ? `<button class="btn btn-ghost is-sm" type="button" id="drawerInvoice"><svg><use href="#ic-receipt_long" /></svg>Ver factura</button>` : ""}
+      ${inv ? `<button class="btn btn-ghost is-sm" type="button" id="drawerInvoice"><svg><use href="#ic-receipt_long" /></svg>Nota de venta</button>` : ""}
       ${rec ? `<button class="btn btn-ghost is-sm" type="button" id="drawerReceipt"><svg><use href="#ic-account_balance" /></svg>Comprobante</button>` : ""}
-      ${o.status !== "cancelado" && o.status !== "entregado" ? `<button class="btn btn-danger is-sm" type="button" id="cancelOrder" style="margin-left:auto"><svg><use href="#ic-cancel" /></svg>Cancelar</button>` : ""}`;
+      ${o.status !== "cancelado" && o.status !== "enviado" ? `<button class="btn btn-danger is-sm" type="button" id="cancelOrder" style="margin-left:auto"><svg><use href="#ic-cancel" /></svg>Cancelar</button>` : ""}`;
     openDrawer();
 
     const adv = $("#advanceOrder");
     if (adv)
       adv.addEventListener("click", async () => {
+        const next = NEXT_STATUS[o.status];
+        let tracking = null;
+        if (next === "enviado") {
+          const r = await trackingModal(o);
+          if (!r.ok) return;
+          tracking = r.code;
+        }
         adv.disabled = true;
         try {
-          await setOrderStatus(o, NEXT_STATUS[o.status]);
-          toast(`${o.id}: ${ORDER_STATUS[NEXT_STATUS[o.status]].label}`, "ok");
+          await setOrderStatus(o, next, "", tracking);
+          toast(`${o.id}: ${ORDER_STATUS[next].label}`, "ok");
         } catch (err) {
           toast(err.message, "bad");
           adv.disabled = false;
+        }
+      });
+    const editTr = $("#editTracking");
+    if (editTr)
+      editTr.addEventListener("click", async () => {
+        const r = await trackingModal(o);
+        if (!r.ok) return;
+        try {
+          await setOrderStatus(o, "enviado", "", r.code);
+          toast("Código de seguimiento actualizado", "ok");
+        } catch (err) {
+          toast(err.message, "bad");
         }
       });
     const inv2 = $("#drawerInvoice");
@@ -1202,7 +1247,7 @@ import {
     rechazado: { label: "Rechazado", cls: "is-bad" },
   };
 
-  const INV_TYPE = { A: "Factura A", B: "Factura B", C: "Factura C", NC: "Nota de crédito" };
+  const INV_TYPE = { NV: "Nota de venta", NC: "Nota de crédito" };
 
   function renderInvoices() {
     $("#emitidasCount").textContent = INVOICES.length;
@@ -1230,7 +1275,7 @@ import {
                 (i) => `
             <tr>
               <td class="mono">${i.id}</td>
-              <td>${i.type === "NC" ? '<span class="badge is-bad is-plain">Nota de crédito</span>' : `<span class="badge is-muted is-plain">Factura ${i.type}</span>`}</td>
+              <td>${i.type === "NC" ? '<span class="badge is-bad is-plain">Nota de crédito</span>' : '<span class="badge is-muted is-plain">Nota de venta</span>'}</td>
               <td>${escapeHtml(i.customer.name)}</td>
               <td class="muted">${i.order ? i.order.id : "—"}</td>
               <td class="muted">${fmtDate(i.date)}</td>
@@ -1301,60 +1346,8 @@ import {
   });
 
   function invoiceHtml(inv) {
-    const o = inv.order;
-    if (!o) return "<p>Orden no disponible.</p>";
-    const isNC = inv.type === "NC";
-    return `
-      <div class="invoice" id="invoiceDoc">
-        <div class="invoice-head">
-          <div class="invoice-brand">
-            <img src="${location.origin}/assets/images/isotipo.png" alt="" />
-            <div>
-              <strong>ComputerSell</strong>
-              <small>Av. Corrientes 1234, CABA · CUIT 30-71234567-8<br />IVA Responsable Inscripto · Inicio de actividades 03/2025</small>
-            </div>
-          </div>
-          <div class="invoice-type">${isNC ? "NC" : inv.type}</div>
-          <div class="invoice-meta">
-            <strong>${isNC ? "NOTA DE CRÉDITO" : "FACTURA"} ${inv.id}</strong>
-            <span>Fecha de emisión: ${fmtDate(inv.date)}</span>
-            <span>Orden: ${o.id}</span>
-            <span>CAE: ${inv.cae} · Vto. ${fmtDate(new Date(inv.date.getTime() + 10 * DAY))}</span>
-          </div>
-        </div>
-        <div class="invoice-parties">
-          <div>
-            <small>Cliente</small>
-            <strong>${escapeHtml(o.customer.name)}</strong><br />
-            DNI ${escapeHtml(o.customer.dni)}<br />
-            ${escapeHtml(o.customer.address)}<br />
-            ${escapeHtml(o.customer.email)}
-          </div>
-          <div>
-            <small>Condiciones</small>
-            Condición IVA: Consumidor final<br />
-            Medio de pago: ${(PAYMENTS[o.payment] || { label: o.payment }).label}<br />
-            Entrega: ${o.shippingMethod === "domicilio" ? "Envío a domicilio" : "Retiro en el local"}
-          </div>
-        </div>
-        <table class="invoice-table">
-          <thead><tr><th>Descripción</th><th>Cant.</th><th>P. unitario</th><th>Subtotal</th></tr></thead>
-          <tbody>
-            ${o.items.map((it) => `<tr><td>${escapeHtml(it.product.name)}<br /><span style="color:#5b6270;font-size:11.5px">SKU ${it.product.sku}</span></td><td>${it.qty}</td><td>$${formatPrice(it.price)}</td><td>$${formatPrice(it.price * it.qty)}</td></tr>`).join("")}
-            ${o.shipping ? `<tr><td>Envío a domicilio</td><td>1</td><td>$${formatPrice(o.shipping)}</td><td>$${formatPrice(o.shipping)}</td></tr>` : ""}
-            ${o.surcharge ? `<tr><td>Recargo por medio de pago (${Math.round((PAYMENTS[o.payment] || { surcharge: 0 }).surcharge * 100)}%)</td><td>1</td><td>$${formatPrice(o.surcharge)}</td><td>$${formatPrice(o.surcharge)}</td></tr>` : ""}
-          </tbody>
-        </table>
-        <div class="invoice-totals">
-          <div><span>Subtotal</span><span>$${formatPrice(o.total)}</span></div>
-          <div><span>IVA 21% (incluido)</span><span>$${formatPrice(Math.round(o.total - o.total / 1.21))}</span></div>
-          <div class="total"><span>${isNC ? "Total a acreditar" : "Total"}</span><span>$${formatPrice(o.total)}</span></div>
-        </div>
-        <div class="invoice-foot">
-          <span>Comprobante autorizado · Documento generado por ComputerSell Panel</span>
-          <span>Página 1 de 1</span>
-        </div>
-      </div>`;
+    if (!inv.order) return "<p>Orden no disponible.</p>";
+    return saleNoteHtml({ number: inv.id, type: inv.type, total: inv.total, issued_at: inv.date }, orderForNote(inv.order));
   }
 
   function previewInvoice(inv) {
@@ -1372,18 +1365,27 @@ import {
     $("#modalDownload").addEventListener("click", () => downloadInvoice(inv));
   }
 
+  // Datos de la orden en la forma que espera el documento (misma que la tabla orders)
+  function orderForNote(o) {
+    return {
+      number: o.number,
+      created_at: o.date,
+      customer: o.customer,
+      order_items: o.items.map((it) => ({ title: it.product.name, sku: it.product.sku, qty: it.qty, unit_price: it.price })),
+      shipping_cost: o.shipping,
+      surcharge: o.surcharge,
+      subtotal: o.subtotal,
+      payment_method: o.payment,
+      installments: o.installments,
+    };
+  }
+
   // "Descargar": abre el comprobante en una ventana de impresión (Guardar como PDF)
   function downloadInvoice(inv) {
-    if (!inv) return;
-    const css = Array.from(document.styleSheets)
-      .map((s) => (s.href ? `<link rel="stylesheet" href="${s.href}" />` : ""))
-      .join("");
-    const w = window.open("", "_blank");
-    if (!w) return toast("El navegador bloqueó la ventana. Permití pop-ups para descargar.", "bad");
-    w.document.write(`<!doctype html><html lang="es"><head><meta charset="utf-8" /><title>${inv.id}</title>${css}
-      <style>body{background:#fff!important;margin:0;padding:24px}.invoice{border-radius:0;padding:0}@page{margin:18mm}</style></head>
-      <body>${invoiceHtml(inv)}<script>window.onload=function(){setTimeout(function(){window.print()},400)}<\/script></body></html>`);
-    w.document.close();
+    if (!inv || !inv.order) return;
+    if (!printSaleNote({ number: inv.id, type: inv.type, total: inv.total, issued_at: inv.date }, orderForNote(inv.order))) {
+      return toast("El navegador bloqueó la ventana. Permití pop-ups para descargar.", "bad");
+    }
     toast("Se abrió el comprobante para guardar como PDF");
   }
 

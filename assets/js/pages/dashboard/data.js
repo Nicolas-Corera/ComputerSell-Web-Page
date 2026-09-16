@@ -99,6 +99,7 @@ export function normOrder(o) {
     total: o.total,
     status: o.status,
     installments: o.installments,
+    tracking: o.tracking || "",
     events: (o.order_events || []).slice().sort((a, b) => new Date(a.created_at) - new Date(b.created_at)),
     note: o.note,
   };
@@ -186,8 +187,8 @@ export async function loadAll() {
 }
 
 // ---------- Acciones (RPC) ----------
-export async function setOrderStatus(order, status, note) {
-  const { error } = await sb.rpc("set_order_status", { p_order: order.uuid, p_status: status, p_note: note || "" });
+export async function setOrderStatus(order, status, note, tracking) {
+  const { error } = await sb.rpc("set_order_status", { p_order: order.uuid, p_status: status, p_note: note || "", p_tracking: tracking == null ? null : tracking });
   if (error) throw error;
 }
 
@@ -220,11 +221,19 @@ function debounced(key, fn) {
 
 export function startRealtime() {
   subscribe("products", () => debounced("products", async () => (await loadProducts(), emit("products"))));
-  subscribe("orders", () => debounced("orders", async () => (await loadOrders(), await Promise.all([loadInvoices(), loadReceipts()]), emit("orders"))));
-  subscribe("order_items", () => debounced("orders", async () => (await loadOrders(), emit("orders"))));
-  subscribe("order_events", () => debounced("orders", async () => (await loadOrders(), emit("orders"))));
-  subscribe("invoices", () => debounced("invoices", async () => (await loadInvoices(), emit("invoices"))));
-  subscribe("payment_receipts", () => debounced("receipts", async () => (await loadReceipts(), emit("receipts"))));
+  // Órdenes, ítems, eventos, notas y comprobantes se recargan juntos y en orden
+  // (las notas/comprobantes se vinculan a la orden ya cargada) para evitar carreras.
+  let reloading = null;
+  const reloadOrders = () =>
+    debounced("orders", async () => {
+      reloading = (reloading || Promise.resolve()).then(async () => {
+        await loadOrders();
+        await Promise.all([loadInvoices(), loadReceipts()]);
+        emit("orders");
+      });
+      await reloading;
+    });
+  ["orders", "order_items", "order_events", "invoices", "payment_receipts"].forEach((t) => subscribe(t, reloadOrders));
   subscribe("reservations", () => debounced("reservas", async () => (await loadReservas(), emit("reservas"))));
   subscribe("notifications", () => debounced("notifs", async () => (await loadNotifs(), emit("notifs"))));
 }

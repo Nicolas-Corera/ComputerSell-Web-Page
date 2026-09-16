@@ -2,6 +2,7 @@
 // productos, resumen de pago, envío, factura y comprobante de transferencia.
 // Se actualiza en tiempo real cuando el panel cambia el estado.
 import { sb, requireAuth, subscribe } from "../core/supabase.js";
+import { printSaleNote } from "../core/sale-note.js";
 
 const { formatPrice, escapeHtml, toast } = window.CS;
 const $ = (s) => document.querySelector(s);
@@ -13,16 +14,14 @@ const STATUS = {
   pendiente: ["Pendiente de pago", "badge-pending"],
   pagado: ["Pagado", "badge-ok"],
   preparando: ["Preparando", "badge-pending"],
-  enviado: ["En camino", "badge-sent"],
-  entregado: ["Entregado", "badge-ok"],
+  enviado: ["Despachado", "badge-ok"],
   cancelado: ["Cancelado", "badge-cancel"],
 };
 const PAYMENT = { credito: "Tarjeta de crédito", debito: "Tarjeta de débito", transferencia: "Transferencia", mercadopago: "Mercado Pago" };
 const STEPS = [
   ["pagado", "Confirmado", "#ic-check"],
   ["preparando", "Preparando", "#ic-shopping_bag"],
-  ["enviado", "Enviado", "#ic-shipping_truck"],
-  ["entregado", "Entregado", "#ic-location"],
+  ["enviado", "Despachado", "#ic-shipping_truck"],
 ];
 const fmtDate = (d) => new Date(d).toLocaleDateString("es-AR", { day: "2-digit", month: "short", year: "numeric" });
 const fmtDateTime = (d) => new Date(d).toLocaleString("es-AR", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" });
@@ -41,7 +40,7 @@ function renderStepper(o, events) {
       </div>`;
     return;
   }
-  const rank = { pendiente: -1, pagado: 0, preparando: 1, enviado: 2, entregado: 3 };
+  const rank = { pendiente: -1, pagado: 0, preparando: 1, enviado: 2 };
   const current = rank[o.status];
   stepper.innerHTML = STEPS.map(([key, label, icon], i) => {
     const ev = events.find((e) => e.status === key);
@@ -99,6 +98,13 @@ function render(o) {
   btn.onclick = () => inv && openInvoice(inv);
   if (wantInvoice && inv && inv.id === wantInvoice) openInvoice(inv);
 
+  // Seguimiento: habilitado solo cuando el pedido fue despachado
+  const track = $("#trackingBtn");
+  const shipped = o.status === "enviado";
+  track.disabled = !shipped;
+  track.title = shipped ? "" : "Se habilita cuando despachamos tu pedido";
+  track.onclick = () => shipped && openTracking(o);
+
   renderReceipt(o);
 }
 
@@ -149,28 +155,42 @@ function renderReceipt(o) {
   }
 }
 
-// Factura en una ventana para imprimir / guardar como PDF
+// Seguimiento del envío (Correo Argentino)
+function openTracking(o) {
+  let box = $("#trackingBox");
+  if (!box) {
+    box = document.createElement("div");
+    box.id = "trackingBox";
+    box.className = "card";
+    $(".detail-side").prepend(box);
+  }
+  const code = (o.tracking || "").trim();
+  box.innerHTML = `
+    <h3><svg><use href="#ic-shipping_truck" /></svg>Seguimiento del envío</h3>
+    <div class="info-block">
+      <div class="label">Código de seguimiento</div>
+      <div class="value">${code ? `<strong style="font-family:monospace;font-size:15px;letter-spacing:.04em">${escapeHtml(code)}</strong>` : "Todavía no cargamos el código. Te avisamos apenas esté."}</div>
+    </div>
+    ${code ? `<div style="display:flex;gap:10px;flex-wrap:wrap">
+      <button class="btn btn-third" type="button" id="copyTracking">Copiar código</button>
+      <a class="btn btn-secondary" href="https://www.correoargentino.com.ar/formularios/e-commerce" target="_blank" rel="noopener">Rastrear en Correo Argentino</a>
+    </div>` : ""}`;
+  box.scrollIntoView({ behavior: "smooth", block: "center" });
+  const copy = box.querySelector("#copyTracking");
+  if (copy)
+    copy.addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText(code);
+        toast("Código copiado", "ok");
+      } catch (e) {
+        toast(code);
+      }
+    });
+}
+
+// Nota de venta en una ventana para imprimir / guardar como PDF
 function openInvoice(inv) {
-  const o = order;
-  const c = o.customer || {};
-  const rows = (o.order_items || [])
-    .map((it) => `<tr><td>${escapeHtml(it.title)}<br><small>SKU ${escapeHtml(it.sku)}</small></td><td>${it.qty}</td><td>$${formatPrice(it.unit_price)}</td><td>$${formatPrice(it.unit_price * it.qty)}</td></tr>`)
-    .join("");
-  const html = `<!doctype html><html lang="es"><head><meta charset="utf-8"><title>${inv.number}</title>
-    <style>body{font-family:Inter,Arial,sans-serif;color:#111;padding:32px;max-width:800px;margin:auto}h1{font-size:20px;margin:0}table{width:100%;border-collapse:collapse;margin-top:20px}th,td{border-bottom:1px solid #ddd;padding:8px;text-align:left;font-size:13px}th{background:#f3f4f6}.tot{text-align:right;margin-top:16px;font-size:15px}.head{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #111;padding-bottom:12px}.box{border:2px solid #111;padding:6px 12px;font-size:22px;font-weight:700}small{color:#666}</style></head><body>
-    <div class="head"><div><h1>ComputerSell</h1><small>CUIT 30-71234567-8 · IVA Responsable Inscripto</small></div><div class="box">${inv.type}</div>
-    <div style="text-align:right"><strong>${inv.type === "NC" ? "NOTA DE CRÉDITO" : "FACTURA"} ${inv.number}</strong><br><small>Fecha: ${fmtDate(inv.issued_at)}<br>Pedido: CS-${o.number}<br>CAE: ${inv.cae}</small></div></div>
-    <p><strong>Cliente:</strong> ${escapeHtml(c.name || "")} · DNI ${escapeHtml(c.dni || "-")}<br><small>${escapeHtml(c.address || "")} · ${escapeHtml(c.email || "")}</small><br><small>Condición IVA: Consumidor final · Medio de pago: ${PAYMENT[o.payment_method] || ""}</small></p>
-    <table><thead><tr><th>Descripción</th><th>Cant.</th><th>P. unitario</th><th>Subtotal</th></tr></thead><tbody>${rows}
-    ${o.shipping_cost ? `<tr><td>Envío a domicilio</td><td>1</td><td>$${formatPrice(o.shipping_cost)}</td><td>$${formatPrice(o.shipping_cost)}</td></tr>` : ""}
-    ${o.surcharge ? `<tr><td>Recargo por medio de pago</td><td>1</td><td>$${formatPrice(o.surcharge)}</td><td>$${formatPrice(o.surcharge)}</td></tr>` : ""}
-    </tbody></table>
-    <div class="tot">IVA 21% (incluido): $${formatPrice(Math.round(inv.total - inv.total / 1.21))}<br><strong>Total: $${formatPrice(inv.total)}</strong></div>
-    <script>window.onload=function(){setTimeout(function(){window.print()},300)}<\/script></body></html>`;
-  const w = window.open("", "_blank");
-  if (!w) return toast("Permití las ventanas emergentes para ver la factura", "bad");
-  w.document.write(html);
-  w.document.close();
+  if (!printSaleNote(inv, order)) toast("Permití las ventanas emergentes para ver la nota de venta", "bad");
 }
 
 async function load() {

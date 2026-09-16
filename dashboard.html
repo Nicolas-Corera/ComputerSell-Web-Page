@@ -435,8 +435,7 @@
                     <option value="pendiente">Pendiente de pago</option>
                     <option value="pagado">Pagado</option>
                     <option value="preparando">En preparación</option>
-                    <option value="enviado">Enviado</option>
-                    <option value="entregado">Entregado</option>
+                    <option value="enviado">Despachado</option>
                     <option value="cancelado">Cancelado</option>
                   </select>
                 </label>
@@ -491,7 +490,7 @@
             <div class="tab-nav" id="invoiceTabs">
               <button class="tab-btn is-active" data-tab="emitidas">
                 <svg><use href="#ic-receipt_long" /></svg>
-                Facturas emitidas <span class="pill" id="emitidasCount"></span>
+                Notas de venta <span class="pill" id="emitidasCount"></span>
               </button>
               <button class="tab-btn" data-tab="recibidos">
                 <svg><use href="#ic-account_balance" /></svg>
@@ -513,9 +512,7 @@
                 <label class="field">
                   <select id="invType">
                     <option value="">Todos los tipos</option>
-                    <option value="A">Factura A</option>
-                    <option value="B">Factura B</option>
-                    <option value="C">Factura C</option>
+                    <option value="NV">Nota de venta</option>
                     <option value="NC">Nota de crédito</option>
                   </select>
                 </label>
