@@ -183,13 +183,13 @@
                   Dirección de facturación
                 </div>
                 <div class="form-grid">
-                  <div class="field full">
-                    <label for="calle">Calle y número</label>
-                    <input
-                      type="text"
-                      id="calle"
-                      placeholder="Av. Siempre Viva 742"
-                    />
+                  <div class="field">
+                    <label for="calle">Calle</label>
+                    <input type="text" id="calle" placeholder="Av. Siempre Viva" autocomplete="address-line1" />
+                  </div>
+                  <div class="field">
+                    <label for="numero">Número</label>
+                    <input type="text" id="numero" placeholder="742" inputmode="numeric" />
                   </div>
                   <div class="field">
                     <label for="piso">Piso / Depto (opcional)</label>

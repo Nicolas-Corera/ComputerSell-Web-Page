@@ -6,7 +6,7 @@ import { sb, requireAuth, getProfile, signOut, subscribe, fullName } from "../co
 const { formatPrice, escapeHtml, toast } = window.CS;
 const $ = (s) => document.querySelector(s);
 
-const FIELDS = ["nombre", "apellido", "email", "telefono", "calle", "piso", "cp", "ciudad", "provincia", "pais"];
+const FIELDS = ["nombre", "apellido", "email", "telefono", "calle", "numero", "piso", "cp", "ciudad", "provincia", "pais"];
 const form = $("#profileForm");
 const avatarPhoto = $("#avatarPhoto");
 const avatarName = $("#avatarName");
@@ -38,7 +38,8 @@ const fmtDate = (d) => new Date(d).toLocaleDateString("es-AR", { day: "2-digit",
       apellido: p.last_name,
       email: p.email,
       telefono: p.phone,
-      calle: a.calle ? `${a.calle} ${a.numero || ""}`.trim() : "",
+      calle: a.calle,
+      numero: a.numero,
       piso: a.piso,
       cp: a.cp,
       ciudad: a.ciudad,
@@ -63,12 +64,10 @@ const fmtDate = (d) => new Date(d).toLocaleDateString("es-AR", { day: "2-digit",
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
     const v = (id) => (document.getElementById(id).value || "").trim();
-    // "Av. Siempre Viva 742" -> calle + numero
-    const m = v("calle").match(/^(.*?)\s*(\d+[a-zA-Z]?)$/);
     const address = {
       ...(profile.address || {}),
-      calle: m ? m[1].trim() : v("calle"),
-      numero: m ? m[2] : "",
+      calle: v("calle"),
+      numero: v("numero"),
       piso: v("piso"),
       cp: v("cp"),
       ciudad: v("ciudad"),
