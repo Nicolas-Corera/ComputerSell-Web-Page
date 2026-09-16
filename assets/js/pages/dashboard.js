@@ -1483,7 +1483,8 @@ import {
     function moneyInput(el) {
       el.addEventListener("input", () => {
         const n = parsePrice(el.value);
-        el.value = n ? formatPrice(n) : "";
+        // "0" se conserva (costo cero = sin costo); vacío queda vacío
+        el.value = n ? formatPrice(n) : /d/.test(el.value) ? "0" : "";
       });
     }
     [price, cost, oldPrice].forEach(moneyInput);
@@ -1508,7 +1509,8 @@ import {
     // Margen
     const updateMargin = () => {
       const p = parsePrice(price.value), c = parsePrice(cost.value);
-      $("#pMargin").textContent = p && c ? `Margen: ${Math.round(((p - c) / p) * 100)}% ($${formatPrice(p - c)})` : "Margen: —";
+      // Costo vacío o 0 = sin costo (margen del 100%)
+      $("#pMargin").textContent = p ? `Margen: ${Math.round(((p - c) / p) * 100)}% ($${formatPrice(p - c)})${c ? "" : " · sin costo"}` : "Margen: —";
     };
     [price, cost].forEach((el) => el.addEventListener("input", updateMargin));
 
