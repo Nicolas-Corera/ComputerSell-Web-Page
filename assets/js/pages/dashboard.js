@@ -1468,9 +1468,9 @@ import {
     // --- Subcategorías dependientes ---
     cat.addEventListener("change", () => {
       const subs = (CATEGORIES[cat.value] || { subs: [] }).subs;
-      sub.innerHTML = `<option value="">${subs.length ? "Seleccionar…" : "Sin subcategoría"}</option>` + subs.map((s) => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join("");
+      sub.innerHTML = `<option value="">Sin subcategoría</option>` + subs.map((s) => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join("");
       sub.disabled = !subs.length;
-      sub.required = !!subs.length;
+      sub.required = false;
       // presets de especificaciones si aún no se cargó nada
       if (cat.value && !$$(".row-kv input", specRows).some((i) => i.value.trim())) {
         specRows.innerHTML = "";
@@ -1724,7 +1724,7 @@ import {
       const checks = [
         ["Título", !!d.title, title.closest(".field"), title],
         ["Marca", !!d.brand, brand.closest(".field"), brand],
-        ["Categoría", !!d.category && (!sub.required || !!d.subcategory), (d.category ? sub : cat).closest(".field"), d.category ? sub : cat],
+        ["Categoría", !!d.category, cat.closest(".field"), cat],
         ["Descripción", d.description.length >= 40, desc.closest(".field"), desc],
         ["Precio", d.price > 0, price.closest(".field"), price],
         ["Stock", stock.value !== "", stock.closest(".field"), stock],

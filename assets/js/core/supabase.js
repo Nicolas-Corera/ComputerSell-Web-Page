@@ -114,11 +114,11 @@ export const CATEGORIES = {
   notebooks: { label: "Notebooks", subs: [] },
   componentes: {
     label: "Componentes",
-    subs: ["Placas de video", "Procesadores", "Memorias RAM", "Almacenamiento", "Motherboards", "Fuentes", "Gabinetes", "Refrigeración"],
+    subs: ["Placas de video", "Procesadores", "Memorias RAM", "Almacenamiento", "Motherboards", "Fuentes", "Gabinetes", "Refrigeración", "Otros"],
   },
   perifericos: {
     label: "Periféricos",
-    subs: ["Teclados", "Mouse", "Auriculares", "Monitores", "Micrófonos", "Parlantes", "Webcams", "Mousepads"],
+    subs: ["Teclados", "Mouse", "Auriculares", "Monitores", "Micrófonos", "Parlantes", "Webcams", "Mousepads", "Otros"],
   },
 };
 

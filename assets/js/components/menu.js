@@ -26,6 +26,7 @@
       { slug: "fuentes", label: "Fuentes" },
       { slug: "gabinetes", label: "Gabinetes" },
       { slug: "refrigeracion", label: "Refrigeración" },
+      { slug: "otros", label: "Otros" },
     ],
     perifericos: [
       { slug: "teclados", label: "Teclados" },
@@ -36,6 +37,7 @@
       { slug: "webcams", label: "Webcams" },
       { slug: "parlantes", label: "Parlantes" },
       { slug: "mousepads", label: "Mousepads" },
+      { slug: "otros", label: "Otros" },
     ],
   };
 
