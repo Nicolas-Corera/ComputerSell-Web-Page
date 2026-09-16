@@ -44,7 +44,8 @@ function renderStepper(o, events) {
   const current = rank[o.status];
   stepper.innerHTML = STEPS.map(([key, label, icon], i) => {
     const ev = events.find((e) => e.status === key);
-    const cls = i < current ? "is-done" : i === current ? "is-current" : "";
+    // Despachado es el último paso: cuando llega, queda completo (no "en curso")
+    const cls = i < current || (i === current && o.status === "enviado") ? "is-done" : i === current ? "is-current" : "";
     return `
       <div class="step ${cls}">
         <div class="step-icon"><svg class="ic-md"><use href="${icon}"/></svg></div>
@@ -173,7 +174,7 @@ function openTracking(o) {
     </div>
     ${code ? `<div style="display:flex;gap:10px;flex-wrap:wrap">
       <button class="btn btn-third" type="button" id="copyTracking">Copiar código</button>
-      <a class="btn btn-secondary" href="https://www.correoargentino.com.ar/formularios/e-commerce" target="_blank" rel="noopener">Rastrear en Correo Argentino</a>
+      <a class="btn btn-secondary" href="https://www.correoargentino.com.ar/formularios/e-commerce" target="_blank" rel="noopener">Ir al correo</a>
     </div>` : ""}`;
   box.scrollIntoView({ behavior: "smooth", block: "center" });
   const copy = box.querySelector("#copyTracking");
