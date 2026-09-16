@@ -49,3 +49,26 @@
   -webkit-appearance: none;
   margin: 0;
 }
+
+/* Límite de stock alcanzado */
+.qty-selector button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  background: var(--bg-1);
+}
+
+.qty-limit {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  color: #f59e0b;
+  margin-top: 8px;
+}
+
+.qty-limit svg {
+  width: 14px;
+  height: 14px;
+  fill: currentColor;
+  flex-shrink: 0;
+}

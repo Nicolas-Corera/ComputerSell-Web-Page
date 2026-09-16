@@ -140,7 +140,7 @@
               <div class="qty-selector">
                 <button type="button" onclick="changeQty(-1)">−</button>
                 <input id="qtyInput" type="text" inputmode="numeric" value="1" data-qty="1" readonly />
-                <button type="button" onclick="changeQty(1)">+</button>
+                <button type="button" id="qtyPlus" onclick="changeQty(1)" aria-label="Sumar uno">+</button>
               </div>
               <button class="btn btn-secondary" id="addCartBtn" type="button">
                 <svg class="ic-md"><use href="#ic-shopping_bag" /></svg>
@@ -150,6 +150,11 @@
                 <svg class="ic-md"><use class="favorite-icon" href="#ic-favorite" /></svg>
               </button>
             </div>
+
+            <span class="qty-limit" id="qtyLimit" hidden>
+              <svg><use href="#ic-info" /></svg>
+              <span></span>
+            </span>
 
             <button class="btn btn-ghost" id="buyNowBtn" type="button">Comprar ahora</button>
 

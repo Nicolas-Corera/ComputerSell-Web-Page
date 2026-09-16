@@ -25,6 +25,12 @@ window.changeQty = function (delta) {
   const next = Math.min(max, Math.max(1, current + delta));
   input.dataset.qty = next;
   input.value = next > 99 ? "99+" : next;
+  // Al llegar al stock: se bloquea el "+" y se avisa cuántas unidades hay
+  const atMax = !!product && next >= product.stock;
+  $("#qtyPlus").disabled = atMax;
+  const limit = $("#qtyLimit");
+  limit.hidden = !atMax || !product || product.stock <= 0;
+  if (atMax && product) limit.querySelector("span").textContent = `Límite alcanzado: hay ${product.stock} unidad${product.stock === 1 ? "" : "es"} disponible${product.stock === 1 ? "" : "s"} y ya tenés ${next} en la selección.`;
 };
 
 window.switchTab = function (btn, panelId) {

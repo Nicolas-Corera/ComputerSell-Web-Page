@@ -52,7 +52,7 @@ import { createCatalog } from "../core/catalog.js";
               <span class="priceNow">${formatPrice(it.price)}</span>
             </div>
             ${it.cuotas ? `<span class="cuotas">${escapeHtml(it.cuotas)}</span>` : ""}
-            ${typeof it.stock === "number" && it.stock <= 3 ? `<span class="cuotas" style="color:#f59e0b">${it.stock === 0 ? "Sin stock" : `Quedan ${it.stock}`}</span>` : ""}
+            ${typeof it.stock === "number" && it.qty >= it.stock ? `<span class="cuotas" style="color:#f59e0b">Límite alcanzado: ${it.stock} unidad${it.stock === 1 ? "" : "es"} disponible${it.stock === 1 ? "" : "s"}, tenés ${it.qty}</span>` : typeof it.stock === "number" && it.stock <= 3 ? `<span class="cuotas" style="color:#f59e0b">Quedan ${it.stock}</span>` : ""}
           </div>
           <div class="cartRow-controls">
             <div class="qty-selector">
