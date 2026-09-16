@@ -7,8 +7,8 @@ import { sb } from "./supabase.js";
 
 export const SELLER = {
   name: "ComputerSell",
-  owner: "", // nombre completo de quien vende (aparece en "Vendedor" y en la firma)
-  doc: "", // DNI o CUIT de quien vende, ej. "CUIT 20-12345678-9"
+  owner: "Nicolás Corera", // nombre completo de quien vende (aparece en "Vendedor" y en la firma)
+  doc: "20465842920", // DNI o CUIT de quien vende, ej. "CUIT 20-12345678-9"
   address: "",
   phone: "+54 9 11 2358-9249",
   email: "contacto@computersell.com.ar",
@@ -29,7 +29,7 @@ export const NOTE_STYLE = `
 .saleNote *{box-sizing:border-box}
 .saleNote .sn-head{display:flex;justify-content:space-between;align-items:flex-start;gap:24px;border-bottom:2px solid #111;padding-bottom:14px}
 .saleNote .sn-brand{display:flex;align-items:center;gap:12px}
-.saleNote .sn-brand img{width:42px;height:42px}
+.saleNote .sn-brand img{width:52px;height:52px;padding:8px;border-radius:12px;background:#14161c;box-shadow:0 4px 12px rgba(0,0,0,.28);object-fit:contain}
 .saleNote .sn-brand strong{font-size:20px;display:block}
 .saleNote .sn-brand small{color:#555;display:block;font-size:12px}
 .saleNote .sn-title{text-align:right}
