@@ -73,7 +73,36 @@ export async function requireAuth(loginUrl) {
     location.replace((loginUrl || "/acceso.html") + "?next=" + next + "#login");
     return null;
   }
+  watchSession(user, "/index.html");
   return user;
+}
+
+// Si la sesión se cierra o la cuenta se elimina mientras la página está
+// abierta, se va a `redirect` (index para clientes, login para el panel).
+let watching = false;
+export function watchSession(user, redirect) {
+  if (watching) return;
+  watching = true;
+  let leaving = false;
+  const leave = async () => {
+    if (leaving) return;
+    leaving = true;
+    try {
+      await sb.auth.signOut({ scope: "local" });
+    } catch (e) {}
+    location.replace(redirect);
+  };
+  sb.auth.onAuthStateChange((event, session) => {
+    if (event === "SIGNED_OUT" || (event === "TOKEN_REFRESHED" && !session)) leave();
+  });
+  // Cuenta eliminada: el perfil se borra en cascada (evento DELETE con el id)
+  subscribe("profiles", (p) => p.eventType === "DELETE" && leave(), `id=eq.${user.id}`);
+  // Por si el token sigue vigente un rato: se verifica al volver a la pestaña
+  document.addEventListener("visibilitychange", async () => {
+    if (document.visibilityState !== "visible") return;
+    const { data, error } = await sb.from("profiles").select("id").eq("id", user.id).maybeSingle();
+    if (!error && !data) leave();
+  });
 }
 
 export async function signOut() {

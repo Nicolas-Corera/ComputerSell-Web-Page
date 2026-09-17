@@ -1,7 +1,7 @@
 // Datos del panel: carga todo desde Supabase, lo normaliza a la forma que
 // usan las vistas y lo mantiene al día con realtime. Exporta arreglos
 // mutables (se vacían y rellenan en cada recarga) y un onChange(tabla).
-import { sb, subscribe, getProfile, signOut } from "../../core/supabase.js";
+import { sb, subscribe, getProfile, signOut, watchSession } from "../../core/supabase.js";
 
 export const PRODUCTS = [];
 export const ORDERS = [];
@@ -32,6 +32,7 @@ export async function requireAdmin() {
     location.replace("/admin-login.html#login");
     return null;
   }
+  watchSession(profile, "/admin-login.html#login");
   USER = {
     id: profile.id,
     name: `${profile.first_name} ${profile.last_name}`.trim() || profile.email,
