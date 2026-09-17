@@ -6,28 +6,33 @@ Todo lo que se ve en la tienda y en el panel sale de la base y se actualiza en t
 ## Estructura
 
 ```
-├── *.html                    páginas (index, productos, detail, carrito, pago, perfil, compra-detalle,
-│                             favoritos, acceso, admin-login, dashboard, nosotros, contacto)
-├── assets/
+├── tienda/                   páginas de la tienda (index, productos, detail, carrito, pago, perfil,
+│                             compra-detalle, favoritos, acceso, nosotros, contacto) → dominio raíz
+├── dash/                     panel de administración (index = dashboard, login) + css/ y js/ propios
+│                             → subdominio dash.<dominio>
+├── assets/                   compartido por tienda y panel
 │   ├── css/                  base, header, footer, components/, pages/
 │   ├── icons/, images/
 │   └── js/
 │       ├── core/             env.js (generado), supabase.js, utils.js, catalog.js, cart.js, favorites.js, account.js
 │       ├── components/       navbar, menu, carousel, loader
-│       ├── pages/            un módulo por página (+ dashboard/data.js: datos y realtime del panel)
+│       ├── pages/            un módulo por página de la tienda (auth.js también lo usa el panel)
 │       └── sprites/          sprites SVG
 ├── supabase/migrations/      esquema, RPCs, RLS, realtime y buckets (se aplica con npm run db:push)
 ├── scripts/                  dev server, build-env, db-push, sync-admins, configure-auth
 ├── .env                      tokens y configuración (no se sube) — ver .env.example
-└── vercel.json               build: genera env.js; cleanUrls
+└── vercel.json               build: genera env.js; cleanUrls; ruteo por dominio (ver Vercel)
 ```
 
 ## Puesta en marcha
 
 ```bash
 npm run setup     # aplica migraciones + sincroniza admins + configura auth + genera env.js
-npm run dev       # http://localhost:3000
+npm run dev       # tienda: http://localhost:3000 · panel: http://dash.localhost:3000
 ```
+
+El servidor local reproduce el ruteo por dominio de Vercel: `localhost` sirve `tienda/` y `dash.localhost` sirve `dash/`
+(los navegadores resuelven `*.localhost` solos, no hay que tocar el archivo hosts).
 
 Comandos sueltos: `npm run db:push`, `npm run admins:sync`, `npm run auth:configure`, `npm run env`, `npm run firma`.
 
@@ -67,7 +72,19 @@ RPCs: `place_order` (valida stock y precios, descuenta stock, emite factura si e
 `set_order_status` (admin; devuelve stock al cancelar, nota de crédito), `review_receipt` (admin),
 `mark_notifications_read`. Todo protegido con RLS.
 
-## Vercel
+## Vercel (un solo proyecto, un solo repo)
 
-Variables de entorno en el proyecto: `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `ADMIN_EMAILS`.
-Después del primer deploy, agregar el dominio a `EXTRA_REDIRECT_URLS` (o `SITE_URL`) y correr `npm run auth:configure`.
+La tienda y el panel se despliegan juntos; `vercel.json` rutea por dominio:
+
+- `<dominio>` → `tienda/` (por ejemplo `/productos` sirve `tienda/productos.html`)
+- `dash.<dominio>` → `dash/` (`/` es el dashboard, `/login` el acceso)
+- `/assets/...` se sirve igual en los dos (la regla del host solo aplica a lo que no existe en la raíz)
+
+Pasos:
+
+1. Variables de entorno del proyecto: `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `ADMIN_EMAILS`.
+2. Settings → Domains: agregar `<dominio>` **y** `dash.<dominio>` al mismo proyecto (en el DNS, un CNAME `dash` → `cname.vercel-dns.com`).
+3. En el `.env`: `SITE_URL=https://<dominio>` y `EXTRA_REDIRECT_URLS=https://dash.<dominio>,http://dash.localhost:3000`, y correr `npm run auth:configure`.
+4. En Google Cloud, sumar `https://dash.<dominio>` a los orígenes autorizados.
+
+Sin dominio propio (`*.vercel.app`) el panel también responde en `https://<proyecto>.vercel.app/dash`; los enlaces internos del panel son relativos, así que funciona en los dos lugares.

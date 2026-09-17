@@ -1,17 +1,19 @@
-// Panel de administración (dashboard.html).
+// Panel de administración (dash/index.html). Vive en el subdominio dash.<dominio>;
+// los enlaces internos son relativos (login.html, ./) para que también funcione en /dash/.
 // Solo para cuentas con rol admin. Los datos (productos, órdenes, facturas,
 // comprobantes, reservas, notificaciones) vienen de Supabase y se mantienen
 // al día con realtime (ver dashboard/data.js). Preferencias de UI (tema,
 // colapso del menú, etc.) se guardan en localStorage con prefijo "cs_admin_".
-import { sb, signOut, CATEGORIES } from "../core/supabase.js";
-import { saleNoteHtml, printSaleNote, loadSignature } from "../core/sale-note.js";
+import { sb, signOut, CATEGORIES, applyStoreLinks } from "/assets/js/core/supabase.js";
+import { saleNoteHtml, printSaleNote, loadSignature } from "/assets/js/core/sale-note.js";
 import {
   PRODUCTS, ORDERS, RESERVAS, INVOICES, RECEIPTS, NOTIFS, CUSTOMERS, USER,
   requireAdmin, loadAll, onChange, startRealtime, setOrderStatus, reviewReceipt, markRead, receiptUrl, loadProducts,
-} from "./dashboard/data.js";
+} from "./data.js";
 
 (async function () {
   if (!(await requireAdmin())) return;
+  applyStoreLinks();
   await loadAll();
   const { formatPrice, parsePrice, escapeHtml } = window.CS;
 
@@ -2411,7 +2413,7 @@ import {
     const ok = await confirmModal({ title: "Cerrar sesión", text: `Vas a salir del panel con la cuenta ${USER.email}.`, okText: "Cerrar sesión" });
     if (ok) {
       await signOut();
-      window.location.href = "/admin-login.html#login";
+      window.location.href = "login.html#login";
     }
   });
 

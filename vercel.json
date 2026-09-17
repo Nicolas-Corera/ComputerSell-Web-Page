@@ -2,5 +2,35 @@
   "buildCommand": "node scripts/build-env.js",
   "outputDirectory": ".",
   "cleanUrls": true,
-  "trailingSlash": false
+  "trailingSlash": false,
+  "rewrites": [
+    {
+      "source": "/",
+      "has": [
+        {
+          "type": "host",
+          "value": "dash\\..*"
+        }
+      ],
+      "destination": "/dash"
+    },
+    {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "dash\\..*"
+        }
+      ],
+      "destination": "/dash/:path*"
+    },
+    {
+      "source": "/",
+      "destination": "/tienda"
+    },
+    {
+      "source": "/:path*",
+      "destination": "/tienda/:path*"
+    }
+  ]
 }

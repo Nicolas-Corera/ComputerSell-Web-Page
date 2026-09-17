@@ -16,7 +16,7 @@
     <link rel="stylesheet" href="/assets/css/components/forms.css" />
     <link rel="stylesheet" href="/assets/css/components/page.css" />
     <link rel="stylesheet" href="/assets/css/components/product-card.css" />
-    <link rel="stylesheet" href="/assets/css/pages/dashboard.css" />
+    <link rel="stylesheet" href="/dash/css/dashboard.css" />
     <script>
       // Aplica el tema guardado antes del primer render para evitar el "flash"
       (function () {
@@ -189,7 +189,7 @@
               <svg><use href="#ic-notifications" /></svg>
               <span class="dot" id="topNotifDot"></span>
             </button>
-            <a class="iconBtn" href="/index.html" title="Ver tienda">
+            <a class="iconBtn" href="/" data-store="/" title="Ver tienda">
               <svg><use href="#ic-storefront" /></svg>
             </a>
           </div>
@@ -1411,7 +1411,7 @@
                     </h2>
                   </div>
                   <div class="about-links">
-                    <a href="/index.html" target="_blank" rel="noopener">
+                    <a href="/" data-store="/" target="_blank" rel="noopener">
                       <svg><use href="#ic-storefront" /></svg>
                       Ver la tienda
                     </a>
@@ -1539,6 +1539,6 @@
 
     <script src="/assets/js/core/env.js"></script>
     <script src="/assets/js/core/utils.js"></script>
-    <script type="module" src="/assets/js/pages/dashboard.js"></script>
+    <script type="module" src="/dash/js/dashboard.js"></script>
   </body>
 </html>

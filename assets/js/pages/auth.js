@@ -1,9 +1,9 @@
-// Páginas de acceso (acceso.html = tienda, admin-login.html = panel).
+// Páginas de acceso (tienda/acceso.html = tienda, dash/login.html = panel).
 // Cambia entre "Crear cuenta", "Iniciar sesión", "Recuperar contraseña" y
 // "Nueva contraseña", valida los campos y habla con Supabase Auth
 // (email + contraseña y Google). El panel solo admite correos de la allowlist.
 // La página indica con <body data-auth="admin|store"> a dónde redirigir.
-import { sb, getProfile, signOut } from "../core/supabase.js";
+import { sb, getProfile, signOut, applyStoreLinks } from "../core/supabase.js";
 
 const $ = (sel, root) => (root || document).querySelector(sel);
 const $$ = (sel, root) => Array.from((root || document).querySelectorAll(sel));
@@ -12,8 +12,9 @@ const body = document.body;
 const IS_ADMIN = body.dataset.auth === "admin";
 const params = new URLSearchParams(location.search);
 const NEXT = params.get("next") && params.get("next").startsWith("/") ? params.get("next") : null;
-const REDIRECT = NEXT || (IS_ADMIN ? "/dashboard.html" : "/index.html");
+const REDIRECT = NEXT || (IS_ADMIN ? "./" : "/index.html"); // el panel queda junto a login.html
 const THIS_PAGE = location.origin + location.pathname;
+if (IS_ADMIN) applyStoreLinks();
 
 // ---------- Paneles ----------
 const forms = $$(".auth-form");

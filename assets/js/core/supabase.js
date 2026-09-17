@@ -80,6 +80,15 @@ export async function requireAuth(loginUrl) {
 // Si la sesión se cierra o la cuenta se elimina mientras la página está
 // abierta, se va a `redirect` (index para clientes, login para el panel).
 let watching = false;
+// URL de la tienda vista desde el panel (dash.<dominio> -> <dominio>; en /dash/ es el mismo origen).
+// Aplica a los <a data-store="/ruta"> de la página.
+export function storeUrl(path) {
+  return location.origin.replace("//dash.", "//") + (path || "/");
+}
+export function applyStoreLinks() {
+  document.querySelectorAll("a[data-store]").forEach((a) => (a.href = storeUrl(a.dataset.store)));
+}
+
 export function watchSession(user, redirect) {
   if (watching) return;
   watching = true;

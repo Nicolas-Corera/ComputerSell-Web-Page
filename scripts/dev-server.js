@@ -1,6 +1,8 @@
 // Servidor local para probar sin subir a Vercel: npm run dev
-// Sirve los archivos estáticos del proyecto en http://localhost:3000 y
-// regenera assets/js/core/env.js al arrancar.
+// Regenera assets/js/core/env.js al arrancar y reproduce el ruteo de vercel.json:
+//   http://localhost:3000       -> tienda/   (dominio raíz)
+//   http://dash.localhost:3000  -> dash/     (subdominio del panel)
+// Lo compartido (/assets, y también /dash y /tienda) se sirve desde la raíz.
 const http = require("http");
 const fs = require("fs");
 const path = require("path");
@@ -28,16 +30,16 @@ const MIME = {
 
 http
   .createServer((req, res) => {
-    let url = decodeURIComponent(req.url.split("?")[0]);
-    if (url.endsWith("/")) url += "index.html";
-    let file = path.normalize(path.join(ROOT, url));
-    if (!file.startsWith(ROOT)) {
-      res.writeHead(403);
-      return res.end();
-    }
-    // URLs limpias: /productos -> /productos.html (igual que cleanUrls en Vercel)
-    if (!fs.existsSync(file) && fs.existsSync(file + ".html")) file += ".html";
-    if (!fs.existsSync(file) || fs.statSync(file).isDirectory()) {
+    const url = decodeURIComponent(req.url.split("?")[0]);
+    const app = /^dash./i.test(req.headers.host || "") ? "dash" : "tienda";
+    // Primero la carpeta de la app, después la raíz (assets compartidos).
+    // URLs limpias: /productos -> productos.html (igual que cleanUrls en Vercel)
+    const found = [app, ""].flatMap((dir) => {
+      const base = path.normalize(path.join(ROOT, dir, url));
+      return [base, base + ".html", path.join(base, "index.html")];
+    });
+    const file = found.find((f) => f.startsWith(ROOT) && fs.existsSync(f) && fs.statSync(f).isFile());
+    if (!file) {
       res.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" });
       return res.end("404 · " + url);
     }
