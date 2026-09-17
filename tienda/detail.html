@@ -12,6 +12,7 @@
     />
     <link rel="stylesheet" href="/assets/css/base.css" />
     <link rel="stylesheet" href="/assets/css/header.css" />
+    <link rel="stylesheet" href="/assets/css/loader.css" />
     <link rel="stylesheet" href="/assets/css/footer.css" />
     <link rel="stylesheet" href="/assets/css/components/buttons.css" />
     <link rel="stylesheet" href="/assets/css/components/toast.css" />
@@ -24,8 +25,12 @@
     <link rel="stylesheet" href="/assets/css/responsive.css" />
   </head>
 
-  <body>
+  <body class="is-loading" id="inicio">
     <script src="/assets/js/sprites/sprite.js"></script>
+
+    <div class="loader-wrap">
+      <div class="loader-number" id="loaderNumber">0</div>
+    </div>
 
     <div class="site" id="site">
       <div class="marquee">
@@ -57,13 +62,17 @@
           </li>
           <li
             class="item"
-            onclick="window.location.href = '/productos.html?categoria=computadoras'"
+            onclick="
+              window.location.href = '/productos.html?categoria=computadoras'
+            "
           >
             <span class="item-spn2">Computadoras</span>
           </li>
           <li
             class="item"
-            onclick="window.location.href = '/productos.html?categoria=notebooks'"
+            onclick="
+              window.location.href = '/productos.html?categoria=notebooks'
+            "
           >
             <span class="item-spn2">Notebooks</span>
           </li>
@@ -139,15 +148,31 @@
             <div class="purchase-row">
               <div class="qty-selector">
                 <button type="button" onclick="changeQty(-1)">−</button>
-                <input id="qtyInput" type="text" inputmode="numeric" value="1" data-qty="1" readonly />
-                <button type="button" id="qtyPlus" onclick="changeQty(1)" aria-label="Sumar uno">+</button>
+                <input
+                  id="qtyInput"
+                  type="text"
+                  inputmode="numeric"
+                  value="1"
+                  data-qty="1"
+                  readonly
+                />
+                <button
+                  type="button"
+                  id="qtyPlus"
+                  onclick="changeQty(1)"
+                  aria-label="Sumar uno"
+                >
+                  +
+                </button>
               </div>
               <button class="btn btn-secondary" id="addCartBtn" type="button">
                 <svg class="ic-md"><use href="#ic-shopping_bag" /></svg>
                 <span>Agregar al carrito</span>
               </button>
               <button class="btn btn-third" type="button" aria-label="Favorito">
-                <svg class="ic-md"><use class="favorite-icon" href="#ic-favorite" /></svg>
+                <svg class="ic-md">
+                  <use class="favorite-icon" href="#ic-favorite" />
+                </svg>
               </button>
             </div>
 
@@ -156,7 +181,9 @@
               <span></span>
             </span>
 
-            <button class="btn btn-ghost" id="buyNowBtn" type="button">Comprar ahora</button>
+            <button class="btn btn-ghost" id="buyNowBtn" type="button">
+              Comprar ahora
+            </button>
 
             <ul class="shipping-info">
               <li id="shipLine">
@@ -169,7 +196,12 @@
               </li>
               <li>
                 <svg><use href="#ic-whatsapp" /></svg>
-                <span>¿Tenés dudas? <a href="/contacto.html" style="color: var(--blue)">Escribinos</a></span>
+                <span
+                  >¿Tenés dudas?
+                  <a href="/contacto.html" style="color: var(--blue)"
+                    >Escribinos</a
+                  ></span
+                >
               </li>
             </ul>
           </div>
@@ -177,8 +209,18 @@
 
         <section class="tabs">
           <div class="tab-nav">
-            <button class="tab-btn is-active" onclick="switchTab(this, 'descripcion')">Descripción</button>
-            <button class="tab-btn" onclick="switchTab(this, 'especificaciones')">Especificaciones</button>
+            <button
+              class="tab-btn is-active"
+              onclick="switchTab(this, 'descripcion')"
+            >
+              Descripción
+            </button>
+            <button
+              class="tab-btn"
+              onclick="switchTab(this, 'especificaciones')"
+            >
+              Especificaciones
+            </button>
           </div>
 
           <div class="tab-panel is-active" id="descripcion">
@@ -282,6 +324,7 @@
       </footer>
     </div>
 
+    <script src="/assets/js/components/loader.js"></script>
     <script src="/assets/js/components/navbar.js"></script>
     <script src="/assets/js/components/menu.js"></script>
     <script type="module" src="/assets/js/pages/detail.js"></script>

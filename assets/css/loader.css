@@ -1,11 +1,11 @@
 /* Loader inicial (actualmente desactivado: el markup está comentado en las páginas) */
 
-/* body.is-loading {
+body.is-loading {
   overflow: hidden;
   height: 100vh;
-} */
+}
 
-/* .loader-wrap {
+.loader-wrap {
   position: fixed;
   inset: 0;
   width: 100%;
@@ -42,4 +42,4 @@
   letter-spacing: -0.02em;
   opacity: 0;
   transform: translateY(0.25em);
-} */
+}
