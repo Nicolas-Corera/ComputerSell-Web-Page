@@ -19,7 +19,8 @@ export function createCatalog() {
       rows = data;
       // Carrito: refresca precio/stock y quita lo que ya no está publicado
       if (window.CartStore) window.CartStore.refresh(rows.map(toCard), rows.map((r) => r.id));
-      emit();
+      // Primera carga: render inmediato, así `ready` resuelve con la página ya pintada
+      listeners.forEach((fn) => fn(catalog));
       return catalog;
     }),
     all: () => rows,

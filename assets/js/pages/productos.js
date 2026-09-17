@@ -2,7 +2,7 @@
 // Los productos vienen de la base (catálogo en tiempo real); los filtros
 // se aplican en memoria sobre esa lista.
 import { createCatalog } from "../core/catalog.js";
-import { toCard, slugify } from "../core/supabase.js";
+import { toCard, slugify, loading } from "../core/supabase.js";
 
 const { formatPrice, escapeHtml, cardHtml, emptyHtml } = window.CS;
 
@@ -328,3 +328,4 @@ catalog.onChange((cat) => {
   renderTags();
   applyFilters();
 });
+loading(catalog.ready);

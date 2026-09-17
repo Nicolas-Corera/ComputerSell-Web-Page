@@ -1,13 +1,13 @@
 // Página de favoritos: requiere sesión. Grilla con las tarjetas de producto
 // guardadas en la cuenta; se actualiza en tiempo real (favoritos y productos).
-import { requireAuth, subscribe } from "../core/supabase.js";
+import { requireAuth, subscribe, loading } from "../core/supabase.js";
 
 const { cardHtml } = window.CS;
 const grid = document.getElementById("favGrid");
 const empty = document.getElementById("favEmpty");
 const countEl = document.getElementById("favPageCount");
 
-(async () => {
+loading(async () => {
   if (!(await requireAuth())) return;
   const store = window.FavoritesStore;
   await store.ready;
@@ -32,5 +32,5 @@ const countEl = document.getElementById("favPageCount");
     const pid = (p.new && p.new.id) || (p.old && p.old.id);
     if (pid && store.has(pid)) render();
   });
-  render();
-})();
+  await render();
+});

@@ -2,6 +2,7 @@
 // Se alimenta de window.CartStore (cart.js) y se re-renderiza en cada cambio.
 // El catálogo en tiempo real mantiene precio y stock de cada ítem al día.
 import { createCatalog } from "../core/catalog.js";
+import { loading } from "../core/supabase.js";
 
 (function () {
   const { formatPrice, escapeHtml } = window.CS;
@@ -89,5 +90,5 @@ import { createCatalog } from "../core/catalog.js";
 
   store.onChange(render);
   render();
-  createCatalog(); // refresca precio/stock del carrito y quita lo no publicado
+  loading(createCatalog().ready); // refresca precio/stock del carrito y quita lo no publicado
 })();

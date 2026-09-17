@@ -2,7 +2,7 @@
 // tiempo real entre pestañas/dispositivos. Sin sesión, el corazón lleva al login.
 // Expone window.FavoritesStore; marca los corazones y el badge del header.
 // Requiere utils.js (window.CS).
-import { sb, getUser, onAuth, subscribe, toCard } from "./supabase.js";
+import { sb, getUser, onAuth, subscribe, toCard, loading } from "./supabase.js";
 
 const { productForButton, toast } = window.CS;
 const FAVORITES_URL = "/favoritos.html";
@@ -84,7 +84,7 @@ const FavoritesStore = {
   onChange(fn) {
     listeners.push(fn);
   },
-  ready: load(),
+  ready: loading(load()),
 };
 window.FavoritesStore = FavoritesStore;
 

@@ -16,6 +16,17 @@ window.sb = sb; // útil para depurar desde la consola
 
 export const ADMIN_EMAILS = (ENV.ADMIN_EMAILS || []).map((e) => String(e).toLowerCase());
 
+// ---------- Loader inicial ----------
+// Registra una carga en el skeleton de la página (loader.js): el sitio no se
+// muestra hasta que resuelva. En páginas sin loader devuelve la promesa tal cual.
+export function loading(p) {
+  return window.PageLoader ? window.PageLoader.wait(p) : Promise.resolve(typeof p === "function" ? p() : p);
+}
+// Deja el skeleton puesto (se está redirigiendo: no tiene sentido mostrar la página)
+export function holdLoader() {
+  if (window.PageLoader) window.PageLoader.hold();
+}
+
 // ---------- Sesión ----------
 export async function getSession() {
   const { data } = await sb.auth.getSession();
@@ -69,6 +80,7 @@ export function initials(name) {
 export async function requireAuth(loginUrl) {
   const user = await getUser();
   if (!user) {
+    holdLoader();
     const next = encodeURIComponent(location.pathname + location.search);
     location.replace((loginUrl || "/acceso.html") + "?next=" + next + "#login");
     return null;
@@ -96,6 +108,7 @@ export function watchSession(user, redirect) {
   const leave = async () => {
     if (leaving) return;
     leaving = true;
+    holdLoader();
     try {
       await sb.auth.signOut({ scope: "local" });
     } catch (e) {}

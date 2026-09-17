@@ -3,17 +3,17 @@
 // Requiere sesión. La orden se crea con la RPC place_order (valida stock y
 // precios en la base y los descuenta). El pago con tarjeta es una simulación
 // (Mercado Pago llega después); con transferencia se sube el comprobante.
-import { sb, requireAuth, getProfile } from "../core/supabase.js";
+import { sb, requireAuth, getProfile, loading } from "../core/supabase.js";
 import { createCatalog } from "../core/catalog.js";
 
-(async function () {
+loading(async function () {
   const { formatPrice, escapeHtml, toast } = window.CS;
   const store = window.CartStore;
 
   const user = await requireAuth();
   if (!user) return;
   const profile = await getProfile();
-  createCatalog(); // precio/stock del carrito al día
+  await createCatalog().ready; // precio/stock del carrito al día
 
   // ---------- Configuración (valores de la demo) ----------
   // Envío a domicilio: se cobra siempre
@@ -615,4 +615,4 @@ import { createCatalog } from "../core/catalog.js";
   state.method = "";
   setMethod("credito");
   render();
-})();
+});

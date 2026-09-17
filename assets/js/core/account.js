@@ -1,6 +1,6 @@
 // Botón de cuenta del navbar (#accountBtn): sin sesión lleva al login; con
 // sesión muestra la foto (la de Google si entró con Google) y lleva al perfil.
-import { getProfile, onAuth, fullName, initials } from "./supabase.js";
+import { getProfile, onAuth, fullName, initials, loading } from "./supabase.js";
 
 const btn = document.getElementById("accountBtn");
 
@@ -44,6 +44,6 @@ if (btn) {
   btn.addEventListener("click", () => {
     location.href = btn.dataset.state === "in" ? "/perfil.html" : "/acceso.html#login";
   });
-  getProfile().then(render);
+  loading(getProfile().then(render));
   onAuth(async (u) => render(u ? await getProfile(true) : null));
 }

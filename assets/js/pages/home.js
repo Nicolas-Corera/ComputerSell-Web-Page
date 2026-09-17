@@ -1,7 +1,7 @@
 // Inicio: "PCs Destacadas" (productos marcados como destacados) y el carrusel
 // de hardware (componentes). Todo desde la base, en tiempo real.
 import { createCatalog } from "../core/catalog.js";
-import { toCard } from "../core/supabase.js";
+import { toCard, loading } from "../core/supabase.js";
 
 const { cardHtml, emptyHtml } = window.CS;
 const featuredEl = document.getElementById("homeFeatured");
@@ -29,3 +29,4 @@ function render(cat) {
 
 const catalog = createCatalog();
 catalog.onChange(render);
+loading(catalog.ready);

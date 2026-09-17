@@ -1,7 +1,7 @@
 // Ficha de producto (detail.html?id=<uuid>): se carga desde la base y se
 // actualiza en tiempo real (precio, stock, imágenes). Galería, cantidad,
 // tabs y productos relacionados.
-import { sb, subscribe, toCard, fetchPublished, CATEGORIES } from "../core/supabase.js";
+import { sb, subscribe, toCard, fetchPublished, CATEGORIES, loading } from "../core/supabase.js";
 
 const { formatPrice, escapeHtml, cardHtml, register } = window.CS;
 const $ = (s) => document.querySelector(s);
@@ -128,12 +128,12 @@ async function loadRelated(p) {
 }
 
 // ---------- Carga ----------
-(async () => {
+loading(async () => {
   if (!id) return missing();
   const { data } = await sb.from("products").select("*").eq("id", id).eq("status", "publicado").maybeSingle();
   if (!data) return missing();
   render(data);
-  loadRelated(data);
+  await loadRelated(data);
   subscribe(
     "products",
     (ev) => {
@@ -142,4 +142,4 @@ async function loadRelated(p) {
     },
     `id=eq.${id}`,
   );
-})();
+});

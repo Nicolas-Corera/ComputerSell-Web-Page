@@ -1,7 +1,7 @@
 // Detalle de un pedido (compra-detalle.html?id=<uuid>): estado con timeline,
 // productos, resumen de pago, envío, factura y comprobante de transferencia.
 // Se actualiza en tiempo real cuando el panel cambia el estado.
-import { sb, requireAuth, subscribe } from "../core/supabase.js";
+import { sb, requireAuth, subscribe, loading } from "../core/supabase.js";
 import { printSaleNote } from "../core/sale-note.js";
 
 const { formatPrice, escapeHtml, toast } = window.CS;
@@ -213,7 +213,7 @@ async function load() {
   render(data);
 }
 
-(async () => {
+loading(async () => {
   const user = await requireAuth();
   if (!user) return;
   document.getElementById("footerYear").textContent = new Date().getFullYear();
@@ -222,4 +222,4 @@ async function load() {
   subscribe("orders", load, `id=eq.${id}`);
   subscribe("payment_receipts", load, `order_id=eq.${id}`);
   subscribe("invoices", load, `order_id=eq.${id}`);
-})();
+});

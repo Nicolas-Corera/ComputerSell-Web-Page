@@ -1,7 +1,7 @@
 // Perfil del cliente: datos de la cuenta (tabla profiles), foto (bucket
 // avatars, o la de Google), y las pestañas Mis compras / Mis facturas /
 // Avisos, todas en tiempo real.
-import { sb, requireAuth, getProfile, signOut, subscribe, fullName } from "../core/supabase.js";
+import { sb, requireAuth, getProfile, signOut, subscribe, fullName, loading } from "../core/supabase.js";
 
 const { formatPrice, escapeHtml, toast } = window.CS;
 const $ = (s) => document.querySelector(s);
@@ -24,7 +24,7 @@ const PAYMENT = { credito: "Tarjeta de crédito", debito: "Tarjeta de débito", 
 
 const fmtDate = (d) => new Date(d).toLocaleDateString("es-AR", { day: "2-digit", month: "short", year: "numeric" });
 
-(async () => {
+loading(async () => {
   const user = await requireAuth();
   if (!user) return;
   let profile = await getProfile(true);
@@ -227,8 +227,7 @@ const fmtDate = (d) => new Date(d).toLocaleDateString("es-AR", { day: "2-digit",
   // ---------- Inicio + realtime ----------
   fillForm(profile);
   renderOrders();
-  renderInvoices();
-  renderNotifs();
+  await Promise.all([renderOrders(), renderInvoices(), renderNotifs()]);
   subscribe("orders", renderOrders, `user_id=eq.${user.id}`);
   subscribe("invoices", renderInvoices);
   subscribe("notifications", renderNotifs, `user_id=eq.${user.id}`);
@@ -244,4 +243,4 @@ const fmtDate = (d) => new Date(d).toLocaleDateString("es-AR", { day: "2-digit",
     `id=eq.${user.id}`,
   );
   document.getElementById("footerYear").textContent = new Date().getFullYear();
-})();
+});
