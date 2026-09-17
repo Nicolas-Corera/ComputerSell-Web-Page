@@ -31,8 +31,6 @@ npm run dev       # http://localhost:3000
 
 Comandos sueltos: `npm run db:push`, `npm run admins:sync`, `npm run auth:configure`, `npm run env`, `npm run firma`.
 
-`npm run reset` borra todos los datos de prueba (pedidos, productos, archivos y cuentas); con `-- --keep-users` conserva las cuentas.
-
 ## Variables (.env)
 
 | Variable | Uso |
