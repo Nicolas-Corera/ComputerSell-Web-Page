@@ -11,7 +11,8 @@
     "admins:sync": "node scripts/sync-admins.js",
     "auth:configure": "node scripts/configure-auth.js",
     "setup": "npm run db:push && npm run admins:sync && npm run auth:configure && npm run env",
-    "firma": "node scripts/upload-signature.js"
+    "firma": "node scripts/upload-signature.js",
+    "reset": "node scripts/reset-data.js"
   },
   "engines": {
     "node": ">=18"
