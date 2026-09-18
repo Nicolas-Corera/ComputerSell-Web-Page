@@ -33,7 +33,6 @@ loading(async function () {
     "7-10": { rank: 2, label: "Llega en 7 a 10 días hábiles" },
     "a-pedido": { rank: 3, label: "A pedido: te contactamos para coordinar la entrega" },
   };
-  const INSTALLMENT_OPTIONS = [3, 6, 12, 18];
 
   // Recargo sobre el subtotal según el medio de pago
   const PAYMENT = {
@@ -510,15 +509,16 @@ loading(async function () {
     return !mismatch;
   }
 
-  // Opciones de cuotas: 1 + las cuotas sin interés que admiten los productos
-  // del carrito (3/6/12/18 hasta el mínimo). Si ya se conoce la tarjeta, se
-  // dejan solo las que Mercado Pago confirma para ese BIN (state.installmentPlans).
+  // Opciones de cuotas: de 1 hasta las cuotas sin interés que admiten los
+  // productos del carrito (todas al mismo precio total). Si ya se conoce la
+  // tarjeta, se dejan solo las que Mercado Pago confirma para ese BIN.
   function setInstallmentOptions() {
     const current = parseInt(cuotasSelect.value, 10) || 1;
     const t = totals();
     const max = freeInstallments();
     const supported = state.installmentPlans.map((p) => p.installments);
-    const list = [1].concat(INSTALLMENT_OPTIONS.filter((n) => n <= max && (!supported.length || supported.includes(n))));
+    const list = [1];
+    for (let n = 2; n <= max; n++) if (!supported.length || supported.includes(n)) list.push(n);
     cuotasSelect.innerHTML = "";
     list.forEach((n) => {
       const opt = document.createElement("option");

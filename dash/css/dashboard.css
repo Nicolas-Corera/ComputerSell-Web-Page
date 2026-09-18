@@ -3717,6 +3717,30 @@ button.btn-text {
 }
 .stock-adjust input {
   width: 90px;
+  height: 34px;
+  padding: 0 10px;
+  background: var(--bg-0);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 13.5px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+.stock-adjust input:focus {
+  border-color: var(--blue);
+}
+.stock-adjust input::-webkit-outer-spin-button,
+.stock-adjust input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.stock-adjust input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
 }
 .product-desc {
   margin: 0;

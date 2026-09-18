@@ -105,7 +105,7 @@ function render(p) {
   const specs = (p.specs || []).map((s) => `<tr><td>${escapeHtml(s.k)}</td><td>${escapeHtml(s.v)}</td></tr>`);
   if (p.weight > 0) specs.push(`<tr><td>Peso</td><td>${p.weight} ${p.weight_unit || "kg"}</td></tr>`);
   if (p.dimensions) specs.push(`<tr><td>Dimensiones</td><td>${escapeHtml(p.dimensions)} ${p.dimensions_unit || "cm"}</td></tr>`);
-  if (warranty) specs.push(`<tr><td>Garantía</td><td>${warranty} ComputerSell</td></tr>`);
+  if (warranty) specs.push(`<tr><td>Garantía del vendedor</td><td>${warranty} ComputerSell</td></tr>`);
   $("#pSpecs").innerHTML = specs.join("") || `<tr><td colspan="2">Sin especificaciones cargadas.</td></tr>`;
 
   if (window.syncFavorites) window.syncFavorites();
