@@ -3670,3 +3670,63 @@ button.btn-text {
     max-width: none;
   }
 }
+
+/* ===== Productos ===== */
+.table .cell-user .thumb {
+  flex: 0 0 34px;
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  background: var(--surface-2, var(--surface));
+  display: grid;
+  place-items: center;
+}
+.table .cell-user .thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.table .cell-user .thumb svg {
+  width: 16px;
+  height: 16px;
+  color: var(--ink-soft);
+}
+.product-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+  gap: 8px;
+}
+.product-gallery a {
+  display: block;
+  aspect-ratio: 1;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+}
+.product-gallery img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.stock-adjust {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+}
+.stock-adjust input {
+  width: 90px;
+}
+.product-desc {
+  margin: 0;
+  font-size: 13.5px;
+  color: var(--ink-soft);
+  white-space: pre-wrap;
+}
+.product-highlights {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 13.5px;
+  color: var(--ink-soft);
+}

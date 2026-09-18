@@ -112,6 +112,15 @@
           <button
             class="sb-item"
             type="button"
+            data-view="productos"
+            data-tip="Productos"
+          >
+            <svg><use href="#ic-inventory_2" /></svg>
+            <span class="sb-text">Productos</span>
+          </button>
+          <button
+            class="sb-item"
+            type="button"
             data-view="facturas"
             data-tip="Facturas"
           >
@@ -482,6 +491,46 @@
               <div class="tableWrap">
                 <table class="table" id="reservasTable"></table>
               </div>
+            </div>
+          </section>
+
+          <!-- ========== PRODUCTOS ========== -->
+          <section class="view" data-view="productos">
+            <div class="toolbar">
+              <div class="searchBox">
+                <svg><use href="#ic-search" /></svg>
+                <input
+                  type="text"
+                  id="productsSearch"
+                  placeholder="Buscar por nombre, SKU o marca"
+                />
+              </div>
+              <label class="field">
+                <select id="productsCat">
+                  <option value="">Todas las categorías</option>
+                </select>
+              </label>
+              <label class="field">
+                <select id="productsStatus">
+                  <option value="">Todos los estados</option>
+                  <option value="publicado">Publicado</option>
+                  <option value="borrador">Borrador</option>
+                  <option value="pausado">Pausado</option>
+                </select>
+              </label>
+              <label class="field">
+                <select id="productsStock">
+                  <option value="">Todo el stock</option>
+                  <option value="ok">Con stock</option>
+                  <option value="bajo">Stock bajo</option>
+                  <option value="sin">Sin stock</option>
+                </select>
+              </label>
+              <span class="spacer"></span>
+              <span class="count" id="productsResult"></span>
+            </div>
+            <div class="tableWrap">
+              <table class="table" id="productsTable"></table>
             </div>
           </section>
 
@@ -1250,6 +1299,7 @@
                       <option value="dashboard">Dashboard</option>
                       <option value="notificaciones">Notificaciones</option>
                       <option value="ordenes">Órdenes</option>
+                      <option value="productos">Productos</option>
                       <option value="cargas">Cargas</option>
                     </select>
                   </label>

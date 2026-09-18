@@ -28,3 +28,5 @@ assets/images/firma.*
 
 # Scripts locales de mantenimiento (no se suben)
 scripts/reset-data.js
+
+todo.md

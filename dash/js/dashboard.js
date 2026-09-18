@@ -4,7 +4,7 @@
 // comprobantes, reservas, notificaciones) vienen de Supabase y se mantienen
 // al día con realtime (ver dashboard/data.js). Preferencias de UI (tema,
 // colapso del menú, etc.) se guardan en localStorage con prefijo "cs_admin_".
-import { sb, signOut, CATEGORIES, applyStoreLinks } from "/assets/js/core/supabase.js";
+import { sb, signOut, CATEGORIES, applyStoreLinks, storeUrl } from "/assets/js/core/supabase.js";
 import { saleNoteHtml, printSaleNote, loadSignature } from "/assets/js/core/sale-note.js";
 import {
   PRODUCTS, ORDERS, RESERVAS, INVOICES, RECEIPTS, NOTIFS, CUSTOMERS, USER,
@@ -212,6 +212,7 @@ import {
     dashboard: ["Dashboard", "Resumen general de la tienda"],
     analiticas: ["Analíticas", "Rendimiento de ventas y comportamiento de compra"],
     ordenes: ["Órdenes", "Ventas y reservas"],
+    productos: ["Productos", "Catálogo publicado y stock"],
     facturas: ["Facturas", "Comprobantes emitidos y recibidos"],
     cargas: ["Cargas", "Publicá un producto nuevo en el catálogo"],
     perfil: ["Mi perfil", USER.email],
@@ -753,6 +754,11 @@ import {
     const rr = e.target.closest("[data-reserva]");
     if (rr && !e.target.closest("button")) {
       openReservaDrawer(RESERVAS.find((r) => r.id === rr.dataset.reserva));
+      return;
+    }
+    const rp = e.target.closest("[data-product]");
+    if (rp && !e.target.closest("button")) {
+      openProductDrawer(PRODUCTS.find((p) => p.id === rp.dataset.product));
     }
   });
 
@@ -1007,6 +1013,150 @@ import {
       draw();
       drawRes();
     };
+  }
+
+  // =====================================================================
+  //  PRODUCTOS
+  // =====================================================================
+
+  const PRODUCT_STATUS = {
+    publicado: { label: "Publicado", cls: "is-ok" },
+    borrador: { label: "Borrador", cls: "is-warn" },
+    pausado: { label: "Pausado", cls: "is-muted" },
+  };
+  const CONDITION_LABEL = { nuevo: "Nuevo", reacondicionado: "Reacondicionado", usado: "Usado" };
+  const DELIVERY_LABEL = { "24-48hs": "24 / 48 hs", "3-5": "3 a 5 días hábiles", "7-10": "7 a 10 días hábiles", "a-pedido": "A pedido (consultar)" };
+  const WARRANTY_UNIT = { dias: "días", meses: "meses", anios: "años" };
+
+  function stockBadge(p) {
+    if (p.stock === 0) return '<span class="badge is-bad">Sin stock</span>';
+    if (p.stock <= p.stockMin) return `<span class="badge is-warn">${p.stock} u.</span>`;
+    return `<span class="badge is-ok is-plain">${p.stock} u.</span>`;
+  }
+
+  function renderProducts() {
+    const search = $("#productsSearch"), cat = $("#productsCat"), status = $("#productsStatus"), stk = $("#productsStock");
+    if (cat.options.length === 1)
+      Object.entries(CATEGORIES).forEach(([k, v]) => {
+        const o = document.createElement("option");
+        o.value = k;
+        o.textContent = v.label;
+        cat.appendChild(o);
+      });
+    function draw() {
+      const q = normalize(search.value);
+      const rows = PRODUCTS.filter((p) => {
+        if (cat.value && p.cat !== cat.value) return false;
+        if (status.value && p.status !== status.value) return false;
+        if (stk.value === "sin" && p.stock !== 0) return false;
+        if (stk.value === "bajo" && !(p.stock > 0 && p.stock <= p.stockMin)) return false;
+        if (stk.value === "ok" && !(p.stock > p.stockMin)) return false;
+        if (q && !normalize(p.name + " " + p.sku + " " + (p.brand || "") + " " + (p.sub || "")).includes(q)) return false;
+        return true;
+      });
+      const units = rows.reduce((a, p) => a + (p.stock || 0), 0);
+      $("#productsResult").textContent = `${rows.length} de ${PRODUCTS.length} productos · ${units} unidades`;
+      const pageSize = +(store.get("prefs", {}).pageSize || 25);
+      $("#productsTable").innerHTML =
+        `<thead><tr><th>Producto</th><th>SKU</th><th>Categoría</th><th>Estado</th><th class="num">Precio</th><th class="num">Stock</th><th class="num">Mínimo</th></tr></thead><tbody>` +
+        (rows.length
+          ? rows
+              .slice(0, pageSize)
+              .map(
+                (p) => `
+            <tr class="is-clickable" data-product="${p.id}">
+              <td><div class="cell-user"><span class="thumb">${p.img ? `<img src="${escapeHtml(p.img)}" alt="" />` : '<svg><use href="#ic-image" /></svg>'}</span><div><span>${escapeHtml(p.name)}</span><small>${escapeHtml(p.brand || "")}</small></div></div></td>
+              <td class="mono">${escapeHtml(p.sku)}</td>
+              <td class="muted">${(CATEGORIES[p.cat] || { label: "—" }).label}${p.sub ? ` <span class="muted">· ${escapeHtml(p.sub)}</span>` : ""}</td>
+              <td>${badge(PRODUCT_STATUS, p.status)}</td>
+              <td class="num is-money">${formatPrice(p.price)}</td>
+              <td class="num">${stockBadge(p)}</td>
+              <td class="num muted">${p.stockMin}</td>
+            </tr>`,
+              )
+              .join("")
+          : `<tr><td colspan="7" class="table-empty">No hay productos que coincidan con los filtros.</td></tr>`) +
+        "</tbody>" +
+        (rows.length > pageSize ? `<tfoot><tr><td colspan="7" class="muted" style="text-align:center">Mostrando ${pageSize} de ${rows.length}. Refiná la búsqueda para ver el resto.</td></tr></tfoot>` : "");
+    }
+    [search, cat, status, stk].forEach((el) => (el.oninput = draw));
+    draw();
+    RENDERERS._redrawProducts = draw;
+  }
+
+  function openProductDrawer(p) {
+    if (!p) return;
+    const r = p.raw || {};
+    drawerOpen = { type: "product", uuid: p.id };
+    drawerTitle.textContent = p.name;
+    const imgs = p.images || [];
+    drawerBody.innerHTML = `
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+        <span style="display:flex;gap:6px;flex-wrap:wrap">${badge(PRODUCT_STATUS, p.status)}${stockBadge(p)}${p.featured ? '<span class="badge is-info is-plain">Destacado</span>' : ""}</span>
+        <span class="muted" style="font-size:13px;color:var(--ink-soft)">Creado ${fmtDate(p.createdAt)}</span>
+      </div>
+      ${imgs.length ? `<div class="product-gallery">${imgs.map((u) => `<a href="${escapeHtml(u)}" target="_blank" rel="noopener"><img src="${escapeHtml(u)}" alt="" /></a>`).join("")}</div>` : ""}
+      <div>
+        <h4>Datos</h4>
+        <dl class="kv">
+          <dt>SKU</dt><dd><span class="mono">${escapeHtml(p.sku)}</span></dd>
+          <dt>Marca</dt><dd>${escapeHtml(p.brand || "—")}</dd>
+          <dt>Categoría</dt><dd>${(CATEGORIES[p.cat] || { label: "—" }).label}${p.sub ? " · " + escapeHtml(p.sub) : ""}</dd>
+          <dt>Condición</dt><dd>${CONDITION_LABEL[r.condition] || r.condition || "—"}</dd>
+          <dt>Garantía</dt><dd>${r.warranty ? `${r.warranty} ${WARRANTY_UNIT[r.warranty_unit] || r.warranty_unit || "meses"}` : "—"}</dd>
+          <dt>Etiquetas</dt><dd>${(r.tags || []).length ? r.tags.map((t) => `<span class="badge is-muted is-plain">${escapeHtml(t)}</span>`).join(" ") : "—"}</dd>
+        </dl>
+      </div>
+      <div>
+        <h4>Stock</h4>
+        <dl class="kv">
+          <dt>Disponible</dt><dd><strong>${p.stock}</strong> unidades</dd>
+          <dt>Mínimo</dt><dd>${p.stockMin}</dd>
+          <dt>Ajustar</dt><dd><span class="stock-adjust"><input type="number" min="0" step="1" id="drawerStock" value="${p.stock}" /><button class="btn btn-secondary is-sm" type="button" id="drawerStockSave">Guardar</button></span></dd>
+        </dl>
+      </div>
+      <div>
+        <h4>Precio</h4>
+        <dl class="kv">
+          <dt>Venta</dt><dd><strong style="font-family:var(--font-display);font-size:16px">$${formatPrice(p.price)}</strong></dd>
+          ${r.on_sale && r.old_price ? `<dt>Antes</dt><dd><s>$${formatPrice(r.old_price)}</s> · ${Math.round((1 - p.price / r.old_price) * 100)}% off</dd>` : ""}
+          <dt>Costo</dt><dd>${p.cost ? "$" + formatPrice(p.cost) : "—"}</dd>
+          <dt>Margen</dt><dd>${p.cost && p.price ? Math.round((1 - p.cost / p.price) * 100) + "%" : "—"}</dd>
+          <dt>Cuotas</dt><dd>${r.installments ? `${r.installments} sin interés` : "No"}</dd>
+        </dl>
+      </div>
+      <div>
+        <h4>Envío</h4>
+        <dl class="kv">
+          <dt>Envío gratis</dt><dd>${r.free_shipping ? "Sí" : "No"}</dd>
+          <dt>Entrega</dt><dd>${DELIVERY_LABEL[r.delivery] || r.delivery || "—"}</dd>
+          <dt>Peso</dt><dd>${r.weight ? `${r.weight} ${r.weight_unit || "kg"}` : "—"}</dd>
+          <dt>Dimensiones</dt><dd>${r.dimensions ? `${escapeHtml(r.dimensions)} ${r.dimensions_unit || "cm"}` : "—"}</dd>
+        </dl>
+      </div>
+      <div>
+        <h4>Descripción</h4>
+        <p class="product-desc">${escapeHtml(r.description || "—")}</p>
+      </div>
+      ${(r.highlights || []).length ? `<div><h4>Destacados</h4><ul class="product-highlights">${r.highlights.map((h) => `<li>${escapeHtml(h)}</li>`).join("")}</ul></div>` : ""}
+      ${(r.specs || []).length ? `<div><h4>Especificaciones</h4><dl class="kv">${r.specs.map((sp) => `<dt>${escapeHtml(sp.k)}</dt><dd>${escapeHtml(sp.v)}</dd>`).join("")}</dl></div>` : ""}`;
+    drawerFoot.innerHTML = `
+      <button class="btn btn-secondary is-sm" type="button" id="drawerEditProduct"><svg><use href="#ic-edit" /></svg>Editar</button>
+      <a class="btn btn-ghost is-sm" href="${storeUrl("/detail.html?id=" + encodeURIComponent(p.id))}" target="_blank" rel="noopener"><svg><use href="#ic-open_in_new" /></svg>Ver en la tienda</a>`;
+    openDrawer();
+
+    $("#drawerEditProduct").addEventListener("click", () => {
+      closeDrawer();
+      showView("cargas");
+      RENDERERS._editProduct && RENDERERS._editProduct(p.id);
+    });
+    $("#drawerStockSave").addEventListener("click", async () => {
+      const v = Math.max(0, Math.round(+$("#drawerStock").value || 0));
+      if (v === p.stock) return;
+      const { error } = await sb.from("products").update({ stock: v }).eq("id", p.id);
+      if (error) return toast(error.message, "error");
+      toast(`Stock de ${p.name} actualizado a ${v}`, "success");
+    });
   }
 
   // ---- Drawer ----
@@ -2193,7 +2343,7 @@ import {
     title: p.name,
     sub: `${p.sku} · ${(CATEGORIES[p.cat] || { label: "" }).label}${p.sub ? " · " + p.sub : ""}`,
     right: `<span class="meta">${formatPrice(p.price)}</span>${p.stock === 0 ? '<span class="badge is-bad">Sin stock</span>' : p.stock <= p.stockMin ? `<span class="badge is-warn">${p.stock} u.</span>` : `<span class="meta">${p.stock} u.</span>`}`,
-    run: () => { showView("cargas"); RENDERERS._editProduct && RENDERERS._editProduct(p.id); },
+    run: () => { showView("productos"); openProductDrawer(p); },
   });
   const itemCustomer = (c) => ({
     icon: "person",
@@ -2426,6 +2576,7 @@ import {
     dashboard: renderDashboard,
     analiticas: renderAnalytics,
     ordenes: renderOrders,
+    productos: renderProducts,
     facturas: renderInvoices,
     cargas: renderUpload,
     perfil: renderProfile,
@@ -2446,7 +2597,12 @@ import {
       RENDERERS._redrawReceipts && RENDERERS._redrawReceipts();
     }
     if (rendered.cargas && what === "products" && RENDERERS._redrawUploaded) RENDERERS._redrawUploaded();
+    if (rendered.productos && what === "products" && RENDERERS._redrawProducts) RENDERERS._redrawProducts();
     if (drawerOpen && drawer.classList.contains("is-open")) {
+      if (drawerOpen.type === "product" && what === "products") {
+        const p = PRODUCTS.find((x) => x.id === drawerOpen.uuid);
+        p ? openProductDrawer(p) : closeDrawer();
+      }
       if (drawerOpen.type === "order" && (what === "orders" || what === "invoices" || what === "receipts")) {
         const o = ORDERS.find((x) => x.uuid === drawerOpen.uuid);
         o && openOrderDrawer(o);
