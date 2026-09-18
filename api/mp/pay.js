@@ -14,7 +14,7 @@
 const { handler, HttpError, send, readJson, requireUser, rpc, sbFetch, mpFetch, rejectionMessage, summarizeOrder } = require("../_lib/mp");
 
 const CARD_TYPES = { credito: "credit_card", debito: "debit_card" };
-const MAX_INSTALLMENTS = 12;
+const MAX_INSTALLMENTS = 18; // tope del panel (cuotas sin interés por producto)
 
 const str = (v, max) => String(v == null ? "" : v).trim().slice(0, max || 200);
 const digits = (v) => String(v == null ? "" : v).replace(/\D/g, "");

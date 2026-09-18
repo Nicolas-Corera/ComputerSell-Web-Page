@@ -96,9 +96,14 @@ function render(o) {
   const card = pay.brand ? ` · ${pay.brand}${pay.last_four ? " •••• " + pay.last_four : ""}` : "";
   $("#payMethod").textContent = `${PAYMENT[o.payment_method] || o.payment_method}${card}${o.installments > 1 ? ` · ${o.installments} cuotas` : ""}`;
 
-  const inv = (o.invoices || []).find((i) => i.type !== "NC");
+  // Nota de venta solo si el pedido sigue vigente; si se canceló, el
+  // comprobante que vale es la nota de crédito (llega desde Mis facturas)
+  const cancelled = o.status === "cancelado";
+  const nc = (o.invoices || []).find((i) => i.type === "NC");
+  const inv = cancelled ? nc : (o.invoices || []).find((i) => i.type !== "NC");
   const btn = $("#downloadInvoiceBtn");
   btn.hidden = !inv;
+  btn.lastChild.textContent = cancelled ? " Nota de crédito " : " Nota de venta ";
   btn.onclick = () => inv && openInvoice(inv);
   if (wantInvoice && inv && inv.id === wantInvoice) openInvoice(inv);
 

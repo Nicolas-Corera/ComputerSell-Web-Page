@@ -56,6 +56,8 @@
           image: product.image || "",
           stock: product.stock,
           freeShipping: !!product.freeShipping,
+          installments: product.installments || 0,
+          delivery: product.delivery || "",
           qty,
         });
       commit();
@@ -68,8 +70,8 @@
       products.forEach((p) => {
         const it = cart.find((x) => x.id === p.id);
         if (!it) return;
-        if (it.price !== p.price || it.stock !== p.stock || it.name !== p.name || it.image !== p.image) {
-          Object.assign(it, { price: p.price, stock: p.stock, name: p.name, image: p.image, oldPrice: p.oldPrice || 0, cuotas: p.cuotas || "", freeShipping: !!p.freeShipping });
+        if (it.price !== p.price || it.stock !== p.stock || it.name !== p.name || it.image !== p.image || it.installments !== (p.installments || 0) || it.delivery !== (p.delivery || "")) {
+          Object.assign(it, { price: p.price, stock: p.stock, name: p.name, image: p.image, oldPrice: p.oldPrice || 0, cuotas: p.cuotas || "", freeShipping: !!p.freeShipping, installments: p.installments || 0, delivery: p.delivery || "" });
           if (typeof p.stock === "number" && it.qty > p.stock) it.qty = Math.max(0, p.stock);
           changed = true;
         }
