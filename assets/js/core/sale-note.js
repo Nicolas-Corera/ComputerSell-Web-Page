@@ -86,8 +86,10 @@ export function saleNoteHtml(inv, order) {
   const shipping = o.shipping_cost != null ? o.shipping_cost : o.shipping || 0;
   const surcharge = o.surcharge || 0;
   const subtotal = o.subtotal || items.reduce((s, it) => s + it.price * it.qty, 0);
-  const payment = PAYMENT[o.payment_method || o.payment] || o.payment_method || o.payment || "";
-  const installments = o.installments > 1 ? ` · ${o.installments} cuotas sin interés` : "";
+  const pay = o.payment || o.paymentInfo || {};
+  const card = pay.brand ? ` · ${pay.brand}${pay.last_four ? " •••• " + pay.last_four : ""}` : "";
+  const payment = (PAYMENT[o.payment_method || o.payment] || o.payment_method || o.payment || "") + card;
+  const installments = o.installments > 1 ? ` · ${o.installments} cuotas` : "";
   const number = o.number || (o.id && String(o.id).replace(/^CS-/, "")) || "";
   const sellerName = SELLER.owner || SELLER.name;
 

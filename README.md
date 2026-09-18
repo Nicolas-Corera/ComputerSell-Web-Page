@@ -10,6 +10,8 @@ Todo lo que se ve en la tienda y en el panel sale de la base y se actualiza en t
 │                             compra-detalle, favoritos, acceso, nosotros, contacto) → dominio raíz
 ├── dash/                     panel de administración (index = dashboard, login) + css/ y js/ propios
 │                             → subdominio dash.<dominio>
+├── api/                      Vercel Functions: mp/pay.js (cobro con tarjeta) y mp/webhook.js
+│                             (notificaciones de Mercado Pago); _lib/ helpers
 ├── assets/                   compartido por tienda y panel
 │   ├── css/                  base, header, footer, components/, pages/
 │   ├── icons/, images/
@@ -21,6 +23,7 @@ Todo lo que se ve en la tienda y en el panel sale de la base y se actualiza en t
 ├── supabase/migrations/      esquema, RPCs, RLS, realtime y buckets (se aplica con npm run db:push)
 ├── scripts/                  dev server, build-env, db-push, sync-admins, configure-auth
 ├── .env                      tokens y configuración (no se sube) — ver .env.example
+│                             (en Vercel van como variables de entorno del proyecto)
 └── vercel.json               build: genera env.js; cleanUrls; ruteo por dominio (ver Vercel)
 ```
 
@@ -30,6 +33,9 @@ Todo lo que se ve en la tienda y en el panel sale de la base y se actualiza en t
 npm run setup     # aplica migraciones + sincroniza admins + configura auth + genera env.js
 npm run dev       # tienda: http://localhost:3000 · panel: http://dash.localhost:3000
 ```
+
+El servidor local también ejecuta las funciones de `api/` (`/api/mp/pay`, `/api/mp/webhook`), así que el pago con
+tarjeta se puede probar sin subir a Vercel (con las tarjetas de prueba de Mercado Pago).
 
 El servidor local reproduce el ruteo por dominio de Vercel: `localhost` sirve `tienda/` y `dash.localhost` sirve `dash/`
 (los navegadores resuelven `*.localhost` solos, no hay que tocar el archivo hosts).
@@ -46,7 +52,40 @@ Comandos sueltos: `npm run db:push`, `npm run admins:sync`, `npm run auth:config
 | `SITE_URL`, `EXTRA_REDIRECT_URLS` | URLs permitidas para el login (`npm run auth:configure`) |
 | `MAILER_AUTOCONFIRM` | `true` = sin verificación de correo (desarrollo) |
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | login con Google |
-| `SUPABASE_SECRET_KEY` | solo scripts (`npm run firma`), nunca va al navegador |
+| `SUPABASE_SECRET_KEY` | scripts (`npm run firma`) y `api/mp/*` (confirma/cancela órdenes), nunca va al navegador |
+| `PUBLIC_KEY` | Mercado Pago, pública: va al navegador vía `env.js` (SDK) |
+| `ACCESS_TOKEN` | Mercado Pago, secreta: solo `api/mp/*` |
+| `CLAVE_WEBHOOK` | clave secreta de los webhooks de Mercado Pago (valida `x-signature`) |
+
+## Pagos con tarjeta (Mercado Pago · Checkout API / Orders)
+
+El cobro es transparente: el comprador nunca sale del sitio.
+
+1. `tienda/pago.html` carga el SDK (`sdk.mercadopago.com/js/v2`). Número, vencimiento y CVV son **Secure Fields**
+   (iframes de Mercado Pago): los datos de la tarjeta no pasan por nuestro código (PCI). Con el BIN el SDK identifica
+   la tarjeta (marca, crédito/débito) y trae las cuotas reales para el monto.
+2. Al pagar, el navegador crea el token (`mp.fields.createCardToken`) y llama a `POST /api/mp/pay` con la sesión de
+   Supabase, los ítems del carrito, los datos del comprador, el medio (`credito`/`debito`), las cuotas y el token.
+3. `api/mp/pay.js` crea la orden con `place_order` **como el usuario** (valida stock y precios; el total sale de la
+   base, nunca del cliente), arma la order en Mercado Pago (`POST /v1/orders`, `processing_mode: automatic`,
+   `external_reference` = id de la orden, `X-Idempotency-Key` = id de la orden) y aplica el resultado con la RPC
+   `mp_apply_payment` (service role): `processed` → `pagado` (nota de venta + notificaciones), `failed` → `cancelado`
+   (devuelve stock, motivo en el timeline), `processing`/`action_required` → sigue `pendiente`.
+4. `api/mp/webhook.js` recibe las notificaciones (tópico **Order**): valida la firma `x-signature` con `CLAVE_WEBHOOK`,
+   lee la order con `GET /v1/orders/{id}` (nunca confía en el body) y vuelve a aplicar `mp_apply_payment`
+   (idempotente: acreditaciones tardías, reembolsos desde Mercado Pago → `cancelado` + nota de crédito, contracargos → aviso al panel).
+
+Las órdenes con tarjeta nacen `pendiente` y las confirma el backend; la transferencia sigue igual (comprobante y
+revisión en el panel). En `orders` quedan `mp_order_id` y `payment` (marca, últimos 4, ids y estado de MP).
+
+Configuración en Mercado Pago (Tus integraciones → aplicación):
+
+- **Credenciales**: `PUBLIC_KEY` y `ACCESS_TOKEN` en el `.env` (y en Vercel). Para probar hay que usar las
+  credenciales de producción de un **usuario de prueba vendedor** (Orders no acepta las `TEST-`); el comprador
+  se simula con las [tarjetas de prueba](https://www.mercadopago.com.ar/developers/es/docs/checkout-api-orders/resources/test-cards)
+  y el nombre del titular decide el resultado (`APRO` aprobado, `OTHE` rechazado, `FUND` sin fondos, etc.).
+- **Webhooks**: URL `https://<dominio>/api/mp/webhook`, evento *Order (Mercado Pago)*; la clave secreta que genera va
+  en `CLAVE_WEBHOOK`. Se puede probar con "Simular notificación".
 
 ## Nota de venta
 
@@ -68,7 +107,8 @@ Con Google, el nombre y la foto de perfil se toman de la cuenta de Google.
 - `orders` + `order_items` + `order_events` (timeline), `invoices`, `payment_receipts` (bucket `receipts`)
 - `reservations`, `notifications` (panel y clientes)
 
-RPCs: `place_order` (valida stock y precios, descuenta stock, emite factura si el pago se acredita),
+RPCs: `place_order` (valida stock y precios, descuenta stock; la orden nace pendiente), `mp_apply_payment`
+(solo service role: aplica el resultado de Mercado Pago),
 `set_order_status` (admin; devuelve stock al cancelar, nota de crédito), `review_receipt` (admin),
 `mark_notifications_read`. Todo protegido con RLS.
 
@@ -82,7 +122,8 @@ La tienda y el panel se despliegan juntos; `vercel.json` rutea por dominio:
 
 Pasos:
 
-1. Variables de entorno del proyecto: `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `ADMIN_EMAILS`.
+1. Variables de entorno del proyecto: `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `ADMIN_EMAILS`, y para el pago:
+   `SUPABASE_SECRET_KEY`, `PUBLIC_KEY`, `ACCESS_TOKEN`, `CLAVE_WEBHOOK`.
 2. Settings → Domains: agregar `<dominio>` **y** `dash.<dominio>` al mismo proyecto (en el DNS, un CNAME `dash` → `cname.vercel-dns.com`).
 3. En el `.env`: `SITE_URL=https://<dominio>` y `EXTRA_REDIRECT_URLS=https://dash.<dominio>,http://dash.localhost:3000`, y correr `npm run auth:configure`.
 4. En Google Cloud, sumar `https://dash.<dominio>` a los orígenes autorizados.

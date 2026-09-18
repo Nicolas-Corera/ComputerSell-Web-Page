@@ -11,6 +11,8 @@
       rel="stylesheet"
     />
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.15/dist/gsap.min.js"></script>
+    <!-- SDK de Mercado Pago: tokeniza la tarjeta en el navegador (Secure Fields) -->
+    <script src="https://sdk.mercadopago.com/js/v2"></script>
     <link rel="stylesheet" href="/assets/css/base.css" />
     <link rel="stylesheet" href="/assets/css/loader.css" />
     <link rel="stylesheet" href="/assets/css/header.css" />
@@ -334,18 +336,14 @@
                     </div>
                   </div>
 
+                  <!-- Número, vencimiento y CVV son campos seguros de Mercado
+                       Pago (iframes): los datos de la tarjeta nunca pasan por
+                       nuestro código. Se montan desde pago.js -->
                   <div class="formGrid">
-                    <label class="field is-full">
+                    <div class="field is-full">
                       <span>Número de tarjeta</span>
-                      <input
-                        type="text"
-                        id="cardNumber"
-                        inputmode="numeric"
-                        autocomplete="cc-number"
-                        placeholder="0000 0000 0000 0000"
-                        required
-                      />
-                    </label>
+                      <div class="secureField" id="mpCardNumber"></div>
+                    </div>
                     <label class="field is-full">
                       <span>Nombre en la tarjeta</span>
                       <input
@@ -356,38 +354,34 @@
                         required
                       />
                     </label>
-                    <label class="field">
+                    <div class="field">
                       <span>Vencimiento</span>
-                      <input
-                        type="text"
-                        id="cardExpiry"
-                        inputmode="numeric"
-                        autocomplete="cc-exp"
-                        placeholder="MM/AA"
-                        required
-                      />
-                    </label>
-                    <label class="field">
+                      <div class="secureField" id="mpCardExpiry"></div>
+                    </div>
+                    <div class="field">
                       <span>Código de seguridad</span>
-                      <input
-                        type="text"
-                        id="cardCvv"
-                        inputmode="numeric"
-                        autocomplete="cc-csc"
-                        placeholder="CVV"
-                        maxlength="3"
-                        required
-                      />
-                    </label>
+                      <div class="secureField" id="mpCardCvv"></div>
+                    </div>
                     <label class="field is-full" id="cuotasField">
                       <span>Cuotas</span>
                       <select id="cuotas">
                         <option value="1">1 cuota</option>
-                        <option value="3">3 cuotas</option>
-                        <option value="6">6 cuotas</option>
-                        <option value="12">12 cuotas</option>
                       </select>
+                      <small class="fieldHint" id="cuotasHint"
+                        >Ingresá el número de la tarjeta para ver las cuotas
+                        disponibles</small
+                      >
                     </label>
+                    <div class="cardNotice is-full" id="cardTypeWarn" hidden>
+                      <span id="cardTypeWarnText"></span>
+                      <button type="button" class="cardNotice-btn" id="cardTypeSwitch">
+                        Cambiar
+                      </button>
+                    </div>
+                    <div class="cardNotice is-full is-error" id="mpError" hidden>
+                      No se pudo cargar Mercado Pago. Recargá la página o pagá
+                      por transferencia.
+                    </div>
                   </div>
                 </div>
               </div>
@@ -480,7 +474,7 @@
             <span class="summaryCuotas" id="sumCuotas" hidden></span>
 
             <span class="checkout-secure">
-              Compra protegida · Tus datos viajan cifrados
+              Compra protegida · Pagos con tarjeta procesados por Mercado Pago
             </span>
           </aside>
         </div>
@@ -528,6 +522,7 @@
             Pagaste con <strong id="orderMethod"></strong> un total de
             <strong>$<span id="orderTotal"></span></strong>.
           </p>
+          <p class="checkout-successNote" id="orderSuccessNote" hidden></p>
           <span class="orderNumber">Pedido <span id="orderNumber"></span></span>
           <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center">
             <a class="btn btn-secondary" id="orderDetailLink" href="/perfil.html">Ver mi pedido</a>
