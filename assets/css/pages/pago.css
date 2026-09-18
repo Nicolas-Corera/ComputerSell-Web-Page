@@ -439,6 +439,22 @@
   border-color: #ff3b3b;
 }
 
+/* Formulario bloqueado mientras se procesa el pago */
+.checkout-main.is-processing .field input:disabled,
+.checkout-main.is-processing .field select:disabled,
+.checkout-main.is-processing .payTab,
+.checkout-main.is-processing .fileDrop,
+.checkout-main.is-processing .fileDrop-remove {
+  opacity: 0.55;
+  pointer-events: none;
+  cursor: not-allowed;
+}
+
+.checkout-main.is-processing .secureField {
+  opacity: 0.55;
+  pointer-events: none;
+}
+
 .fieldHint {
   font-size: 12px;
   color: var(--ink-soft);
