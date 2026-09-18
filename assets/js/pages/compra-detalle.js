@@ -98,7 +98,7 @@ function render(o) {
 
   // Nota de venta solo si el pedido sigue vigente: un pedido cancelado no
   // deja descargar ningún comprobante (la nota de crédito es interna del panel)
-  const inv = o.status === "cancelado" ? null : (o.invoices || []).find((i) => i.type !== "NC");
+  const inv = o.status === "cancelado" ? null : (o.invoices || [])[0];
   const btn = $("#downloadInvoiceBtn");
   btn.hidden = !inv;
   btn.onclick = () => inv && openInvoice(inv);

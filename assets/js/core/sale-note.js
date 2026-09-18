@@ -71,12 +71,11 @@ export async function loadSignature() {
   return signatureUrl;
 }
 
-// inv: { number, type ('NV'|'NC'), total, issued_at } · order: fila de orders con order_items
+// inv: { number, type ('NV'), total, issued_at } · order: fila de orders con order_items
 // Llamar antes a loadSignature() para que aparezca la firma.
 export function saleNoteHtml(inv, order) {
   const o = order || {};
   const c = o.customer || {};
-  const isNC = inv.type === "NC";
   const items = (o.order_items || o.items || []).map((it) => ({
     title: it.title || (it.product && it.product.name) || "",
     sku: it.sku || (it.product && it.product.sku) || "",
@@ -105,7 +104,7 @@ export function saleNoteHtml(inv, order) {
         </div>
       </div>
       <div class="sn-title">
-        <h2>${isNC ? "NOTA DE CRÉDITO" : "NOTA DE VENTA"}</h2>
+        <h2>NOTA DE VENTA</h2>
         <div class="sn-num">N° ${esc(inv.number)}</div>
         <small>Fecha de la operación: ${fmtDate(inv.issued_at || inv.date || o.created_at)}</small>
         <small>Pedido: CS-${esc(number)}</small>
@@ -141,7 +140,7 @@ export function saleNoteHtml(inv, order) {
         ${shipping ? `<tr><td>Envío</td><td class="num">${money(shipping)}</td></tr>` : ""}
         ${surcharge ? `<tr><td>Recargo</td><td class="num">${money(surcharge)}</td></tr>` : ""}
         <tr><td>Forma de pago</td><td class="num">${esc(payment)}${esc(installments)}</td></tr>
-        <tr class="total"><td>${isNC ? "Total a acreditar" : "Monto total"}</td><td class="num">${money(inv.total)}</td></tr>
+        <tr class="total"><td>Monto total</td><td class="num">${money(inv.total)}</td></tr>
       </table>
     </div>
 

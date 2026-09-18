@@ -173,9 +173,8 @@ loading(async () => {
       .select("id, number, type, total, issued_at, orders!inner(id, number, user_id, status)")
       .eq("orders.user_id", user.id)
       .order("issued_at", { ascending: false });
-    // Solo notas de venta de pedidos vigentes: un pedido cancelado no tiene
-    // comprobante para el cliente (la nota de crédito es interna del panel)
-    const list = (data || []).filter((i) => i.type !== "NC" && i.orders.status !== "cancelado");
+    // Solo pedidos vigentes: un pedido cancelado no tiene comprobante
+    const list = (data || []).filter((i) => i.orders.status !== "cancelado");
     $("#invoicesEmpty").hidden = list.length > 0;
     $("#invoicesList").innerHTML = list
       .map(
