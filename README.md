@@ -73,7 +73,7 @@ El cobro es transparente: el comprador nunca sale del sitio.
    (devuelve stock, motivo en el timeline), `processing`/`action_required` → sigue `pendiente`.
 4. `api/mp/webhook.js` recibe las notificaciones (tópico **Order**): valida la firma `x-signature` con `CLAVE_WEBHOOK`,
    lee la order con `GET /v1/orders/{id}` (nunca confía en el body) y vuelve a aplicar `mp_apply_payment`
-   (idempotente: acreditaciones tardías, reembolsos desde Mercado Pago → `cancelado` + nota de crédito, contracargos → aviso al panel).
+   (idempotente: acreditaciones tardías, reembolsos desde Mercado Pago → `cancelado` sin comprobante, contracargos → aviso al panel).
 
 Las órdenes con tarjeta nacen `pendiente` y las confirma el backend; la transferencia sigue igual (comprobante y
 revisión en el panel). En `orders` quedan `mp_order_id` y `payment` (marca, últimos 4, ids y estado de MP).
@@ -109,7 +109,7 @@ Con Google, el nombre y la foto de perfil se toman de la cuenta de Google.
 
 RPCs: `place_order` (valida stock y precios, descuenta stock; la orden nace pendiente), `mp_apply_payment`
 (solo service role: aplica el resultado de Mercado Pago),
-`set_order_status` (admin; devuelve stock al cancelar, nota de crédito), `review_receipt` (admin),
+`set_order_status` (admin; al cancelar devuelve stock y borra la nota de venta: un pedido cancelado no tiene comprobante), `review_receipt` (admin),
 `mark_notifications_read`. Todo protegido con RLS.
 
 ## Vercel (un solo proyecto, un solo repo)

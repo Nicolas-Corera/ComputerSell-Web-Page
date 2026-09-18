@@ -1277,7 +1277,7 @@ import {
         <h4>Seguimiento</h4>
         ${orderTimeline(o)}
       </div>`;
-    const inv = INVOICES.find((i) => i.order && i.order.uuid === o.uuid && i.type !== "NC");
+    const inv = INVOICES.find((i) => i.order && i.order.uuid === o.uuid);
     const rec = RECEIPTS.find((r) => r.order && r.order.uuid === o.uuid);
     drawerFoot.innerHTML = `
       ${NEXT_STATUS[o.status] ? `<button class="btn btn-secondary is-sm" type="button" id="advanceOrder"><svg><use href="#ic-check_circle" /></svg>${NEXT_LABEL[o.status]}</button>` : ""}
@@ -1409,7 +1409,7 @@ import {
     rechazado: { label: "Rechazado", cls: "is-bad" },
   };
 
-  const INV_TYPE = { NV: "Nota de venta", NC: "Nota de crédito" };
+  const INV_TYPE = { NV: "Nota de venta" };
 
   function renderInvoices() {
     $("#emitidasCount").textContent = INVOICES.length;
@@ -1437,7 +1437,7 @@ import {
                 (i) => `
             <tr>
               <td class="mono">${i.id}</td>
-              <td>${i.type === "NC" ? '<span class="badge is-bad is-plain">Nota de crédito</span>' : '<span class="badge is-muted is-plain">Nota de venta</span>'}</td>
+              <td><span class="badge is-muted is-plain">Nota de venta</span></td>
               <td>${escapeHtml(i.customer.name)}</td>
               <td class="muted">${i.order ? i.order.id : "—"}</td>
               <td class="muted">${fmtDate(i.date)}</td>
