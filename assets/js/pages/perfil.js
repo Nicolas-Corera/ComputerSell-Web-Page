@@ -173,10 +173,9 @@ loading(async () => {
       .select("id, number, type, total, issued_at, orders!inner(id, number, user_id, status)")
       .eq("orders.user_id", user.id)
       .order("issued_at", { ascending: false });
-    // Un comprobante por pedido: si se canceló, la nota de crédito reemplaza
-    // a la nota de venta (no se muestran las dos)
-    const cancelled = new Set((data || []).filter((i) => i.type === "NC").map((i) => i.orders.id));
-    const list = (data || []).filter((i) => i.type === "NC" || !cancelled.has(i.orders.id));
+    // Solo notas de venta de pedidos vigentes: un pedido cancelado no tiene
+    // comprobante para el cliente (la nota de crédito es interna del panel)
+    const list = (data || []).filter((i) => i.type !== "NC" && i.orders.status !== "cancelado");
     $("#invoicesEmpty").hidden = list.length > 0;
     $("#invoicesList").innerHTML = list
       .map(
@@ -184,7 +183,7 @@ loading(async () => {
         <div class="list-card">
           <div class="list-card-icon"><svg class="ic-md"><use href="#ic-document" /></svg></div>
           <div class="list-card-body">
-            <div class="title-row"><strong>${i.type === "NC" ? "Nota de crédito" : "Nota de venta"} ${escapeHtml(i.number)}</strong><span class="badge ${i.type === "NC" ? "badge-cancel" : "badge-ok"}">${i.type === "NC" ? "Pedido cancelado" : "Pagada"}</span></div>
+            <div class="title-row"><strong>Nota de venta ${escapeHtml(i.number)}</strong><span class="badge badge-ok">Pagada</span></div>
             <div class="meta">Emitida el ${fmtDate(i.issued_at)} · Pedido CS-${i.orders.number} · No es comprobante fiscal</div>
           </div>
           <div class="list-card-right">
@@ -231,7 +230,8 @@ loading(async () => {
   fillForm(profile);
   renderOrders();
   await Promise.all([renderOrders(), renderInvoices(), renderNotifs()]);
-  subscribe("orders", renderOrders, `user_id=eq.${user.id}`);
+  // Si cancelan un pedido desde el panel, su nota de venta desaparece de Mis facturas
+  subscribe("orders", () => Promise.all([renderOrders(), renderInvoices()]), `user_id=eq.${user.id}`);
   subscribe("invoices", renderInvoices);
   subscribe("notifications", renderNotifs, `user_id=eq.${user.id}`);
   subscribe(
