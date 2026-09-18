@@ -640,6 +640,22 @@ loading(async function () {
 
   // "Pagar" se deshabilita: transferencia sin comprobante, tarjeta sin SDK de
   // MP o cuando la tarjeta no coincide con la pestaña (crédito/débito)
+  // Mientras se procesa el pago se bloquea todo el formulario: inputs, selects,
+  // pestañas, comprobante y los campos seguros de MP (no tienen disabled:
+  // se tapan con CSS). Al desbloquear se respeta lo que ya estaba deshabilitado.
+  let lockedEls = [];
+  function setFormLocked(locked) {
+    form.classList.toggle("is-processing", locked);
+    if (locked) {
+      lockedEls = Array.from(form.querySelectorAll("input, select, textarea, button")).filter((el) => el !== payBtn && !el.disabled);
+      lockedEls.forEach((el) => (el.disabled = true));
+      if (mp && mp.fields && mp.fields.blur) mp.fields.blur();
+    } else {
+      lockedEls.forEach((el) => (el.disabled = false));
+      lockedEls = [];
+    }
+  }
+
   function updatePayButton() {
     if (state.processing) return payBtn.disabled = true;
     if (state.method === "transferencia") payBtn.disabled = !receiptOk;
@@ -874,6 +890,7 @@ loading(async function () {
     const prevLabel = payBtn.textContent;
     payBtn.textContent = "Procesando pago…";
     updatePayButton();
+    setFormLocked(true);
     const minWait = new Promise((r) => setTimeout(r, 3000));
     try {
       const [finish] = await Promise.all([state.method === "transferencia" ? payWithTransfer(data) : payWithCard(data), minWait]);
@@ -883,6 +900,7 @@ loading(async function () {
       await minWait;
       toast(err.message || "No pudimos procesar el pedido", "bad");
       state.processing = false;
+      setFormLocked(false);
       payBtn.textContent = prevLabel;
       updatePayButton();
     }
