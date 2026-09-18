@@ -91,7 +91,10 @@ function render(o) {
 
   const c = o.customer || {};
   $("#shipAddress").textContent = o.shipping_method === "retiro" ? "Retiro en el local" : c.address || "—";
-  $("#payMethod").textContent = `${PAYMENT[o.payment_method] || o.payment_method}${o.installments > 1 ? ` · ${o.installments} cuotas sin interés` : ""}`;
+  // Con Mercado Pago la orden guarda marca y últimos 4 dígitos de la tarjeta
+  const pay = o.payment || {};
+  const card = pay.brand ? ` · ${pay.brand}${pay.last_four ? " •••• " + pay.last_four : ""}` : "";
+  $("#payMethod").textContent = `${PAYMENT[o.payment_method] || o.payment_method}${card}${o.installments > 1 ? ` · ${o.installments} cuotas` : ""}`;
 
   const inv = (o.invoices || []).find((i) => i.type !== "NC");
   const btn = $("#downloadInvoiceBtn");

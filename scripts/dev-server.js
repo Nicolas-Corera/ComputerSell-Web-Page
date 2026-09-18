@@ -3,6 +3,8 @@
 //   http://localhost:3000       -> tienda/   (dominio raíz)
 //   http://dash.localhost:3000  -> dash/     (subdominio del panel)
 // Lo compartido (/assets, y también /dash y /tienda) se sirve desde la raíz.
+// /api/* ejecuta las funciones de api/ (mismas que Vercel) para probar el
+// pago con Mercado Pago en local.
 const http = require("http");
 const fs = require("fs");
 const path = require("path");
@@ -28,9 +30,31 @@ const MIME = {
   ".txt": "text/plain; charset=utf-8",
 };
 
+// Funciones serverless (api/mp/pay.js -> /api/mp/pay). Se recargan en cada
+// request para no reiniciar el server al editarlas.
+function runApi(url, req, res) {
+  const rel = url.replace(/^\/api\//, "").replace(/\/$/, "");
+  const file = path.normalize(path.join(ROOT, "api", rel + ".js"));
+  if (!file.startsWith(path.join(ROOT, "api")) || /(^|[\/])_/.test(rel) || !fs.existsSync(file)) {
+    res.writeHead(404, { "Content-Type": "application/json" });
+    return res.end(JSON.stringify({ error: "404 · " + url }));
+  }
+  Object.keys(require.cache)
+    .filter((k) => k.startsWith(path.join(ROOT, "api")))
+    .forEach((k) => delete require.cache[k]);
+  Promise.resolve()
+    .then(() => require(file)(req, res))
+    .catch((e) => {
+      console.error("[api]", e);
+      if (!res.headersSent) res.writeHead(500, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ error: e.message || "Error interno" }));
+    });
+}
+
 http
   .createServer((req, res) => {
     const url = decodeURIComponent(req.url.split("?")[0]);
+    if (url.startsWith("/api/")) return runApi(url, req, res);
     const app = /^dash./i.test(req.headers.host || "") ? "dash" : "tienda";
     // Primero la carpeta de la app, después la raíz (assets compartidos).
     // URLs limpias: /productos -> productos.html (igual que cleanUrls en Vercel)

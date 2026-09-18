@@ -1,14 +1,20 @@
 // Página de pago (checkout): datos personales, envío, medio de pago con
 // tarjeta animada y resumen lateral con envío + recargo + total.
-// Requiere sesión. La orden se crea con la RPC place_order (valida stock y
-// precios en la base y los descuenta). El pago con tarjeta es una simulación
-// (Mercado Pago llega después); con transferencia se sube el comprobante.
+// Requiere sesión.
+//
+// Tarjeta (crédito/débito): Mercado Pago Checkout API. El número, vencimiento
+// y CVV son Secure Fields del SDK (iframes de MP: los datos nunca pasan por
+// acá). Al pagar se crea un token y se manda a /api/mp/pay, que crea la orden
+// (place_order valida stock y precios en la base) y cobra con la API de Orders.
+// Transferencia: la orden se crea desde acá con place_order y se sube el
+// comprobante para que el panel lo revise.
 import { sb, requireAuth, getProfile, loading } from "../core/supabase.js";
 import { createCatalog } from "../core/catalog.js";
 
 loading(async function () {
   const { formatPrice, escapeHtml, toast } = window.CS;
   const store = window.CartStore;
+  const ENV = window.CS_ENV || {};
 
   const user = await requireAuth();
   if (!user) return;
@@ -61,6 +67,12 @@ loading(async function () {
   const state = {
     method: "credito",
     completed: false,
+    // Tarjeta detectada por Mercado Pago a partir del BIN
+    bin: "",
+    paymentMethod: null, // {id, name, payment_type_id, settings...}
+    installmentPlans: [], // payer_costs de MP para el BIN y el monto actual
+    installmentsAmount: 0, // monto con el que se pidieron las cuotas
+    fields: { number: false, expiry: false, cvv: false }, // validez de los secure fields
   };
 
   // ---------- Resumen ----------
@@ -114,11 +126,18 @@ loading(async function () {
     sumTotal.textContent = formatPrice(t.total);
     bump(sumTotal);
 
-    // Cuotas (solo crédito): valor informativo por cuota
-    const n = state.method === "credito" ? parseInt(cuotasSelect.value, 10) : 1;
+    // Cuotas (solo crédito): con el plan real de Mercado Pago si ya se conoce
+    // la tarjeta (puede tener interés); si no, valor informativo
+    const n = state.method === "credito" ? parseInt(cuotasSelect.value, 10) || 1 : 1;
+    const plan = state.installmentPlans.find((p) => p.installments === n);
     if (n > 1) {
       sumCuotas.hidden = false;
-      sumCuotas.textContent = `${n} cuotas de $${formatPrice(Math.round(t.total / n))}`;
+      if (plan) {
+        const withInterest = Math.round(plan.total_amount) > t.total;
+        sumCuotas.textContent = `${n} cuotas de $${formatPrice(Math.round(plan.installment_amount))}${withInterest ? ` · Total financiado $${formatPrice(Math.round(plan.total_amount))}` : " sin interés"}`;
+      } else {
+        sumCuotas.textContent = `${n} cuotas de $${formatPrice(Math.round(t.total / n))}`;
+      }
     } else {
       sumCuotas.hidden = true;
     }
@@ -126,6 +145,7 @@ loading(async function () {
     payBtn.textContent = `Pagar $${formatPrice(t.total)}`;
     updatePayButton();
     syncSummarySheet();
+    if (state.method === "credito" && state.bin && state.installmentsAmount !== t.total) refreshInstallments();
   }
 
   // ---------- Resumen desplegable desde abajo (móvil/tablet) ----------
@@ -225,26 +245,15 @@ loading(async function () {
   });
 
   // ---------- Tabs de medio de pago ----------
-  // Limpia los campos y la tarjeta al cambiar de medio de pago
-  function resetCardFields() {
-    [inNumber, inName, inExpiry, inCvv].forEach((input) => {
-      input.value = "";
-      input.setCustomValidity("");
-    });
-    cuotasSelect.value = "1";
-    preview.classList.remove("is-flipped", "is-shine");
-    delete preview.dataset.focus;
-    renderNumber();
-    renderName();
-    renderExpiry();
-    renderCvv();
-  }
-
+  // Los campos seguros de MP conservan lo escrito al cambiar entre crédito y
+  // débito (misma tarjeta, distinto recargo); solo se reinician las cuotas.
   function setMethod(method) {
     if (method === state.method) return;
     state.method = method;
     const isCard = PAYMENT[method].card;
-    resetCardFields();
+    cuotasSelect.value = "1";
+    preview.classList.remove("is-flipped");
+    delete preview.dataset.focus;
 
     tabs.forEach((tab) => {
       tab.classList.toggle("is-active", tab.dataset.method === method);
@@ -260,6 +269,8 @@ loading(async function () {
     cuotasField.hidden = method !== "credito";
     cuotasSelect.disabled = method !== "credito";
     setReceipt(null);
+    checkCardType();
+    if (method === "credito" && state.bin) refreshInstallments();
     renderSummary();
   }
 
@@ -271,37 +282,19 @@ loading(async function () {
   // ---------- Tarjeta animada ----------
   const preview = document.getElementById("cardPreview");
   const brandEl = document.getElementById("cardBrand");
+  const backBrandEl = document.getElementById("cardBackBrand");
   const numberEl = document.getElementById("cardNumberPreview");
   const nameEl = document.getElementById("cardNamePreview");
   const expiryEl = document.getElementById("cardExpiryPreview");
   const cvvEl = document.getElementById("cardCvvPreview");
-
-  const inNumber = document.getElementById("cardNumber");
   const inName = document.getElementById("cardName");
-  const inExpiry = document.getElementById("cardExpiry");
-  const inCvv = document.getElementById("cardCvv");
 
-  const BRANDS = [
-    { key: "visa", test: /^4/ },
-    { key: "mastercard", test: /^(5[1-5]|2[2-7])/ },
-    { key: "amex", test: /^3[47]/ },
-  ];
-
-  function detectBrand(digits) {
-    const found = BRANDS.find((b) => b.test.test(digits));
-    return found ? found.key : "";
-  }
-
-  function digitsOnly(value) {
-    return value.replace(/\D/g, "");
-  }
-
-  // Amex: 15 dígitos en grupos 4-6-5; resto: 16 en grupos de 4
-  function groupNumber(digits, brand) {
-    if (brand === "amex") {
-      return [digits.slice(0, 4), digits.slice(4, 10), digits.slice(10, 15)].filter(Boolean);
-    }
-    return digits.match(/.{1,4}/g) || [];
+  // Marca (id de medio de pago de MP) -> estilo del logo en la tarjeta
+  function brandKey(id) {
+    if (/visa/.test(id)) return "visa";
+    if (/master|maestro/.test(id)) return "mastercard";
+    if (/amex/.test(id)) return "amex";
+    return id ? "other" : "";
   }
 
   // Reemplaza el texto marcando como "nuevos" los caracteres que cambiaron
@@ -319,30 +312,29 @@ loading(async function () {
     el.dataset.value = text || "";
   }
 
+  // Preview del número: el SDK solo expone el BIN (primeros dígitos); el
+  // resto se muestra como "#" hasta que el campo es válido y ahí como "•"
   function renderNumber() {
-    const brand = detectBrand(digitsOnly(inNumber.value));
-    const max = brand === "amex" ? 15 : 16;
-    const digits = digitsOnly(inNumber.value).slice(0, max);
-    const groups = groupNumber(digits, brand);
+    const pm = state.paymentMethod;
+    const key = brandKey(pm ? pm.id : "");
+    brandEl.className = "cardPreview-brand" + (key ? ` is-visible brand-${key}` : "");
+    brandEl.textContent = key === "other" ? pm.name : "";
+    backBrandEl.textContent = pm ? pm.name.toUpperCase() : "";
 
-    inNumber.value = groups.join(" ");
-    inCvv.maxLength = brand === "amex" ? 4 : 3;
-
-    brandEl.className = "cardPreview-brand" + (brand ? ` is-visible brand-${brand}` : "");
-    document.getElementById("cardBackBrand").textContent = brand ? brand.toUpperCase() : "";
-
-    // Preview: dígitos escritos + placeholders "#" hasta completar
-    const template = brand === "amex" ? [4, 6, 5] : [4, 4, 4, 4];
+    const setting = pm && pm.settings && pm.settings[0];
+    const length = (setting && setting.card_number && setting.card_number.length) || 16;
+    const template = length === 15 ? [4, 6, 5] : [4, 4, 4, 4];
+    const digits = state.bin;
     const prev = numberEl.dataset.value || "";
     numberEl.innerHTML = "";
     let idx = 0;
-    template.forEach((len, g) => {
+    template.forEach((len) => {
       const group = document.createElement("span");
       group.className = "cardPreview-group";
       for (let i = 0; i < len; i++) {
         const span = document.createElement("span");
         const ch = digits[idx];
-        span.textContent = ch || "#";
+        span.textContent = ch || (state.fields.number ? "•" : "#");
         if (!ch) span.classList.add("is-placeholder");
         else if (prev[idx] !== ch) span.classList.add("is-new");
         group.appendChild(span);
@@ -352,8 +344,8 @@ loading(async function () {
     });
     numberEl.dataset.value = digits;
 
-    if (digits.length === 1 && !prev) preview.classList.add("is-shine");
-    if (!digits.length) preview.classList.remove("is-shine");
+    if (digits && !prev) preview.classList.add("is-shine");
+    if (!digits) preview.classList.remove("is-shine");
   }
 
   function renderName() {
@@ -364,41 +356,186 @@ loading(async function () {
     setAnimatedText(nameEl, inName.value.trim().toUpperCase(), "NOMBRE APELLIDO");
   }
 
+  // Vencimiento y CVV viven en iframes de MP: se muestran enmascarados cuando son válidos
   function renderExpiry() {
-    let d = digitsOnly(inExpiry.value).slice(0, 4);
-    // Mes válido: 01-12
-    if (d.length >= 1 && d[0] > "1") d = "0" + d;
-    if (d.length >= 2 && parseInt(d.slice(0, 2), 10) > 12) d = "12" + d.slice(2);
-    inExpiry.value = d.length > 2 ? `${d.slice(0, 2)}/${d.slice(2)}` : d;
-    setAnimatedText(expiryEl, inExpiry.value, "MM/AA");
+    setAnimatedText(expiryEl, state.fields.expiry ? "••/••" : "", "MM/AA");
   }
 
   function renderCvv() {
-    inCvv.value = digitsOnly(inCvv.value).slice(0, inCvv.maxLength);
-    setAnimatedText(cvvEl, inCvv.value, "•••");
+    const setting = state.paymentMethod && state.paymentMethod.settings && state.paymentMethod.settings[0];
+    const len = (setting && setting.security_code && setting.security_code.length) || 3;
+    setAnimatedText(cvvEl, state.fields.cvv ? "•".repeat(len) : "", "•".repeat(len));
   }
 
-  inNumber.addEventListener("input", renderNumber);
   inName.addEventListener("input", renderName);
-  inExpiry.addEventListener("input", renderExpiry);
-  inCvv.addEventListener("input", renderCvv);
-
-  // Resalta en la tarjeta el campo activo; el CVV da vuelta la tarjeta
-  [
-    [inNumber, "number"],
-    [inName, "name"],
-    [inExpiry, "expiry"],
-    [inCvv, "cvv"],
-  ].forEach(([input, key]) => {
-    input.addEventListener("focus", () => {
-      preview.dataset.focus = key;
-      preview.classList.toggle("is-flipped", key === "cvv");
-    });
-    input.addEventListener("blur", () => {
-      delete preview.dataset.focus;
-      preview.classList.remove("is-flipped");
-    });
+  inName.addEventListener("focus", () => {
+    preview.dataset.focus = "name";
+    preview.classList.remove("is-flipped");
   });
+  inName.addEventListener("blur", () => delete preview.dataset.focus);
+
+  // ---------- Mercado Pago: Secure Fields + medios de pago + cuotas ----------
+  const secureEls = {
+    number: document.getElementById("mpCardNumber"),
+    expiry: document.getElementById("mpCardExpiry"),
+    cvv: document.getElementById("mpCardCvv"),
+  };
+  const cuotasHint = document.getElementById("cuotasHint");
+  const typeWarn = document.getElementById("cardTypeWarn");
+  const typeWarnText = document.getElementById("cardTypeWarnText");
+  const typeSwitch = document.getElementById("cardTypeSwitch");
+  const mpErrorEl = document.getElementById("mpError");
+
+  let mp = null;
+  const secure = {};
+
+  const FIELD_STYLE = {
+    color: "#f2f4f6",
+    placeholderColor: "rgba(160, 165, 172, 0.55)",
+    fontFamily: "Montserrat",
+    fontSize: "14px",
+    height: "46px",
+    padding: "0",
+  };
+  const FIELD_FONTS = [{ src: "https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" }];
+
+  function mountSecureFields() {
+    const defs = [
+      ["number", "cardNumber", "0000 0000 0000 0000"],
+      ["expiry", "expirationDate", "MM/AA"],
+      ["cvv", "securityCode", "CVV"],
+    ];
+    defs.forEach(([key, type, placeholder]) => {
+      const opts = { placeholder, style: FIELD_STYLE, customFonts: FIELD_FONTS, ariaRequired: true };
+      if (type === "expirationDate") opts.mode = "short";
+      if (type === "cardNumber") opts.enableLuhnValidation = true;
+      const field = mp.fields.create(type, opts).mount(secureEls[key].id);
+      secure[key] = field;
+
+      field.on("focus", () => {
+        secureEls[key].classList.add("is-focus");
+        preview.dataset.focus = key;
+        preview.classList.toggle("is-flipped", key === "cvv");
+      });
+      field.on("blur", () => {
+        secureEls[key].classList.remove("is-focus");
+        delete preview.dataset.focus;
+        preview.classList.remove("is-flipped");
+      });
+      field.on("validityChange", (ev) => {
+        const valid = !ev.errorMessages || ev.errorMessages.length === 0;
+        state.fields[key] = valid;
+        secureEls[key].classList.toggle("is-valid", valid);
+        secureEls[key].classList.toggle("is-invalid", !valid && form.classList.contains("is-submitted"));
+        if (key === "number") renderNumber();
+        if (key === "expiry") renderExpiry();
+        if (key === "cvv") renderCvv();
+      });
+      field.on("error", (ev) => console.warn("[mp field]", key, ev));
+    });
+
+    // BIN válido -> medio de pago (marca, tipo crédito/débito, largo del CVV) y cuotas
+    secure.number.on("binChange", async ({ bin }) => {
+      state.bin = bin || "";
+      if (!bin) {
+        state.paymentMethod = null;
+        setInstallmentOptions([]);
+        renderNumber();
+        renderCvv();
+        checkCardType();
+        renderSummary();
+        return;
+      }
+      try {
+        const { results } = await mp.getPaymentMethods({ bin });
+        const pm = results && results[0];
+        state.paymentMethod = pm || null;
+        if (pm && pm.settings && pm.settings[0]) {
+          secure.number.update({ settings: pm.settings[0].card_number });
+          secure.cvv.update({ settings: pm.settings[0].security_code });
+        }
+      } catch (e) {
+        console.error("[mp] getPaymentMethods", e);
+        state.paymentMethod = null;
+      }
+      renderNumber();
+      renderCvv();
+      checkCardType();
+      await refreshInstallments();
+      renderSummary();
+    });
+  }
+
+  // Si la tarjeta es de otro tipo que la pestaña elegida (crédito/débito) se avisa
+  function checkCardType() {
+    const pm = state.paymentMethod;
+    const want = state.method === "credito" ? "credit_card" : state.method === "debito" ? "debit_card" : "";
+    const mismatch = !!(pm && want && pm.payment_type_id && pm.payment_type_id !== want);
+    typeWarn.hidden = !mismatch;
+    if (mismatch) {
+      const isCredit = pm.payment_type_id === "credit_card";
+      typeWarnText.textContent = `${pm.name} es una tarjeta de ${isCredit ? "crédito" : "débito"}. Elegí "Tarjeta de ${isCredit ? "crédito" : "débito"}" para pagar con ella.`;
+      typeSwitch.textContent = `Cambiar a ${isCredit ? "crédito" : "débito"}`;
+      typeSwitch.onclick = () => setMethod(isCredit ? "credito" : "debito");
+    }
+    updatePayButton();
+    return !mismatch;
+  }
+
+  function setInstallmentOptions(plans) {
+    const current = parseInt(cuotasSelect.value, 10) || 1;
+    state.installmentPlans = plans;
+    cuotasSelect.innerHTML = "";
+    const list = plans.length ? plans : [{ installments: 1, recommended_message: "1 cuota" }];
+    list.forEach((p) => {
+      const opt = document.createElement("option");
+      opt.value = String(p.installments);
+      opt.textContent = p.recommended_message || `${p.installments} cuota${p.installments > 1 ? "s" : ""}`;
+      cuotasSelect.appendChild(opt);
+    });
+    cuotasSelect.value = list.some((p) => p.installments === current) ? String(current) : String(list[0].installments);
+    cuotasHint.hidden = !!plans.length;
+  }
+
+  // Cuotas reales para el BIN y el total actual (solo crédito, hasta 12)
+  let installmentsSeq = 0;
+  async function refreshInstallments() {
+    const t = totals();
+    state.installmentsAmount = t.total;
+    if (!mp || !state.bin || state.method !== "credito") return;
+    const seq = ++installmentsSeq;
+    try {
+      const res = await mp.getInstallments({ amount: String(t.total), bin: state.bin, paymentTypeId: "credit_card", locale: "es-AR" });
+      if (seq !== installmentsSeq) return; // llegó una consulta más nueva
+      const costs = ((res && res[0] && res[0].payer_costs) || []).filter((p) => p.installments <= 12);
+      setInstallmentOptions(costs);
+    } catch (e) {
+      console.error("[mp] getInstallments", e);
+      if (seq === installmentsSeq) setInstallmentOptions([]);
+    }
+    renderSummary();
+  }
+
+  function initMercadoPago() {
+    if (!window.MercadoPago || !ENV.MP_PUBLIC_KEY) {
+      console.error("[mp] SDK no cargado o falta MP_PUBLIC_KEY (corré npm run env)");
+      mpErrorEl.hidden = false;
+      return false;
+    }
+    try {
+      mp = new MercadoPago(ENV.MP_PUBLIC_KEY, { locale: "es-AR" });
+      mountSecureFields();
+      return true;
+    } catch (e) {
+      console.error("[mp] init", e);
+      mpErrorEl.hidden = false;
+      return false;
+    }
+  }
+  const mpReady = initMercadoPago();
+  renderNumber();
+  renderExpiry();
+  renderCvv();
 
   // ---------- Comprobante de transferencia ----------
   const receiptInput = document.getElementById("receiptInput");
@@ -463,132 +600,184 @@ loading(async function () {
     setReceipt(file);
   });
 
-  // Con transferencia, "Pagar" queda deshabilitado hasta subir el comprobante
+  // "Pagar" se deshabilita: transferencia sin comprobante, tarjeta sin SDK de
+  // MP o cuando la tarjeta no coincide con la pestaña (crédito/débito)
   function updatePayButton() {
-    payBtn.disabled = state.method === "transferencia" && !receiptOk;
+    if (state.method === "transferencia") payBtn.disabled = !receiptOk;
+    else payBtn.disabled = !mpReady || !typeWarn.hidden;
   }
 
   // ---------- Validación de tarjeta ----------
-  function luhnValid(digits) {
-    let sum = 0;
-    let alt = false;
-    for (let i = digits.length - 1; i >= 0; i--) {
-      let n = parseInt(digits[i], 10);
-      if (alt) {
-        n *= 2;
-        if (n > 9) n -= 9;
-      }
-      sum += n;
-      alt = !alt;
-    }
-    return sum % 10 === 0;
-  }
-
+  // La hace el SDK de MP en cada campo (validityChange); acá solo se marca
+  // lo que falta y se lleva la vista al primero inválido.
   function validateCard() {
-    const digits = digitsOnly(inNumber.value);
-    const brand = detectBrand(digits);
-    const len = brand === "amex" ? 15 : 16;
-    inNumber.setCustomValidity(
-      digits.length === len && luhnValid(digits) ? "" : "Ingresá un número de tarjeta válido",
-    );
-
-    const m = inExpiry.value.match(/^(\d{2})\/(\d{2})$/);
-    let expiryOk = false;
-    if (m) {
-      const month = parseInt(m[1], 10);
-      const year = 2000 + parseInt(m[2], 10);
-      const now = new Date();
-      expiryOk =
-        month >= 1 &&
-        month <= 12 &&
-        (year > now.getFullYear() ||
-          (year === now.getFullYear() && month >= now.getMonth() + 1));
+    const missing = ["number", "expiry", "cvv"].filter((k) => !state.fields[k]);
+    missing.forEach((k) => secureEls[k].classList.add("is-invalid"));
+    if (missing.length) {
+      toast("Revisá los datos de la tarjeta", "bad");
+      secureEls[missing[0]].scrollIntoView({ behavior: "smooth", block: "center" });
+      return false;
     }
-    inExpiry.setCustomValidity(expiryOk ? "" : "Ingresá un vencimiento válido (MM/AA)");
-
-    inCvv.setCustomValidity(
-      inCvv.value.length === inCvv.maxLength ? "" : "Ingresá el código de seguridad",
-    );
+    if (!state.paymentMethod) {
+      toast("No pudimos identificar la tarjeta. Revisá el número.", "bad");
+      return false;
+    }
+    return checkCardType();
   }
-
-  [inNumber, inExpiry, inCvv].forEach((input) => {
-    input.addEventListener("input", () => input.setCustomValidity(""));
-  });
 
   // ---------- Envío del formulario ----------
+  function readForm() {
+    const f = form.elements;
+    return {
+      customer: {
+        name: `${f.nombre.value.trim()} ${f.apellido.value.trim()}`.trim(),
+        email: f.email.value.trim(),
+        phone: f.telefono.value.trim(),
+        dni: f.dni.value.trim(),
+        address: [`${f.calle.value.trim()} ${f.numero.value.trim()}`.trim(), f.piso.value.trim(), f.cp.value.trim(), f.ciudad.value.trim(), f.provincia.value].filter(Boolean).join(", "),
+      },
+      address: { calle: f.calle.value.trim(), numero: f.numero.value.trim(), piso: f.piso.value.trim(), cp: f.cp.value.trim(), ciudad: f.ciudad.value.trim(), provincia: f.provincia.value },
+    };
+  }
+
+  // Guarda teléfono y dirección en el perfil para la próxima compra
+  function saveProfile({ customer, address }) {
+    sb.from("profiles")
+      .update({ phone: customer.phone, address: { dni: customer.dni, ...address } })
+      .eq("id", user.id)
+      .then(() => {});
+  }
+
+  function showSuccess(order, { methodLabel, note }) {
+    document.getElementById("orderNumber").textContent = "CS-" + order.number;
+    document.getElementById("orderMethod").textContent = methodLabel;
+    document.getElementById("orderTotal").textContent = formatPrice(order.total);
+    document.getElementById("orderDetailLink").href = "/compra-detalle.html?id=" + order.id;
+    const noteEl = document.getElementById("orderSuccessNote");
+    noteEl.hidden = !note;
+    noteEl.textContent = note || "";
+
+    state.completed = true;
+    store.clear();
+    countEl.textContent = "";
+    checkout.hidden = true;
+    success.hidden = false;
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  // Transferencia: orden desde acá + comprobante al storage privado
+  async function payWithTransfer(data) {
+    const items = store.getItems().map((it) => ({ product_id: it.id, qty: it.qty }));
+    const { data: rows, error } = await sb.rpc("place_order", {
+      p_items: items,
+      p_payment_method: "transferencia",
+      p_shipping_method: "domicilio",
+      p_customer: data.customer,
+      p_installments: 1,
+      p_note: "",
+    });
+    if (error) throw error;
+    const order = Array.isArray(rows) ? rows[0] : rows;
+
+    const file = receiptInput.files[0];
+    if (file) {
+      const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
+      const path = `${user.id}/${order.id}.${ext}`;
+      const up = await sb.storage.from("receipts").upload(path, file, { upsert: true, contentType: file.type });
+      if (up.error) throw up.error;
+      const ins = await sb.from("payment_receipts").insert({ order_id: order.id, user_id: user.id, file_path: path, amount: order.total });
+      if (ins.error) throw ins.error;
+    }
+
+    saveProfile(data);
+    document.getElementById("orderSuccessText").innerHTML = `Recibimos tu comprobante. El pedido queda <strong>pendiente</strong> hasta que verifiquemos la transferencia de <strong>${formatPrice(order.total)}</strong>.`;
+    showSuccess(order, { methodLabel: "transferencia" });
+  }
+
+  // Tarjeta: token con el SDK de MP -> /api/mp/pay (orden + cobro en el servidor)
+  async function payWithCard(data) {
+    const dni = data.customer.dni.replace(/\D/g, "");
+    let token;
+    try {
+      token = await mp.fields.createCardToken({
+        cardholderName: inName.value.trim(),
+        identificationType: "DNI",
+        identificationNumber: dni,
+      });
+    } catch (e) {
+      console.error("[mp] createCardToken", e);
+      const msg = Array.isArray(e) ? e.map((x) => x.message).join(". ") : e && e.message;
+      throw new Error(msg && /card|security|expir|number/i.test(msg) ? "Revisá los datos de la tarjeta." : "No pudimos validar la tarjeta. Revisá los datos e intentá de nuevo.");
+    }
+    if (!token || !token.id) throw new Error("No pudimos validar la tarjeta. Intentá de nuevo.");
+
+    const { data: sess } = await sb.auth.getSession();
+    if (!sess || !sess.session) throw new Error("Tu sesión venció. Volvé a ingresar.");
+
+    const items = store.getItems();
+    const pm = state.paymentMethod;
+    const res = await fetch("/api/mp/pay", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: "Bearer " + sess.session.access_token },
+      body: JSON.stringify({
+        method: state.method,
+        items: items.map((it) => ({ product_id: it.id, qty: it.qty })),
+        customer: data.customer,
+        address: data.address,
+        installments: state.method === "credito" ? parseInt(cuotasSelect.value, 10) || 1 : 1,
+        card: {
+          token: token.id,
+          payment_method_id: pm.id,
+          brand: pm.name,
+          last_four: token.last_four_digits || "",
+        },
+      }),
+    });
+    let out = {};
+    try {
+      out = await res.json();
+    } catch (e) {
+      out = {};
+    }
+    if (!res.ok) {
+      const err = new Error(out.error || "No pudimos procesar el pago");
+      err.rejected = res.status === 402;
+      throw err;
+    }
+
+    saveProfile(data);
+    const card = out.payment || {};
+    const label = `${PAYMENT[state.method].label.toLowerCase()}${card.brand ? ` ${card.brand}` : ""}${card.last_four ? ` •••• ${card.last_four}` : ""}${card.installments > 1 ? ` en ${card.installments} cuotas` : ""}`;
+    if (out.result === "pending") {
+      document.getElementById("orderSuccessText").innerHTML = `Mercado Pago está procesando tu pago con <strong>${escapeHtml(label)}</strong> por <strong>$${formatPrice(out.order.total)}</strong>.`;
+      showSuccess(out.order, { methodLabel: label, note: "El pedido queda pendiente hasta que se acredite. Te avisamos por acá y por notificación cuando esté confirmado." });
+    } else {
+      showSuccess(out.order, { methodLabel: label });
+    }
+  }
+
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
     form.classList.add("is-submitted");
-    if (PAYMENT[state.method].card) validateCard();
     if (state.method === "transferencia" && !receiptOk) {
       setReceipt(null);
       receiptError.hidden = false;
       receiptError.textContent = "Subí el comprobante para continuar.";
       return;
     }
-
     if (!form.checkValidity()) {
       form.reportValidity();
       return;
     }
+    if (PAYMENT[state.method].card && (!mpReady || !validateCard())) return;
 
-    const items = store.getItems().map((it) => ({ product_id: it.id, qty: it.qty }));
-    const f = form.elements;
-    const customer = {
-      name: `${f.nombre.value.trim()} ${f.apellido.value.trim()}`.trim(),
-      email: f.email.value.trim(),
-      phone: f.telefono.value.trim(),
-      dni: f.dni.value.trim(),
-      address: [`${f.calle.value.trim()} ${f.numero.value.trim()}`.trim(), f.piso.value.trim(), f.cp.value.trim(), f.ciudad.value.trim(), f.provincia.value].filter(Boolean).join(", "),
-    };
-    const installments = state.method === "credito" ? parseInt(cuotasSelect.value, 10) || 1 : 1;
-
+    const data = readForm();
     payBtn.disabled = true;
     const prevLabel = payBtn.textContent;
     payBtn.textContent = "Procesando…";
     try {
-      const { data, error } = await sb.rpc("place_order", {
-        p_items: items,
-        p_payment_method: state.method,
-        p_shipping_method: "domicilio",
-        p_customer: customer,
-        p_installments: installments,
-        p_note: "",
-      });
-      if (error) throw error;
-      const order = Array.isArray(data) ? data[0] : data;
-
-      // Transferencia: comprobante al storage privado + registro para revisar en el panel
-      if (state.method === "transferencia" && receiptInput.files[0]) {
-        const file = receiptInput.files[0];
-        const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
-        const path = `${user.id}/${order.id}.${ext}`;
-        const up = await sb.storage.from("receipts").upload(path, file, { upsert: true, contentType: file.type });
-        if (up.error) throw up.error;
-        const ins = await sb.from("payment_receipts").insert({ order_id: order.id, user_id: user.id, file_path: path, amount: order.total });
-        if (ins.error) throw ins.error;
-      }
-
-      // Guarda la dirección en el perfil para la próxima compra
-      sb.from("profiles")
-        .update({ phone: customer.phone, address: { dni: customer.dni, calle: f.calle.value.trim(), numero: f.numero.value.trim(), piso: f.piso.value.trim(), cp: f.cp.value.trim(), ciudad: f.ciudad.value.trim(), provincia: f.provincia.value } })
-        .eq("id", user.id)
-        .then(() => {});
-
-      document.getElementById("orderNumber").textContent = "CS-" + order.number;
-      document.getElementById("orderMethod").textContent = PAYMENT[state.method].label.toLowerCase();
-      document.getElementById("orderTotal").textContent = formatPrice(order.total);
-      document.getElementById("orderDetailLink").href = "/compra-detalle.html?id=" + order.id;
-      if (state.method === "transferencia") {
-        document.getElementById("orderSuccessText").innerHTML = `Recibimos tu comprobante. El pedido queda <strong>pendiente</strong> hasta que verifiquemos la transferencia de <strong>${formatPrice(order.total)}</strong>.`;
-      }
-
-      state.completed = true;
-      store.clear();
-      countEl.textContent = "";
-      checkout.hidden = true;
-      success.hidden = false;
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      if (state.method === "transferencia") await payWithTransfer(data);
+      else await payWithCard(data);
     } catch (err) {
       console.error(err);
       toast(err.message || "No pudimos procesar el pedido", "bad");
