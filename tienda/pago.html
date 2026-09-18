@@ -188,8 +188,8 @@
             <!-- 2. Envío -->
             <section class="checkout-section">
               <h2><span class="step">2</span> Datos de envío</h2>
-              <p class="hint">
-                Envío a domicilio · Llega en 24/48 hs hábiles · $15.000
+              <p class="hint" id="shippingHint">
+                Envío a domicilio · $15.000
               </p>
               <div class="formGrid" id="addressFields">
                 <label class="field">
@@ -367,10 +367,7 @@
                       <select id="cuotas">
                         <option value="1">1 cuota</option>
                       </select>
-                      <small class="fieldHint" id="cuotasHint"
-                        >Ingresá el número de la tarjeta para ver las cuotas
-                        disponibles</small
-                      >
+                      <small class="fieldHint" id="cuotasHint"></small>
                     </label>
                     <div class="cardNotice is-full" id="cardTypeWarn" hidden>
                       <span id="cardTypeWarnText"></span>
@@ -511,6 +508,16 @@
           >
             Ver productos
           </button>
+        </div>
+
+        <!-- Animación de pago aprobado: el círculo se dibuja, después el tilde,
+             un pulso y un sonido; recién ahí se muestra el pedido confirmado -->
+        <div class="payApproved" id="payApproved" hidden aria-live="polite">
+          <svg class="payApproved-mark" viewBox="0 0 120 120" aria-hidden="true">
+            <circle class="payApproved-ring" cx="60" cy="60" r="52" />
+            <path class="payApproved-tick" d="M36 62l16 16 32-34" />
+          </svg>
+          <strong>Pago aprobado</strong>
         </div>
 
         <div class="checkout-success" id="checkoutSuccess" hidden>

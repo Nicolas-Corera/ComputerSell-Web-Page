@@ -173,7 +173,10 @@ loading(async () => {
       .select("id, number, type, total, issued_at, orders!inner(id, number, user_id, status)")
       .eq("orders.user_id", user.id)
       .order("issued_at", { ascending: false });
-    const list = data || [];
+    // Un comprobante por pedido: si se canceló, la nota de crédito reemplaza
+    // a la nota de venta (no se muestran las dos)
+    const cancelled = new Set((data || []).filter((i) => i.type === "NC").map((i) => i.orders.id));
+    const list = (data || []).filter((i) => i.type === "NC" || !cancelled.has(i.orders.id));
     $("#invoicesEmpty").hidden = list.length > 0;
     $("#invoicesList").innerHTML = list
       .map(
@@ -181,7 +184,7 @@ loading(async () => {
         <div class="list-card">
           <div class="list-card-icon"><svg class="ic-md"><use href="#ic-document" /></svg></div>
           <div class="list-card-body">
-            <div class="title-row"><strong>${i.type === "NC" ? "Nota de crédito" : "Nota de venta"} ${escapeHtml(i.number)}</strong><span class="badge ${i.type === "NC" ? "badge-cancel" : "badge-ok"}">${i.type === "NC" ? "Acreditada" : "Pagada"}</span></div>
+            <div class="title-row"><strong>${i.type === "NC" ? "Nota de crédito" : "Nota de venta"} ${escapeHtml(i.number)}</strong><span class="badge ${i.type === "NC" ? "badge-cancel" : "badge-ok"}">${i.type === "NC" ? "Pedido cancelado" : "Pagada"}</span></div>
             <div class="meta">Emitida el ${fmtDate(i.issued_at)} · Pedido CS-${i.orders.number} · No es comprobante fiscal</div>
           </div>
           <div class="list-card-right">

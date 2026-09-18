@@ -19,11 +19,21 @@ loading(async function () {
   const user = await requireAuth();
   if (!user) return;
   const profile = await getProfile();
-  await createCatalog().ready; // precio/stock del carrito al día
+  const catalog = await createCatalog().ready; // precio/stock del carrito al día
+  // Entrega y cuotas sin interés de cada producto (se configuran en el panel)
+  const productInfo = (id) => catalog.cards().find((c) => c.id === id) || {};
 
   // ---------- Configuración (valores de la demo) ----------
-  // Envío a domicilio: se cobra siempre
+  // Envío a domicilio: se cobra siempre (salvo que todo tenga envío gratis)
   const SHIPPING = { label: "Envío a domicilio", cost: 15000 };
+  // Tiempo de entrega por producto (panel): el pedido llega con el más lento
+  const DELIVERY = {
+    "24-48hs": { rank: 0, label: "Llega en 24/48 hs hábiles" },
+    "3-5": { rank: 1, label: "Llega en 3 a 5 días hábiles" },
+    "7-10": { rank: 2, label: "Llega en 7 a 10 días hábiles" },
+    "a-pedido": { rank: 3, label: "A pedido: te contactamos para coordinar la entrega" },
+  };
+  const INSTALLMENT_OPTIONS = [3, 6, 12, 18];
 
   // Recargo sobre el subtotal según el medio de pago
   const PAYMENT = {
@@ -48,6 +58,7 @@ loading(async function () {
     });
   }
   const countEl = document.getElementById("payCount");
+  const shippingHint = document.getElementById("shippingHint");
 
   const summaryItems = document.getElementById("summaryItems");
   const sumSubtotal = document.getElementById("sumSubtotal");
@@ -73,7 +84,29 @@ loading(async function () {
     installmentPlans: [], // payer_costs de MP para el BIN y el monto actual
     installmentsAmount: 0, // monto con el que se pidieron las cuotas
     fields: { number: false, expiry: false, cvv: false }, // validez de los secure fields
+    processing: false, // pago en curso: el botón queda bloqueado hasta que termine
   };
+
+  // Cuotas sin interés del pedido: las que admiten TODOS los productos del carrito
+  function freeInstallments() {
+    const items = store.getItems();
+    if (!items.length) return 0;
+    return items.reduce((min, it) => {
+      const n = productInfo(it.id).installments ?? it.installments ?? 0;
+      return Math.min(min, n || 0);
+    }, Infinity) || 0;
+  }
+
+  // Tiempo de entrega del pedido: el más lento de los productos
+  function deliveryInfo() {
+    const items = store.getItems();
+    let slowest = DELIVERY["24-48hs"];
+    items.forEach((it) => {
+      const d = DELIVERY[productInfo(it.id).delivery || it.delivery];
+      if (d && d.rank > slowest.rank) slowest = d;
+    });
+    return slowest;
+  }
 
   // ---------- Resumen ----------
   function totals() {
@@ -116,6 +149,7 @@ loading(async function () {
 
     sumShippingLabel.textContent = SHIPPING.label;
     sumShipping.textContent = t.shipping ? formatPrice(t.shipping) : "Gratis";
+    shippingHint.textContent = `${SHIPPING.label} · ${deliveryInfo().label} · ${t.shipping ? "$" + formatPrice(t.shipping) : "Gratis"}`;
 
     const pct = Math.round(t.rate * 100);
     sumPaymentLabel.textContent = PAYMENT[state.method].label;
@@ -126,23 +160,16 @@ loading(async function () {
     sumTotal.textContent = formatPrice(t.total);
     bump(sumTotal);
 
-    // Cuotas (solo crédito): con el plan real de Mercado Pago si ya se conoce
-    // la tarjeta (puede tener interés); si no, valor informativo
+    // Cuotas sin interés (solo crédito): las configuradas en los productos
     const n = state.method === "credito" ? parseInt(cuotasSelect.value, 10) || 1 : 1;
-    const plan = state.installmentPlans.find((p) => p.installments === n);
     if (n > 1) {
       sumCuotas.hidden = false;
-      if (plan) {
-        const withInterest = Math.round(plan.total_amount) > t.total;
-        sumCuotas.textContent = `${n} cuotas de $${formatPrice(Math.round(plan.installment_amount))}${withInterest ? ` · Total financiado $${formatPrice(Math.round(plan.total_amount))}` : " sin interés"}`;
-      } else {
-        sumCuotas.textContent = `${n} cuotas de $${formatPrice(Math.round(t.total / n))}`;
-      }
+      sumCuotas.textContent = `${n} cuotas sin interés de $${formatPrice(Math.round(t.total / n))}`;
     } else {
       sumCuotas.hidden = true;
     }
 
-    payBtn.textContent = `Pagar $${formatPrice(t.total)}`;
+    if (!state.processing) payBtn.textContent = `Pagar $${formatPrice(t.total)}`;
     updatePayButton();
     syncSummarySheet();
     if (state.method === "credito" && state.bin && state.installmentsAmount !== t.total) refreshInstallments();
@@ -439,7 +466,8 @@ loading(async function () {
       state.bin = bin || "";
       if (!bin) {
         state.paymentMethod = null;
-        setInstallmentOptions([]);
+        state.installmentPlans = [];
+        setInstallmentOptions();
         renderNumber();
         renderCvv();
         checkCardType();
@@ -482,22 +510,32 @@ loading(async function () {
     return !mismatch;
   }
 
-  function setInstallmentOptions(plans) {
+  // Opciones de cuotas: 1 + las cuotas sin interés que admiten los productos
+  // del carrito (3/6/12/18 hasta el mínimo). Si ya se conoce la tarjeta, se
+  // dejan solo las que Mercado Pago confirma para ese BIN (state.installmentPlans).
+  function setInstallmentOptions() {
     const current = parseInt(cuotasSelect.value, 10) || 1;
-    state.installmentPlans = plans;
+    const t = totals();
+    const max = freeInstallments();
+    const supported = state.installmentPlans.map((p) => p.installments);
+    const list = [1].concat(INSTALLMENT_OPTIONS.filter((n) => n <= max && (!supported.length || supported.includes(n))));
     cuotasSelect.innerHTML = "";
-    const list = plans.length ? plans : [{ installments: 1, recommended_message: "1 cuota" }];
-    list.forEach((p) => {
+    list.forEach((n) => {
       const opt = document.createElement("option");
-      opt.value = String(p.installments);
-      opt.textContent = p.recommended_message || `${p.installments} cuota${p.installments > 1 ? "s" : ""}`;
+      opt.value = String(n);
+      opt.textContent = n === 1 ? "1 cuota" : `${n} cuotas sin interés de $${formatPrice(Math.round(t.total / n))}`;
       cuotasSelect.appendChild(opt);
     });
-    cuotasSelect.value = list.some((p) => p.installments === current) ? String(current) : String(list[0].installments);
-    cuotasHint.hidden = !!plans.length;
+    cuotasSelect.value = list.includes(current) ? String(current) : "1";
+    cuotasHint.textContent = !max
+      ? "Este pedido no tiene cuotas sin interés"
+      : supported.length && list.length === 1
+        ? "Tu tarjeta no admite las cuotas sin interés de este pedido"
+        : `Hasta ${max} cuotas sin interés`;
+    cuotasHint.hidden = false;
   }
 
-  // Cuotas reales para el BIN y el total actual (solo crédito, hasta 12)
+  // Planes de la tarjeta (BIN) para el total actual: filtran las cuotas que no admite
   let installmentsSeq = 0;
   async function refreshInstallments() {
     const t = totals();
@@ -507,12 +545,12 @@ loading(async function () {
     try {
       const res = await mp.getInstallments({ amount: String(t.total), bin: state.bin, paymentTypeId: "credit_card", locale: "es-AR" });
       if (seq !== installmentsSeq) return; // llegó una consulta más nueva
-      const costs = ((res && res[0] && res[0].payer_costs) || []).filter((p) => p.installments <= 12);
-      setInstallmentOptions(costs);
+      state.installmentPlans = (res && res[0] && res[0].payer_costs) || [];
     } catch (e) {
       console.error("[mp] getInstallments", e);
-      if (seq === installmentsSeq) setInstallmentOptions([]);
+      if (seq === installmentsSeq) state.installmentPlans = [];
     }
+    setInstallmentOptions();
     renderSummary();
   }
 
@@ -603,6 +641,7 @@ loading(async function () {
   // "Pagar" se deshabilita: transferencia sin comprobante, tarjeta sin SDK de
   // MP o cuando la tarjeta no coincide con la pestaña (crédito/débito)
   function updatePayButton() {
+    if (state.processing) return payBtn.disabled = true;
     if (state.method === "transferencia") payBtn.disabled = !receiptOk;
     else payBtn.disabled = !mpReady || !typeWarn.hidden;
   }
@@ -648,10 +687,61 @@ loading(async function () {
       .then(() => {});
   }
 
+  // Pago aprobado: el círculo se dibuja, después el tilde, pulso y sonido.
+  // Resuelve cuando termina (~1.8 s) y recién ahí se muestra el pedido.
+  const approvedEl = document.getElementById("payApproved");
+  function playApproval() {
+    return new Promise((resolve) => {
+      checkout.hidden = true;
+      approvedEl.hidden = false;
+      approvedEl.classList.remove("is-play");
+      void approvedEl.offsetWidth;
+      approvedEl.classList.add("is-play");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      setTimeout(approvalSound, 1150); // junto con el pulso
+      setTimeout(() => {
+        approvedEl.hidden = true;
+        approvedEl.classList.remove("is-play");
+        resolve();
+      }, 2100);
+    });
+  }
+
+  // Dos notas cortas (sin archivos de audio): se genera con Web Audio
+  function approvalSound() {
+    try {
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      if (!Ctx) return;
+      const ctx = new Ctx();
+      const master = ctx.createGain();
+      master.gain.value = 0.18;
+      master.connect(ctx.destination);
+      [[659.25, 0], [987.77, 0.13]].forEach(([freq, at]) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = "sine";
+        osc.frequency.value = freq;
+        const t0 = ctx.currentTime + at;
+        gain.gain.setValueAtTime(0, t0);
+        gain.gain.linearRampToValueAtTime(1, t0 + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.001, t0 + 0.45);
+        osc.connect(gain).connect(master);
+        osc.start(t0);
+        osc.stop(t0 + 0.5);
+      });
+      setTimeout(() => ctx.close(), 1200);
+    } catch (e) {
+      /* sin audio: la animación alcanza */
+    }
+  }
+
   function showSuccess(order, { methodLabel, note }) {
     document.getElementById("orderNumber").textContent = "CS-" + order.number;
-    document.getElementById("orderMethod").textContent = methodLabel;
-    document.getElementById("orderTotal").textContent = formatPrice(order.total);
+    // (transferencia y pago pendiente reemplazan el texto y estos spans ya no están)
+    const methodEl = document.getElementById("orderMethod");
+    const totalEl = document.getElementById("orderTotal");
+    if (methodEl) methodEl.textContent = methodLabel;
+    if (totalEl) totalEl.textContent = formatPrice(order.total);
     document.getElementById("orderDetailLink").href = "/compra-detalle.html?id=" + order.id;
     const noteEl = document.getElementById("orderSuccessNote");
     noteEl.hidden = !note;
@@ -690,8 +780,10 @@ loading(async function () {
     }
 
     saveProfile(data);
-    document.getElementById("orderSuccessText").innerHTML = `Recibimos tu comprobante. El pedido queda <strong>pendiente</strong> hasta que verifiquemos la transferencia de <strong>${formatPrice(order.total)}</strong>.`;
-    showSuccess(order, { methodLabel: "transferencia" });
+    return () => {
+      document.getElementById("orderSuccessText").innerHTML = `Recibimos tu comprobante. El pedido queda <strong>pendiente</strong> hasta que verifiquemos la transferencia de <strong>${formatPrice(order.total)}</strong>.`;
+      showSuccess(order, { methodLabel: "transferencia" });
+    };
   }
 
   // Tarjeta: token con el SDK de MP -> /api/mp/pay (orden + cobro en el servidor)
@@ -747,13 +839,17 @@ loading(async function () {
 
     saveProfile(data);
     const card = out.payment || {};
-    const label = `${PAYMENT[state.method].label.toLowerCase()}${card.brand ? ` ${card.brand}` : ""}${card.last_four ? ` •••• ${card.last_four}` : ""}${card.installments > 1 ? ` en ${card.installments} cuotas` : ""}`;
+    const label = `${PAYMENT[state.method].label.toLowerCase()}${card.brand ? ` ${card.brand}` : ""}${card.last_four ? ` •••• ${card.last_four}` : ""}${card.installments > 1 ? ` en ${card.installments} cuotas sin interés` : ""}`;
     if (out.result === "pending") {
-      document.getElementById("orderSuccessText").innerHTML = `Mercado Pago está procesando tu pago con <strong>${escapeHtml(label)}</strong> por <strong>$${formatPrice(out.order.total)}</strong>.`;
-      showSuccess(out.order, { methodLabel: label, note: "El pedido queda pendiente hasta que se acredite. Te avisamos por acá y por notificación cuando esté confirmado." });
-    } else {
-      showSuccess(out.order, { methodLabel: label });
+      return () => {
+        document.getElementById("orderSuccessText").innerHTML = `Mercado Pago está procesando tu pago con <strong>${escapeHtml(label)}</strong> por <strong>$${formatPrice(out.order.total)}</strong>.`;
+        showSuccess(out.order, { methodLabel: label, note: "El pedido queda pendiente hasta que se acredite. Te avisamos por acá y por notificación cuando esté confirmado." });
+      };
     }
+    return async () => {
+      await playApproval();
+      showSuccess(out.order, { methodLabel: label });
+    };
   }
 
   form.addEventListener("submit", async (e) => {
@@ -772,17 +868,23 @@ loading(async function () {
     if (PAYMENT[state.method].card && (!mpReady || !validateCard())) return;
 
     const data = readForm();
-    payBtn.disabled = true;
+    // El botón queda bloqueado (mínimo 3 s) hasta que el pago termine, y
+    // recién después se muestra la confirmación
+    state.processing = true;
     const prevLabel = payBtn.textContent;
-    payBtn.textContent = "Procesando…";
+    payBtn.textContent = "Procesando pago…";
+    updatePayButton();
+    const minWait = new Promise((r) => setTimeout(r, 3000));
     try {
-      if (state.method === "transferencia") await payWithTransfer(data);
-      else await payWithCard(data);
+      const [finish] = await Promise.all([state.method === "transferencia" ? payWithTransfer(data) : payWithCard(data), minWait]);
+      await finish();
     } catch (err) {
       console.error(err);
+      await minWait;
       toast(err.message || "No pudimos procesar el pedido", "bad");
-      payBtn.disabled = false;
+      state.processing = false;
       payBtn.textContent = prevLabel;
+      updatePayButton();
     }
   });
 
@@ -796,7 +898,10 @@ loading(async function () {
       qty === 0 ? "" : `${qty} ${qty === 1 ? "producto" : "productos"}`;
     checkout.hidden = items.length === 0;
     empty.hidden = items.length !== 0;
-    if (items.length) renderSummary();
+    if (items.length) {
+      setInstallmentOptions();
+      renderSummary();
+    }
   }
 
   store.onChange(render);

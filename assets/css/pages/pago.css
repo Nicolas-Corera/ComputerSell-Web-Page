@@ -885,6 +885,116 @@
   padding: 12px 24px;
 }
 
+/* ---- Animación de pago aprobado ---- */
+
+.payApproved {
+  min-height: 360px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  text-align: center;
+}
+
+.payApproved strong {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 800;
+  color: #34d399;
+  opacity: 0;
+  transform: translateY(6px);
+}
+
+.payApproved-mark {
+  width: 132px;
+  height: 132px;
+  overflow: visible;
+}
+
+.payApproved-ring {
+  fill: none;
+  stroke: #34d399;
+  stroke-width: 5;
+  stroke-linecap: round;
+  stroke-dasharray: 327; /* 2·π·52 */
+  stroke-dashoffset: 327;
+  transform: rotate(-90deg);
+  transform-origin: 50% 50%;
+}
+
+.payApproved-tick {
+  fill: none;
+  stroke: #34d399;
+  stroke-width: 7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 72;
+  stroke-dashoffset: 72;
+}
+
+.payApproved.is-play .payApproved-ring {
+  animation: payRing 0.8s cubic-bezier(0.65, 0, 0.35, 1) forwards;
+}
+
+.payApproved.is-play .payApproved-tick {
+  animation: payTick 0.4s ease-out 0.75s forwards;
+}
+
+/* Al terminar de dibujarse, el conjunto late una vez */
+.payApproved.is-play .payApproved-mark {
+  animation: payPulse 0.5s ease-out 1.2s;
+}
+
+.payApproved.is-play strong {
+  animation: payLabel 0.4s ease-out 1.15s forwards;
+}
+
+@keyframes payRing {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes payTick {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes payPulse {
+  0% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 0 rgba(52, 211, 153, 0));
+  }
+  40% {
+    transform: scale(1.08);
+    filter: drop-shadow(0 0 18px rgba(52, 211, 153, 0.55));
+  }
+  100% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 0 rgba(52, 211, 153, 0));
+  }
+}
+
+@keyframes payLabel {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .payApproved.is-play .payApproved-ring,
+  .payApproved.is-play .payApproved-tick {
+    animation-duration: 0.01s;
+    animation-delay: 0s;
+  }
+  .payApproved.is-play .payApproved-mark {
+    animation: none;
+  }
+}
+
 /* ---- Responsive ---- */
 
 @media (max-width: 1199.98px) {

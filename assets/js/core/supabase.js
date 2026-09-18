@@ -193,6 +193,8 @@ export function toCard(p) {
     price: p.price,
     oldPrice: p.on_sale && p.old_price > p.price ? p.old_price : 0,
     cuotas: p.installments ? `${p.installments} cuotas sin interés` : "",
+    installments: p.installments || 0, // cuotas sin interés configuradas en el panel
+    delivery: p.delivery || "24-48hs", // tiempo de entrega configurado en el panel
     image: p.images && p.images[0] ? p.images[0] : "",
     stock: p.stock,
     freeShipping: p.free_shipping,
