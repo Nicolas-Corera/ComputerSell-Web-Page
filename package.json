@@ -5,7 +5,7 @@
   "description": "Tienda ComputerSell: sitio estático + Supabase (auth, productos, favoritos, órdenes) en tiempo real.",
   "scripts": {
     "dev": "node scripts/dev-server.js",
-    "build": "node scripts/build-env.js",
+    "build": "node scripts/build.js",
     "env": "node scripts/build-env.js",
     "db:push": "node scripts/db-push.js",
     "admins:sync": "node scripts/sync-admins.js",

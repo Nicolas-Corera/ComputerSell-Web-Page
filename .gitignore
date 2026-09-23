@@ -12,6 +12,7 @@ node_modules/
 Thumbs.db
 
 dist/
+public/
 build/
 
 *.log
