@@ -11,6 +11,7 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="/assets/css/base.css" />
+    <link rel="stylesheet" href="/assets/css/components/cookie-consent.css" />
     <link rel="stylesheet" href="/assets/css/header.css" />
     <link rel="stylesheet" href="/assets/css/components/buttons.css" />
     <link rel="stylesheet" href="/assets/css/components/toast.css" />
@@ -122,13 +123,28 @@
               <label class="checkOption">
                 <input type="checkbox" name="terminos" required />
                 <span class="checkbox"><svg><use href="#ic-check" /></svg></span>
-                <span>Acepto los <a href="#">términos y condiciones</a> y la <a href="#">política de privacidad</a>.</span>
+                <span
+                  >Leí y acepto los
+                  <a href="/terminos" target="_blank" rel="noopener">Términos y condiciones</a> y la
+                  <a href="/privacidad" target="_blank" rel="noopener">Política de privacidad</a>.</span
+                >
               </label>
               <label class="checkOption">
-                <input type="checkbox" name="ofertas" checked />
+                <input type="checkbox" name="ofertas" />
                 <span class="checkbox"><svg><use href="#ic-check" /></svg></span>
-                <span>Quiero recibir ofertas y novedades por correo.</span>
+                <span
+                  >Quiero recibir ofertas y novedades por email (opcional). Puedo darme de baja
+                  cuando quiera.</span
+                >
               </label>
+              <!-- Aviso de datos personales (art. 6 Ley 25.326): versión corta, el detalle está en /privacidad -->
+              <p class="auth-legal">
+                ComputerSell es responsable de tus datos. Los usamos para crear tu cuenta y gestionar
+                tus compras, y también los tratan nuestros proveedores de hosting y pagos. Nombre,
+                apellido y email son obligatorios para registrarte; el teléfono es opcional. Podés
+                acceder a tus datos, corregirlos o pedir que los eliminemos cuando quieras.
+                <a href="/privacidad" target="_blank" rel="noopener">Más información</a>.
+              </p>
               <button class="btn btn-secondary auth-submit" type="submit">Crear cuenta</button>
 
               <div class="auth-or">o</div>
@@ -136,6 +152,11 @@
                 <svg><use href="#ic-google" /></svg>
                 Continuar con Google
               </button>
+              <p class="auth-legal">
+                Al continuar con Google aceptás los
+                <a href="/terminos" target="_blank" rel="noopener">Términos y condiciones</a> y la
+                <a href="/privacidad" target="_blank" rel="noopener">Política de privacidad</a>.
+              </p>
               <p class="auth-foot">
                 ¿Ya tenés cuenta?
                 <button class="auth-link" type="button" data-go="login">Iniciar sesión</button>
@@ -178,6 +199,11 @@
                 <svg><use href="#ic-google" /></svg>
                 Continuar con Google
               </button>
+              <p class="auth-legal">
+                Al continuar con Google aceptás los
+                <a href="/terminos" target="_blank" rel="noopener">Términos y condiciones</a> y la
+                <a href="/privacidad" target="_blank" rel="noopener">Política de privacidad</a>.
+              </p>
               <p class="auth-foot">
                 ¿No tenés cuenta?
                 <button class="auth-link" type="button" data-go="registro">Crear cuenta</button>
@@ -247,5 +273,6 @@
     <script src="/assets/js/core/env.js"></script>
     <script src="/assets/js/core/utils.js"></script>
     <script type="module" src="/assets/js/pages/auth.js"></script>
+    <script type="module" src="/assets/js/components/cookie-consent.js"></script>
   </body>
 </html>

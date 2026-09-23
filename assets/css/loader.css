@@ -37,7 +37,7 @@ body.is-loading {
 }
 .sk-footer-top {
   display: grid;
-  grid-template-columns: 2fr 1fr 1fr 1fr;
+  grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
   gap: 2rem;
   margin-bottom: 2.5rem;
 }
@@ -460,6 +460,10 @@ body.is-loading .site-footer {
 .sk-layout.order {
   grid-template-columns: 1fr 340px;
 }
+.sk-layout.legal {
+  grid-template-columns: 260px minmax(0, 1fr);
+  gap: 3rem;
+}
 
 /* Panel / tarjeta genérica */
 .sk-panel {
@@ -647,7 +651,8 @@ body.is-loading .site-footer {
   .sk-layout.profile,
   .sk-layout.cart,
   .sk-layout.checkout,
-  .sk-layout.order {
+  .sk-layout.order,
+  .sk-layout.legal {
     grid-template-columns: 1fr;
   }
   .sk-filters {

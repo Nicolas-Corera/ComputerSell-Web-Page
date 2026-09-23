@@ -1,0 +1,554 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Sacá el noindex cuando el texto esté aprobado. -->
+    <title>Política de cookies — ComputerSell</title>
+    <meta name="description" content="Política de cookies de ComputerSell: qué cookies y almacenamiento local usamos, para qué, y cómo aceptarlos, rechazarlos o borrarlos." />
+    <link rel="canonical" href="/cookies" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="ComputerSell" />
+    <meta property="og:locale" content="es_AR" />
+    <meta property="og:title" content="Política de cookies — ComputerSell" />
+    <meta property="og:description" content="Política de cookies de ComputerSell: qué cookies y almacenamiento local usamos, para qué, y cómo aceptarlos, rechazarlos o borrarlos." />
+    <meta name="robots" content="noindex" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15/dist/gsap.min.js"></script>
+    <link rel="stylesheet" href="/assets/css/base.css" />
+    <link rel="stylesheet" href="/assets/css/components/cookie-consent.css" />
+    <link rel="stylesheet" href="/assets/css/loader.css" />
+    <link rel="stylesheet" href="/assets/css/header.css" />
+    <link rel="stylesheet" href="/assets/css/footer.css" />
+    <link rel="stylesheet" href="/assets/css/components/buttons.css" />
+    <link rel="stylesheet" href="/assets/css/components/toast.css" />
+    <link rel="stylesheet" href="/assets/css/components/product-card.css" />
+    <link rel="stylesheet" href="/assets/css/components/cart-drawer.css" />
+    <link rel="stylesheet" href="/assets/css/components/menu-drawer.css" />
+    <link rel="stylesheet" href="/assets/css/components/page.css" />
+    <link rel="stylesheet" href="/assets/css/components/qty-selector.css" />
+    <link rel="stylesheet" href="/assets/css/pages/legal.css" />
+    <link rel="stylesheet" href="/assets/css/responsive.css" />
+  </head>
+
+  <body class="is-loading" id="inicio" data-page="legal">
+    <script src="/assets/js/sprites/sprite.js"></script>
+    <div class="loader-wrap"></div>
+    <script src="/assets/js/components/loader.js"></script>
+    <div class="site" id="site">
+      <div class="marquee">
+        <div class="marquee-content">
+          <span class="marquee-item"
+            ><svg class="ic-sm"><use href="#ic-percent_discount" /></svg>
+            Ofertas imperdibles en selectos productos</span
+          >
+          <span>•</span>
+          <span class="marquee-item"
+            ><svg class="ic-sm"><use href="#ic-shipping_truck" /></svg>Envíos
+            gratias en productos seleccionados</span
+          >
+          <span>•</span>
+          <span class="marquee-item"
+            ><svg class="ic-sm"><use href="#ic-sell_tag" /></svg>Hasta 3 cuotas
+            sin interes en compras superiores al $1.200.000</span
+          >
+        </div>
+      </div>
+      <header class="navbar" id="navbar">
+        <div class="logo" onclick="window.location.href = '/'">
+          <img src="/assets/images/isotipo.png" alt="" />
+          <span>ComputerSell</span>
+        </div>
+        <nav class="listItems">
+          <li class="item" id="productsMenuBtn">
+            <span class="item-spn2">Productos</span>
+          </li>
+          <li
+            class="item"
+            onclick="
+              window.location.href = '/productos.html?categoria=computadoras'
+            "
+          >
+            <span class="item-spn2">Computadoras</span>
+          </li>
+          <li
+            class="item"
+            onclick="
+              window.location.href = '/productos.html?categoria=notebooks'
+            "
+          >
+            <span class="item-spn2">Notebooks</span>
+          </li>
+          <li class="item"><span class="item-spn2">Nosotros</span></li>
+          <li class="item"><span class="item-spn2">Contacto</span></li>
+        </nav>
+        <div class="actionIcons">
+          <li class="actIcon" id="favBtn">
+            <span class="cartIconWrap">
+              <svg class="ic-md"><use href="#ic-favorite" /></svg>
+              <span class="favBadge" id="favBadge"></span>
+            </span>
+            <span class="actLabel">FAVORITOS</span>
+          </li>
+          <li class="actIcon" id="accountBtn">
+            <svg class="ic-md"><use href="#ic-person" /></svg>
+            <span class="actLabel">ACCEDER</span>
+          </li>
+          <li class="actIcon" id="cartBtn">
+            <span class="cartIconWrap">
+              <svg class="ic-md"><use href="#ic-shopping_bag" /></svg>
+              <span class="cartBadge" id="cartBadge"></span>
+            </span>
+            <span class="actLabel">CARRITO</span>
+          </li>
+          <li class="actIcon navToggle" id="navToggle" aria-label="Abrir menú">
+            <svg class="ic-md"><use href="#ic-menu" /></svg>
+          </li>
+        </div>
+      </header>
+
+      <main class="container page-container">
+        <div class="page-head">
+          <div>
+            <p class="legal-kicker">Información legal</p>
+            <h1>Política de cookies</h1>
+          </div>
+          <span class="legal-updated"
+            >Última actualización:
+            <time data-legal="fechaVigencia"></time> · Versión
+            <span data-legal="version"></span
+          ></span>
+        </div>
+
+        <div class="legal-layout">
+          <aside class="legal-aside">
+            <details class="legal-toc" id="legalToc" open>
+              <summary>
+                Contenido
+                <svg class="ic-sm"><use href="#ic-expand_more" /></svg>
+              </summary>
+              <!-- Lo arma assets/js/pages/legal.js con las secciones -->
+              <ol></ol>
+            </details>
+          </aside>
+
+          <!-- data-updated="AAAA-MM-DD": fecha propia de este documento (si
+               no está, se usa LEGAL.fechaVigencia) -->
+          <article class="legal-doc" id="legalDoc">
+            <p class="legal-lead">
+              Esta Política explica qué cookies y qué almacenamiento del
+              navegador usa el sitio de
+              <strong data-legal="nombreFantasia"></strong>, para qué sirve cada
+              uno y cómo podés aceptarlos, rechazarlos o borrarlos. Hoy
+              <strong>solo usamos elementos necesarios</strong> para que el
+              sitio funcione. No usamos cookies analíticas ni de publicidad.
+            </p>
+
+            <section class="legal-section" id="que-son">
+              <h2>Qué son las cookies y el almacenamiento local</h2>
+              <p>
+                Las <strong>cookies</strong> son pequeños archivos que un sitio
+                guarda en tu navegador para recordar información entre una
+                página y otra, o entre una visita y otra. El
+                <strong>almacenamiento local</strong> (localStorage y
+                sessionStorage) cumple una función parecida: guarda datos en tu
+                navegador, pero no se envía automáticamente al servidor en cada
+                visita.
+              </p>
+              <p>
+                Pueden ser <strong>propias</strong> (las pone ComputerSell) o
+                <strong>de terceros</strong> (las ponen otros servicios que usa
+                el sitio, como Mercado Pago o Google). En esta Política
+                llamamos "cookies" a ambas tecnologías.
+              </p>
+            </section>
+
+            <section class="legal-section" id="que-usamos">
+              <h2>Qué cookies y almacenamiento usamos</h2>
+              <h3>Propios</h3>
+              <div class="legal-table-wrap">
+                <table class="legal-table">
+                  <thead>
+                    <tr>
+                      <th scope="col">Nombre</th>
+                      <th scope="col">Proveedor</th>
+                      <th scope="col">Finalidad</th>
+                      <th scope="col">Duración</th>
+                      <th scope="col">Categoría</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td data-label="Nombre"><code>sb-…-auth-token</code><br />localStorage</td>
+                      <td data-label="Proveedor">ComputerSell (autenticación de Supabase)</td>
+                      <td data-label="Finalidad">Mantener tu sesión iniciada. Guarda los tokens de acceso y de renovación.</td>
+                      <td data-label="Duración">Hasta que cierres sesión. El acceso se renueva automáticamente.</td>
+                      <td data-label="Categoría"><span class="legal-tag">Necesaria</span></td>
+                    </tr>
+                    <tr>
+                      <td data-label="Nombre"><code>sb-…-auth-token-code-verifier</code><br />localStorage</td>
+                      <td data-label="Proveedor">ComputerSell (autenticación de Supabase)</td>
+                      <td data-label="Finalidad">Verificar de forma segura el inicio de sesión con Google y la recuperación de contraseña.</td>
+                      <td data-label="Duración">Temporal: se borra al terminar ese proceso.</td>
+                      <td data-label="Categoría"><span class="legal-tag">Necesaria</span></td>
+                    </tr>
+                    <tr>
+                      <td data-label="Nombre"><code>computersell-cart</code><br />localStorage</td>
+                      <td data-label="Proveedor">ComputerSell</td>
+                      <td data-label="Finalidad">Guardar los productos de tu carrito, aunque no hayas iniciado sesión.</td>
+                      <td data-label="Duración">Hasta que vacíes el carrito o borres los datos del navegador.</td>
+                      <td data-label="Categoría"><span class="legal-tag">Necesaria</span></td>
+                    </tr>
+                    <tr>
+                      <td data-label="Nombre"><code>cs-cookie-consent</code><br />localStorage</td>
+                      <td data-label="Proveedor">ComputerSell</td>
+                      <td data-label="Finalidad">Recordar tu elección de cookies, con la fecha y la versión de esta Política.</td>
+                      <td data-label="Duración">12 meses, o hasta que cambie esta Política.</td>
+                      <td data-label="Categoría"><span class="legal-tag">Necesaria</span></td>
+                    </tr>
+                    <tr>
+                      <td data-label="Nombre"><code>cs_admin_*</code><br />localStorage</td>
+                      <td data-label="Proveedor">ComputerSell (solo en el panel de administración)</td>
+                      <td data-label="Finalidad">Preferencias del panel: tema, vista inicial, cantidad de filas y avisos. Solo lo usa el personal autorizado, no los clientes.</td>
+                      <td data-label="Duración">Hasta que se borren los datos del navegador.</td>
+                      <td data-label="Categoría"><span class="legal-tag">Funcional</span></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <p>
+                Los <strong>favoritos</strong> no se guardan en tu navegador,
+                sino en tu cuenta. No usamos sessionStorage ni cookies propias.
+              </p>
+
+              <h3>De terceros</h3>
+              <div class="legal-table-wrap">
+                <table class="legal-table">
+                  <thead>
+                    <tr>
+                      <th scope="col">Nombre</th>
+                      <th scope="col">Proveedor</th>
+                      <th scope="col">Finalidad</th>
+                      <th scope="col">Duración</th>
+                      <th scope="col">Categoría</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td data-label="Nombre">
+                        Identificadores de dispositivo y de sesión
+                      </td>
+                      <td data-label="Proveedor">Mercado Pago (SDK <code>sdk.mercadopago.com</code>)</td>
+                      <td data-label="Finalidad">Procesar el pago con tarjeta de forma segura y prevenir fraudes. El SDK analiza datos del dispositivo (perfilado antifraude) y se comunica con servidores de Mercado Pago y Mercado Libre.</td>
+                      <td data-label="Duración">La define Mercado Pago.</td>
+                      <td data-label="Categoría"><span class="legal-tag">Pago y antifraude</span></td>
+                    </tr>
+                    <tr>
+                      <td data-label="Nombre">Cookies de la cuenta de Google</td>
+                      <td data-label="Proveedor">Google (<code>accounts.google.com</code>)</td>
+                      <td data-label="Finalidad">Iniciar sesión con tu cuenta de Google. Solo intervienen si elegís "Continuar con Google".</td>
+                      <td data-label="Duración">La define Google.</td>
+                      <td data-label="Categoría"><span class="legal-tag">Necesaria para ese inicio de sesión</span></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <p>
+                El SDK de Mercado Pago se carga <strong>solo en la página de
+                pago</strong>. Lo consideramos necesario porque sin él no se
+                puede pagar con tarjeta de forma segura. Por eso no depende del
+                banner.
+              </p>
+
+              <h3>Recursos de terceros sin cookies</h3>
+              <p>
+                Para mostrar el sitio, tu navegador descarga archivos de estos
+                servicios. No guardan cookies, pero reciben datos técnicos de la
+                conexión, como tu dirección IP y tu navegador:
+              </p>
+              <ul>
+                <li>
+                  <strong>Google Fonts</strong> (<code>fonts.googleapis.com</code>,
+                  <code>fonts.gstatic.com</code>): las tipografías del sitio.
+                </li>
+                <li>
+                  <strong>jsDelivr</strong> (<code>cdn.jsdelivr.net</code>):
+                  librerías de código (autenticación y animaciones).
+                </li>
+                <li>
+                  <strong>Vercel</strong>: el servicio donde está alojado el
+                  sitio.
+                </li>
+              </ul>
+              <p>
+                <strong>No usamos herramientas de analítica ni de publicidad</strong>
+                (como Google Analytics o Meta Pixel).
+              </p>
+            </section>
+
+            <section class="legal-section" id="categorias">
+              <h2>Categorías</h2>
+              <ul>
+                <li>
+                  <strong>Estrictamente necesarias</strong>: sin ellas no podés
+                  iniciar sesión, usar el carrito ni pagar. No requieren
+                  consentimiento y no se pueden desactivar desde el banner.
+                </li>
+                <li>
+                  <strong>Funcionales o de preferencias</strong>: recuerdan
+                  opciones para mejorar tu experiencia. Hoy no usamos ninguna
+                  en la tienda.
+                </li>
+                <li>
+                  <strong>Analíticas</strong>: miden cómo se usa el sitio. Hoy no
+                  usamos ninguna.
+                </li>
+                <li>
+                  <strong>Publicidad</strong>: permiten mostrar anuncios
+                  personalizados. Hoy no usamos ninguna.
+                </li>
+                <li>
+                  <strong>Pago y seguridad antifraude</strong>: las de Mercado
+                  Pago, necesarias para pagar con tarjeta. Solo en la página de
+                  pago.
+                </li>
+              </ul>
+              <p>
+                Si más adelante sumamos cookies funcionales, analíticas o de
+                publicidad, solo se van a activar si las aceptás.
+              </p>
+            </section>
+
+            <section class="legal-section" id="configurar">
+              <h2>Cómo aceptar, rechazar o configurar</h2>
+              <p>
+                La primera vez que entrás, un aviso te permite
+                <strong>aceptar todas</strong>, <strong>rechazar las no
+                esenciales</strong> o <strong>configurar</strong> cada
+                categoría. Tu elección se guarda en tu navegador durante 12
+                meses, o hasta que cambie esta Política. Cumplido ese plazo,
+                te la volvemos a pedir.
+              </p>
+              <p>
+                Rechazar las cookies no esenciales no te impide iniciar sesión,
+                comprar ni pagar.
+              </p>
+              <p>
+                Podés cambiar tu decisión cuando quieras desde "Configurar
+                cookies", en el pie de cada página, o desde este botón:
+              </p>
+              <div class="legal-actions">
+                <button type="button" class="cc-btn cc-btn-primary" data-cookie-settings>Configurar cookies</button>
+              </div>
+            </section>
+
+            <section class="legal-section" id="borrar">
+              <h2>Cómo borrarlas desde el navegador</h2>
+              <p>
+                Además del banner, podés ver, bloquear o borrar las cookies y
+                los datos de los sitios desde la configuración de tu navegador:
+              </p>
+              <ul>
+                <li><a href="https://support.google.com/chrome/answer/95647?hl=es-419" target="_blank" rel="noopener">Google Chrome</a></li>
+                <li><a href="https://support.mozilla.org/es/kb/Borrar%20cookies" target="_blank" rel="noopener">Mozilla Firefox</a></li>
+                <li>
+                  Safari:
+                  <a href="https://support.apple.com/es-es/guide/safari/sfri11471/mac" target="_blank" rel="noopener">en Mac</a> ·
+                  <a href="https://support.apple.com/es-es/105082" target="_blank" rel="noopener">en iPhone y iPad</a>
+                </li>
+                <li><a href="https://support.microsoft.com/es-es/microsoft-edge/eliminar-las-cookies-en-microsoft-edge-63947406-40ac-c3b8-57b9-2a946a29ae09" target="_blank" rel="noopener">Microsoft Edge</a></li>
+              </ul>
+              <p>
+                El almacenamiento local se borra junto con las cookies al
+                eliminar los "datos de sitios" o los "datos de navegación".
+                También podés borrar solo los de este sitio desde el ícono del
+                candado, junto a la dirección, en la barra del navegador.
+              </p>
+            </section>
+
+            <section class="legal-section" id="consecuencias">
+              <h2>Qué pasa si las desactivás</h2>
+              <p>
+                Si bloqueás o borrás los elementos necesarios desde el
+                navegador:
+              </p>
+              <ul>
+                <li>
+                  No vas a poder <strong>iniciar sesión</strong> o se va a
+                  cerrar tu sesión. Sin sesión no podés comprar, ver tus pedidos
+                  ni usar favoritos.
+                </li>
+                <li>Tu <strong>carrito</strong> se va a vaciar.</li>
+                <li>
+                  Si bloqueás los scripts o las cookies de Mercado Pago, puede
+                  que no puedas <strong>pagar con tarjeta</strong>, o que el pago
+                  sea rechazado por las validaciones antifraude. Igual vas a
+                  poder pagar por transferencia.
+                </li>
+                <li>
+                  Si tu navegador bloquea las cookies de terceros, puede fallar
+                  el <strong>inicio de sesión con Google</strong>. En ese caso,
+                  podés entrar con tu email y contraseña.
+                </li>
+                <li>El sitio te va a volver a mostrar el aviso de cookies.</li>
+              </ul>
+            </section>
+
+            <section class="legal-section" id="terceros">
+              <h2>Políticas de los terceros</h2>
+              <p>
+                Los terceros tratan los datos según sus propias políticas, que
+                ComputerSell no controla:
+              </p>
+              <ul>
+                <li><a href="https://www.mercadopago.com.ar/privacidad" target="_blank" rel="noopener">Mercado Pago: Política de privacidad</a></li>
+                <li><a href="https://policies.google.com/privacy?hl=es-419" target="_blank" rel="noopener">Google: Política de privacidad</a></li>
+                <li><a href="https://developers.google.com/fonts/faq/privacy?hl=es-419" target="_blank" rel="noopener">Google Fonts: privacidad</a></li>
+                <li><a href="https://www.jsdelivr.com/terms/privacy-policy" target="_blank" rel="noopener">jsDelivr: Política de privacidad</a></li>
+                <li><a href="https://supabase.com/privacy" target="_blank" rel="noopener">Supabase: Política de privacidad</a></li>
+                <li><a href="https://vercel.com/legal/privacy-notice" target="_blank" rel="noopener">Vercel: Aviso de privacidad</a></li>
+              </ul>
+            </section>
+
+            <section class="legal-section" id="actualizaciones">
+              <h2>Actualizaciones de esta Política</h2>
+              <p>
+                Vamos a actualizar esta Política cuando cambien las cookies o
+                las herramientas que usamos. La versión actual de la Política
+                de cookies es la <span data-legal="versionCookies"></span>. Si
+                publicamos una versión nueva, el aviso de cookies te va a pedir
+                de nuevo tu consentimiento.
+              </p>
+              <p>
+                Para consultas sobre cookies o datos personales, escribinos a
+                <a data-legal="emailPrivacidad" data-legal-link="email"></a>.
+                También podés ver la
+                <a href="/privacidad">Política de privacidad</a>.
+              </p>
+            </section>
+
+            <!-- "Otros documentos": lo completa assets/js/pages/legal.js -->
+            <nav class="legal-related" id="legalRelated" aria-label="Otros documentos legales"></nav>
+          </article>
+        </div>
+      </main>
+    </div>
+
+    <footer class="site-footer">
+      <div class="footer-inner">
+        <div class="footer-top">
+          <div class="footer-col footer-brand">
+            <div class="logo">
+              <img src="/assets/images/isotipo.png" alt="" />
+              <span>ComputerSell</span>
+            </div>
+            <p>
+              Equipos armados a medida, componentes originales y garantía
+              oficial. Gaming, oficina y diseño: la PC que necesitás, al precio
+              justo.
+            </p>
+            <div class="footer-social">
+              <a href="#" aria-label="Instagram"
+                ><svg class="ic-sm"><use href="#ic-instagram" /></svg>
+              </a>
+              <a href="#" aria-label="Mercado Libre"
+                ><svg class="ic-sm"><use href="#ic-mercadolibre" /></svg>
+              </a>
+              <a href="#" aria-label="WhatsApp"
+                ><svg class="ic-sm"><use href="#ic-whatsapp" /></svg>
+              </a>
+            </div>
+          </div>
+
+          <!-- Productos -->
+          <div class="footer-col">
+            <h3>Productos</h3>
+            <ul>
+              <li><a href="#">PCs Armadas</a></li>
+              <li><a href="#">Notebooks</a></li>
+              <li><a href="#">Componentes</a></li>
+              <li><a href="#">Periféricos</a></li>
+              <li><a href="#">Ofertas</a></li>
+            </ul>
+          </div>
+
+          <!-- Ayuda -->
+          <div class="footer-col">
+            <h3>Ayuda</h3>
+            <ul>
+              <li><a href="#">Preguntas frecuentes</a></li>
+              <li><a href="/envios">Envíos</a></li>
+              <li><a href="/cambios-y-devoluciones">Cambios y devoluciones</a></li>
+              <li><a href="#">Garantía</a></li>
+              <li><a href="#">Métodos de pago</a></li>
+            </ul>
+          </div>
+
+          <!-- Información legal -->
+          <div class="footer-col">
+            <h3>Información legal</h3>
+            <ul>
+              <li><a href="/terminos">Términos y condiciones</a></li>
+              <li><a href="/privacidad">Política de privacidad</a></li>
+              <li><a href="/cookies">Política de cookies</a></li>
+              <li><a href="/politica-de-venta">Política de venta</a></li>
+              <li><a href="/envios">Envíos</a></li>
+              <li><a href="/cambios-y-devoluciones">Cambios y devoluciones</a></li>
+              <li><a href="/arrepentimiento">Arrepentimiento</a></li>
+              <li><a href="/informacion-legal">Información legal</a></li>
+            </ul>
+          </div>
+
+          <!-- Contacto -->
+          <div class="footer-col">
+            <h3>Contacto</h3>
+            <ul class="footer-contact">
+              <li>
+                <svg class="ic-sm"><use href="#ic-phone" /></svg>
+                <span>Tel:</span><a href="tel:+5491123589249" data-legal="telefono" data-legal-link="tel">+54 9 11 2358-9249</a>
+              </li>
+              <li>
+                <svg class="ic-sm"><use href="#ic-mail" /></svg>
+                <span>Email:</span><a href="mailto:contacto@computersell.com.ar" data-legal="emailContacto" data-legal-link="email">contacto@computersell.com.ar</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Botón de arrepentimiento (Disp. 954/2025) -->
+        <div class="footer-legal">
+          <a class="btn-arrepentimiento" href="/arrepentimiento">Botón de arrepentimiento</a>
+        </div>
+
+        <div class="footer-bottom">
+          <span
+            >© <span id="footerYear">2026</span> ComputerSell. Todos los
+            derechos reservados.</span
+          >
+          <div class="footer-bottom-links">
+            <a href="/terminos">Términos y condiciones</a>
+            <a href="/privacidad">Privacidad</a>
+            <button type="button" class="cc-link" data-cookie-settings>Configurar cookies</button>
+          </div>
+          <div class="footer-payments">Visa · Mastercard · Mercado Pago</div>
+        </div>
+      </div>
+    </footer>
+
+    <script src="/assets/js/components/navbar.js"></script>
+    <script src="/assets/js/components/menu.js"></script>
+    <script type="module" src="/assets/js/components/footer-legal.js"></script>
+    <script src="/assets/js/core/env.js"></script>
+    <script src="/assets/js/core/utils.js"></script>
+    <script type="module" src="/assets/js/core/favorites.js"></script>
+    <script type="module" src="/assets/js/core/account.js"></script>
+    <script src="/assets/js/core/cart.js"></script>
+    <script type="module" src="/assets/js/pages/legal.js"></script>
+    <script type="module" src="/assets/js/components/cookie-consent.js"></script>
+  </body>
+</html>

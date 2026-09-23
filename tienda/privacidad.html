@@ -1,0 +1,742 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Sacá el noindex cuando el texto esté aprobado. -->
+    <title>Política de privacidad — ComputerSell</title>
+    <meta name="description" content="Política de privacidad de ComputerSell: qué datos personales tratamos, para qué, con quién los compartimos y cómo ejercer tus derechos (Ley 25.326)." />
+    <link rel="canonical" href="/privacidad" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="ComputerSell" />
+    <meta property="og:locale" content="es_AR" />
+    <meta property="og:title" content="Política de privacidad — ComputerSell" />
+    <meta property="og:description" content="Política de privacidad de ComputerSell: qué datos personales tratamos, para qué, con quién los compartimos y cómo ejercer tus derechos (Ley 25.326)." />
+    <meta name="robots" content="noindex" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15/dist/gsap.min.js"></script>
+    <link rel="stylesheet" href="/assets/css/base.css" />
+    <link rel="stylesheet" href="/assets/css/components/cookie-consent.css" />
+    <link rel="stylesheet" href="/assets/css/loader.css" />
+    <link rel="stylesheet" href="/assets/css/header.css" />
+    <link rel="stylesheet" href="/assets/css/footer.css" />
+    <link rel="stylesheet" href="/assets/css/components/buttons.css" />
+    <link rel="stylesheet" href="/assets/css/components/toast.css" />
+    <link rel="stylesheet" href="/assets/css/components/product-card.css" />
+    <link rel="stylesheet" href="/assets/css/components/cart-drawer.css" />
+    <link rel="stylesheet" href="/assets/css/components/menu-drawer.css" />
+    <link rel="stylesheet" href="/assets/css/components/page.css" />
+    <link rel="stylesheet" href="/assets/css/components/qty-selector.css" />
+    <link rel="stylesheet" href="/assets/css/pages/legal.css" />
+    <link rel="stylesheet" href="/assets/css/responsive.css" />
+  </head>
+
+  <body class="is-loading" id="inicio" data-page="legal">
+    <script src="/assets/js/sprites/sprite.js"></script>
+    <div class="loader-wrap"></div>
+    <script src="/assets/js/components/loader.js"></script>
+    <div class="site" id="site">
+      <div class="marquee">
+        <div class="marquee-content">
+          <span class="marquee-item"
+            ><svg class="ic-sm"><use href="#ic-percent_discount" /></svg>
+            Ofertas imperdibles en selectos productos</span
+          >
+          <span>•</span>
+          <span class="marquee-item"
+            ><svg class="ic-sm"><use href="#ic-shipping_truck" /></svg>Envíos
+            gratias en productos seleccionados</span
+          >
+          <span>•</span>
+          <span class="marquee-item"
+            ><svg class="ic-sm"><use href="#ic-sell_tag" /></svg>Hasta 3 cuotas
+            sin interes en compras superiores al $1.200.000</span
+          >
+        </div>
+      </div>
+      <header class="navbar" id="navbar">
+        <div class="logo" onclick="window.location.href = '/'">
+          <img src="/assets/images/isotipo.png" alt="" />
+          <span>ComputerSell</span>
+        </div>
+        <nav class="listItems">
+          <li class="item" id="productsMenuBtn">
+            <span class="item-spn2">Productos</span>
+          </li>
+          <li
+            class="item"
+            onclick="
+              window.location.href = '/productos.html?categoria=computadoras'
+            "
+          >
+            <span class="item-spn2">Computadoras</span>
+          </li>
+          <li
+            class="item"
+            onclick="
+              window.location.href = '/productos.html?categoria=notebooks'
+            "
+          >
+            <span class="item-spn2">Notebooks</span>
+          </li>
+          <li class="item"><span class="item-spn2">Nosotros</span></li>
+          <li class="item"><span class="item-spn2">Contacto</span></li>
+        </nav>
+        <div class="actionIcons">
+          <li class="actIcon" id="favBtn">
+            <span class="cartIconWrap">
+              <svg class="ic-md"><use href="#ic-favorite" /></svg>
+              <span class="favBadge" id="favBadge"></span>
+            </span>
+            <span class="actLabel">FAVORITOS</span>
+          </li>
+          <li class="actIcon" id="accountBtn">
+            <svg class="ic-md"><use href="#ic-person" /></svg>
+            <span class="actLabel">ACCEDER</span>
+          </li>
+          <li class="actIcon" id="cartBtn">
+            <span class="cartIconWrap">
+              <svg class="ic-md"><use href="#ic-shopping_bag" /></svg>
+              <span class="cartBadge" id="cartBadge"></span>
+            </span>
+            <span class="actLabel">CARRITO</span>
+          </li>
+          <li class="actIcon navToggle" id="navToggle" aria-label="Abrir menú">
+            <svg class="ic-md"><use href="#ic-menu" /></svg>
+          </li>
+        </div>
+      </header>
+
+      <main class="container page-container">
+        <div class="page-head">
+          <div>
+            <p class="legal-kicker">Información legal</p>
+            <h1>Política de privacidad</h1>
+          </div>
+          <span class="legal-updated"
+            >Última actualización:
+            <time data-legal="fechaVigencia"></time> · Versión
+            <span data-legal="version"></span
+          ></span>
+        </div>
+
+        <div class="legal-layout">
+          <aside class="legal-aside">
+            <details class="legal-toc" id="legalToc" open>
+              <summary>
+                Contenido
+                <svg class="ic-sm"><use href="#ic-expand_more" /></svg>
+              </summary>
+              <!-- Lo arma assets/js/pages/legal.js con las secciones -->
+              <ol></ol>
+            </details>
+          </aside>
+
+          <!-- data-updated="AAAA-MM-DD": fecha propia de este documento (si
+               no está, se usa LEGAL.fechaVigencia) -->
+          <article class="legal-doc" id="legalDoc">
+            <p class="legal-lead">
+              En esta Política te contamos qué datos personales tratamos en
+              <strong data-legal="nombreFantasia"></strong>, de dónde los
+              obtenemos, para qué los usamos, con quién los compartimos, cuánto
+              tiempo los guardamos y cómo podés ejercer tus derechos. Se rige
+              por la Ley 25.326 de Protección de los Datos Personales, su
+              decreto reglamentario (Decreto 1558/2001) y las normas de la
+              Agencia de Acceso a la Información Pública (AAIP).
+            </p>
+
+            <section class="legal-section" id="responsable">
+              <h2>Responsable de la base de datos</h2>
+              <p>
+                El responsable de los datos es
+                <strong data-legal="nombreFantasia"></strong>.
+              </p>
+              <dl class="legal-data">
+                <div><dt>Consultas sobre datos personales</dt><dd><a data-legal="emailPrivacidad" data-legal-link="email"></a></dd></div>
+              </dl>
+            </section>
+
+            <section class="legal-section" id="datos">
+              <h2>Qué datos recolectamos y de dónde</h2>
+              <h3>Datos que nos das vos</h3>
+              <ul>
+                <li>
+                  <strong>Al crear tu cuenta</strong>: nombre, apellido, email,
+                  teléfono (opcional) y contraseña. La contraseña la guarda
+                  nuestro proveedor de autenticación de forma cifrada
+                  (hash): nadie en ComputerSell puede verla. También guardamos
+                  si aceptaste recibir comunicaciones comerciales.
+                </li>
+                <li>
+                  <strong>En tu perfil</strong>: dirección (calle, número, piso
+                  o departamento, código postal, ciudad y provincia) y, si
+                  querés, una foto de perfil.
+                </li>
+                <li>
+                  <strong>Al comprar</strong>: nombre, email, teléfono, DNI y
+                  dirección de envío. Quedan guardados con el pedido tal como
+                  los cargaste en ese momento.
+                </li>
+                <li>
+                  <strong>Si pagás por transferencia</strong>: el comprobante
+                  que subís (imagen o PDF). Puede incluir tu nombre, tu banco,
+                  datos de tu cuenta y el importe.
+                </li>
+                <li>
+                  <strong>Si nos escribís</strong> por email o WhatsApp: tus
+                  datos de contacto y el contenido de tu consulta.
+                </li>
+                <li>
+                  <strong>Si usás el Botón de arrepentimiento</strong>: número
+                  de pedido, nombre, email y, si los cargás, DNI, la fecha en
+                  que recibiste el producto y tus comentarios. Se guardan junto
+                  con la solicitud y su código de identificación.
+                </li>
+              </ul>
+              <h3>Datos que se generan cuando usás el Sitio</h3>
+              <ul>
+                <li>
+                  <strong>Pedidos</strong>: productos, cantidades, precios,
+                  costo de envío, recargos, cuotas, medio de pago, estado del
+                  pedido y su historial con fecha y hora, y código de
+                  seguimiento del envío.
+                </li>
+                <li><strong>Notas de venta</strong> de los pedidos pagados.</li>
+                <li><strong>Favoritos</strong>: los productos que guardás.</li>
+                <li>
+                  <strong>Reservas</strong>: producto, cantidad, seña,
+                  vencimiento y tus datos de contacto.
+                </li>
+                <li>
+                  <strong>Notificaciones</strong> sobre tus pedidos y si las
+                  leíste.
+                </li>
+                <li>
+                  <strong>Carrito</strong>: se guarda solo en tu navegador, no
+                  en nuestros servidores.
+                </li>
+              </ul>
+              <h3>Datos que recibimos de terceros</h3>
+              <ul>
+                <li>
+                  <strong>Google</strong>, si entrás con tu cuenta de Google:
+                  nombre, email, foto de perfil y el identificador de tu cuenta
+                  de Google, según lo que autorices.
+                </li>
+                <li>
+                  <strong>Mercado Pago</strong>, si pagás con tarjeta: estado
+                  del pago, identificadores de la operación, medio de pago,
+                  cuotas, marca de la tarjeta y sus últimos cuatro dígitos.
+                  <strong>
+                    Nunca recibimos ni guardamos el número completo de tu
+                    tarjeta, su vencimiento ni el código de seguridad.
+                  </strong>
+                  Los cargás en campos seguros de Mercado Pago, que los procesa
+                  directamente.
+                </li>
+              </ul>
+              <h3>Datos técnicos</h3>
+              <p>
+                Para mantener tu sesión iniciada, tu navegador guarda un
+                identificador de sesión en el almacenamiento local. Nuestros
+                proveedores de hosting y de autenticación registran datos
+                técnicos de cada acceso, como la dirección IP, el navegador y la
+                fecha y hora, para operar y proteger el servicio.
+                Al cargar el Sitio, tu navegador también se conecta a servicios
+                de terceros: Google Fonts (tipografías), jsDelivr (librerías) y,
+                en la página de pago, el SDK de Mercado Pago, que puede
+                recolectar datos del dispositivo para prevenir fraudes. No usamos
+                herramientas de analítica ni de publicidad. El detalle está en
+                la <a href="/cookies">Política de cookies</a>.
+              </p>
+              <h3>Datos que no pedimos</h3>
+              <p>
+                No pedimos datos sensibles (origen racial o étnico, opiniones
+                políticas, convicciones religiosas, afiliación sindical, salud
+                o vida sexual). Te pedimos que no los incluyas en tus mensajes.
+              </p>
+            </section>
+
+            <section class="legal-section" id="finalidades">
+              <h2>Para qué usamos tus datos y con qué base legal</h2>
+              <p>
+                Usamos tus datos solo para estas finalidades, y no para otras
+                incompatibles con ellas (art. 4 de la Ley 25.326):
+              </p>
+              <ul>
+                <li>
+                  <strong>Crear y administrar tu cuenta</strong>: perfil,
+                  favoritos, historial de compras y notificaciones.
+                </li>
+                <li>
+                  <strong>Procesar tus pedidos y pagos</strong>: validar stock,
+                  cobrar a través de Mercado Pago o verificar tu transferencia.
+                </li>
+                <li>
+                  <strong>Entregar tus compras</strong>: preparar y despachar el
+                  envío e informarte el seguimiento.
+                </li>
+                <li>
+                  <strong>Avisarte el estado de tus pedidos</strong> por las
+                  notificaciones de tu cuenta.
+                </li>
+                <li>
+                  <strong>Atención al cliente</strong>: responder consultas y
+                  reclamos, y gestionar garantías, cambios y arrepentimientos.
+                </li>
+                <li>
+                  <strong>Emitir la nota de venta y cumplir obligaciones
+                  legales</strong>, y responder
+                  requerimientos de autoridades competentes.
+                </li>
+                <li>
+                  <strong>Prevenir fraudes y proteger el Sitio</strong>:
+                  detectar pagos o comprobantes fraudulentos y accesos no
+                  autorizados.
+                </li>
+                <li>
+                  <strong>Enviarte ofertas y novedades</strong>, solo si nos
+                  diste tu consentimiento.
+                </li>
+              </ul>
+              <p>
+                <strong>Base legal.</strong> Casi todos estos tratamientos son
+                necesarios para cumplir el contrato de compra que celebrás con
+                nosotros, o para cumplir obligaciones legales. En esos casos la
+                ley no exige tu consentimiento (art. 5, inc. 2, de la Ley
+                25.326). La prevención de fraude la hacemos como parte de la
+                ejecución segura del contrato.
+                Las comunicaciones comerciales requieren tu consentimiento
+                previo, libre, expreso e informado (art. 5).
+              </p>
+              <h3>Comunicaciones comerciales</h3>
+              <p>
+                Solo te enviamos ofertas y novedades si lo elegiste al
+                registrarte o después. Podés retirar tu consentimiento en
+                cualquier momento, sin costo y sin dar motivo, escribiendo a
+                <a data-legal="emailPrivacidad" data-legal-link="email"></a>.
+                Cada comunicación comercial va a incluir una forma simple de
+                darte de baja (art. 27 de la Ley 25.326).
+                No hacemos perfiles publicitarios ni compartimos tus datos con
+                terceros para que te envíen publicidad.
+              </p>
+            </section>
+
+            <section class="legal-section" id="destinatarios">
+              <h2>Con quién compartimos tus datos</h2>
+              <p>
+                <strong>No vendemos ni alquilamos tus datos personales.</strong>
+                Los compartimos solo con quienes los necesitan para las
+                finalidades anteriores:
+              </p>
+              <h3>Proveedores que tratan datos por cuenta nuestra</h3>
+              <ul>
+                <li>
+                  <strong>Supabase</strong>: base de datos, autenticación,
+                  almacenamiento de archivos (fotos de perfil y comprobantes) y
+                  notificaciones en tiempo real.
+                </li>
+                <li>
+                  <strong>Vercel</strong>: alojamiento del Sitio y de las
+                  funciones del servidor que procesan los pagos.
+                </li>
+              </ul>
+              <p>
+                Solo pueden usar los datos para prestarnos el servicio, con
+                medidas de seguridad y confidencialidad (art. 25 de la Ley
+                25.326).
+              </p>
+              <h3>Terceros que reciben datos para prestar su propio servicio</h3>
+              <ul>
+                <li>
+                  <strong>Mercado Pago</strong>, para procesar los pagos con
+                  tarjeta y prevenir fraudes. Recibe tu nombre, email, DNI,
+                  teléfono y dirección, los productos y el importe del pedido.
+                  Trata esos datos según su propia política de privacidad.
+                </li>
+                <li>
+                  <strong>Google</strong>, si elegís entrar con tu cuenta de
+                  Google, según su propia política de privacidad.
+                </li>
+                <li>
+                  <strong>Correo Argentino</strong>, para entregar tu pedido:
+                  nombre, dirección y teléfono de contacto.
+                </li>
+                <li>
+                  <strong>Asesores contables y legales</strong>, con deber de
+                  confidencialidad, cuando sea necesario para cumplir
+                  obligaciones o defender nuestros derechos.
+                </li>
+                <li>
+                  <strong>Autoridades</strong> (por ejemplo, la justicia), cuando una ley o una orden competente lo exija.
+                </li>
+              </ul>
+            </section>
+
+            <section class="legal-section" id="transferencias">
+              <h2>Transferencia internacional de datos</h2>
+              <p>Algunos proveedores alojan los datos fuera de la Argentina:</p>
+              <ul>
+                <li>
+                  <strong>Supabase</strong>: la base de datos y los archivos
+                  están alojados en la región de São Paulo, Brasil (AWS
+                  sa-east-1).
+                </li>
+                <li>
+                  <strong>Vercel</strong>: el Sitio se distribuye por una red
+                  global. Las funciones del servidor corren en los Estados Unidos.
+                </li>
+                <li>
+                  <strong>Google</strong> y <strong>jsDelivr</strong> operan
+                  con servidores en distintos países.
+                </li>
+              </ul>
+              <p>
+                La Ley 25.326 permite transferir datos a países con un nivel de
+                protección adecuado o cuando se adoptan garantías suficientes,
+                como cláusulas contractuales de protección de datos (art. 12 de
+                la Ley 25.326, su reglamentación y la Disposición DNPDP N°
+                60/2016). Para estas transferencias nos basamos en los acuerdos
+                de tratamiento de datos de cada proveedor.
+              </p>
+            </section>
+
+            <section class="legal-section" id="conservacion">
+              <h2>Cuánto tiempo guardamos tus datos</h2>
+              <ul>
+                <li>
+                  <strong>Cuenta, perfil, favoritos y notificaciones</strong>:
+                  mientras tu cuenta esté activa. Si pedís la baja, los
+                  eliminamos.
+                </li>
+                <li>
+                  <strong>Pedidos, notas de venta, comprobantes de
+                  transferencia, datos de pago y solicitudes de
+                  arrepentimiento</strong>: el tiempo que exigen
+                  las normas contables e impositivas, que puede llegar a 10 años
+                  (art. 328 del Código Civil y Comercial), aunque des de baja tu
+                  cuenta. Durante ese plazo solo los usamos para cumplir esas
+                  obligaciones o para atender reclamos.
+                </li>
+                <li>
+                  <strong>Reservas</strong>: mientras estén vigentes y, después,
+                  por el mismo plazo que los pedidos si hubo seña.
+                </li>
+                <li>
+                  <strong>Consentimiento para comunicaciones
+                  comerciales</strong>: hasta que lo retires.
+                </li>
+                <li>
+                  <strong>Consultas por email o WhatsApp</strong>: mientras
+                  sean necesarias para atenderte y hacer el seguimiento.
+                </li>
+                <li>
+                  <strong>Carrito y sesión</strong>: quedan en tu navegador
+                  hasta que cierres sesión o borres sus datos.
+                </li>
+              </ul>
+              <p>
+                Cuando vence el plazo, eliminamos los datos o los
+                anonimizamos para que ya no puedan asociarse a vos. Hoy la
+                supresión se hace a pedido, por el procedimiento de la sección
+                <a href="#derechos">Tus derechos</a>.
+              </p>
+            </section>
+
+            <section class="legal-section" id="seguridad">
+              <h2>Seguridad</h2>
+              <p>
+                Tomamos medidas técnicas y organizativas razonables para
+                proteger tus datos (art. 9 de la Ley 25.326):
+              </p>
+              <ul>
+                <li>
+                  Las comunicaciones entre tu navegador y el Sitio viajan
+                  cifradas (HTTPS).
+                </li>
+                <li>
+                  La base de datos aplica reglas de acceso fila por fila: cada
+                  cliente solo puede ver sus propios datos, pedidos,
+                  comprobantes y notificaciones.
+                </li>
+                <li>
+                  Los comprobantes de transferencia se guardan en un
+                  almacenamiento privado. Solo pueden verlos el cliente que los
+                  subió y los administradores.
+                </li>
+                <li>
+                  El acceso al panel de administración está limitado a una
+                  lista cerrada de cuentas autorizadas.
+                </li>
+                <li>
+                  Los datos de tarjeta no pasan por nuestros servidores: los
+                  procesa Mercado Pago.
+                </li>
+                <li>
+                  Las claves secretas de los servicios se usan solo en el
+                  servidor, nunca en el navegador.
+                </li>
+                <li>
+                  Según informa Supabase, los datos almacenados están cifrados
+                  en reposo.
+                </li>
+              </ul>
+              <p>
+                Tené en cuenta que la foto de perfil se guarda en un
+                almacenamiento público: cualquiera que tenga su dirección web
+                puede verla.
+              </p>
+              <p>
+                Ningún sistema es completamente invulnerable. Si ocurre un
+                incidente de seguridad que afecte tus datos, te vamos a avisar
+                y vamos a tomar las medidas necesarias, incluida la
+                comunicación a la AAIP cuando corresponda.
+              </p>
+            </section>
+
+            <section class="legal-section" id="derechos">
+              <h2>Tus derechos y cómo ejercerlos</h2>
+              <p>Como titular de los datos tenés derecho a:</p>
+              <ul>
+                <li>
+                  <strong>Acceso</strong>: saber qué datos tuyos tenemos, de
+                  dónde vienen y para qué los usamos. Te respondemos dentro de
+                  los 10 días corridos. Podés ejercerlo gratis cada 6 meses, o
+                  antes si acreditás un interés legítimo (art. 14 de la Ley
+                  25.326).
+                </li>
+                <li>
+                  <strong>Rectificación y actualización</strong> de datos
+                  inexactos o incompletos, y <strong>supresión</strong> de los
+                  que no corresponda conservar. Te respondemos dentro de los 5
+                  días hábiles (art. 16). Podés actualizar tus datos personales,
+                  tu dirección y tu foto directamente desde tu
+                  <a href="/perfil">perfil</a>.
+                </li>
+                <li>
+                  <strong>Oposición</strong> y <strong>retiro del
+                  consentimiento</strong> para comunicaciones comerciales, en
+                  cualquier momento (art. 27).
+                </li>
+                <li>
+                  <strong>Copia de tus datos</strong> en un formato de uso
+                  común, si la pedís.
+                </li>
+              </ul>
+              <p>
+                Para ejercerlos, escribinos a
+                <a data-legal="emailPrivacidad" data-legal-link="email"></a>
+                desde el email de tu cuenta, o indicanos datos que nos permitan
+                verificar tu identidad. Es gratuito. Si no te respondemos en
+                plazo o la respuesta no te satisface, podés reclamar ante la
+                AAIP o iniciar una acción de hábeas data (art. 33 de la Ley
+                25.326).
+              </p>
+              <div class="legal-note">
+                <p>
+                  <strong>
+                    La AGENCIA DE ACCESO A LA INFORMACIÓN PÚBLICA, en su
+                    carácter de Órgano de Control de la Ley N° 25.326, tiene la
+                    atribución de atender las denuncias y reclamos que
+                    interpongan quienes resulten afectados en sus derechos por
+                    incumplimiento de las normas vigentes en materia de
+                    protección de datos personales.
+                  </strong>
+                </p>
+                <p>
+                  Agencia de Acceso a la Información Pública · Av. Pte. Julio A.
+                  Roca 710, piso 2, Ciudad Autónoma de Buenos Aires ·
+                  <a href="mailto:datospersonales@aaip.gob.ar">datospersonales@aaip.gob.ar</a>
+                  ·
+                  <a href="https://www.argentina.gob.ar/aaip" target="_blank" rel="noopener">argentina.gob.ar/aaip</a>
+                </p>
+              </div>
+            </section>
+
+            <section class="legal-section" id="menores">
+              <h2>Menores de edad</h2>
+              <p>
+                El Sitio no está dirigido a menores de 18 años, y para crear una
+                cuenta y comprar hay que ser mayor de edad. No recolectamos
+                datos de menores a sabiendas. Si detectamos una cuenta de una
+                persona menor, o si su madre, padre o tutor nos avisa a
+                <a data-legal="emailPrivacidad" data-legal-link="email"></a>,
+                la damos de baja y eliminamos sus datos, salvo los que debamos
+                conservar por ley.
+              </p>
+            </section>
+
+            <section class="legal-section" id="automatizadas">
+              <h2>Decisiones automatizadas y prevención de fraude</h2>
+              <p>
+                El Sitio hace algunas validaciones automáticas al comprar: por
+                ejemplo, verifica el stock y el precio, y cancela el pedido si
+                Mercado Pago rechaza el pago. Mercado Pago usa sus propios
+                sistemas automatizados para aprobar o rechazar pagos y prevenir
+                fraudes. Esas decisiones son suyas, y nosotros solo recibimos el
+                resultado.
+              </p>
+              <p>
+                ComputerSell no arma perfiles ni toma decisiones basadas
+                únicamente en tratamientos automatizados que te afecten de forma
+                significativa. Si un pago fue rechazado, podés intentar con otro
+                medio (por ejemplo, transferencia) o escribirnos para que una
+                persona revise tu caso. Los comprobantes de transferencia los
+                revisa siempre una persona.
+              </p>
+            </section>
+
+            <section class="legal-section" id="cambios">
+              <h2>Cambios en esta Política</h2>
+              <p>
+                Podemos actualizar esta Política para reflejar cambios legales
+                o en el funcionamiento del Sitio. Cada versión se publica con su
+                número y su fecha de vigencia. La actual es la versión
+                <span data-legal="version"></span>, vigente desde el
+                <time data-legal="fechaVigencia"></time>. Si el cambio es
+                relevante, se lo avisamos a los usuarios registrados antes de
+                que entre en vigencia. Si queremos usar tus datos para una
+                finalidad nueva que requiera consentimiento, te lo vamos a
+                pedir.
+              </p>
+            </section>
+
+            <section class="legal-section" id="contacto">
+              <h2>Contacto</h2>
+              <dl class="legal-data">
+                <div><dt>Datos personales</dt><dd><a data-legal="emailPrivacidad" data-legal-link="email"></a></dd></div>
+                <div><dt>Consultas generales</dt><dd><a data-legal="emailContacto" data-legal-link="email"></a></dd></div>
+                <div><dt>Teléfono</dt><dd><a data-legal="telefono" data-legal-link="tel"></a></dd></div>
+              </dl>
+              <p>
+                Ver también los
+                <a href="/terminos">Términos y condiciones</a> y la
+                <a href="/cookies">Política de cookies</a>.
+              </p>
+            </section>
+
+            <!-- "Otros documentos": lo completa assets/js/pages/legal.js -->
+            <nav class="legal-related" id="legalRelated" aria-label="Otros documentos legales"></nav>
+          </article>
+        </div>
+      </main>
+    </div>
+
+    <footer class="site-footer">
+      <div class="footer-inner">
+        <div class="footer-top">
+          <div class="footer-col footer-brand">
+            <div class="logo">
+              <img src="/assets/images/isotipo.png" alt="" />
+              <span>ComputerSell</span>
+            </div>
+            <p>
+              Equipos armados a medida, componentes originales y garantía
+              oficial. Gaming, oficina y diseño: la PC que necesitás, al precio
+              justo.
+            </p>
+            <div class="footer-social">
+              <a href="#" aria-label="Instagram"
+                ><svg class="ic-sm"><use href="#ic-instagram" /></svg>
+              </a>
+              <a href="#" aria-label="Mercado Libre"
+                ><svg class="ic-sm"><use href="#ic-mercadolibre" /></svg>
+              </a>
+              <a href="#" aria-label="WhatsApp"
+                ><svg class="ic-sm"><use href="#ic-whatsapp" /></svg>
+              </a>
+            </div>
+          </div>
+
+          <!-- Productos -->
+          <div class="footer-col">
+            <h3>Productos</h3>
+            <ul>
+              <li><a href="#">PCs Armadas</a></li>
+              <li><a href="#">Notebooks</a></li>
+              <li><a href="#">Componentes</a></li>
+              <li><a href="#">Periféricos</a></li>
+              <li><a href="#">Ofertas</a></li>
+            </ul>
+          </div>
+
+          <!-- Ayuda -->
+          <div class="footer-col">
+            <h3>Ayuda</h3>
+            <ul>
+              <li><a href="#">Preguntas frecuentes</a></li>
+              <li><a href="/envios">Envíos</a></li>
+              <li><a href="/cambios-y-devoluciones">Cambios y devoluciones</a></li>
+              <li><a href="#">Garantía</a></li>
+              <li><a href="#">Métodos de pago</a></li>
+            </ul>
+          </div>
+
+          <!-- Información legal -->
+          <div class="footer-col">
+            <h3>Información legal</h3>
+            <ul>
+              <li><a href="/terminos">Términos y condiciones</a></li>
+              <li><a href="/privacidad">Política de privacidad</a></li>
+              <li><a href="/cookies">Política de cookies</a></li>
+              <li><a href="/politica-de-venta">Política de venta</a></li>
+              <li><a href="/envios">Envíos</a></li>
+              <li><a href="/cambios-y-devoluciones">Cambios y devoluciones</a></li>
+              <li><a href="/arrepentimiento">Arrepentimiento</a></li>
+              <li><a href="/informacion-legal">Información legal</a></li>
+            </ul>
+          </div>
+
+          <!-- Contacto -->
+          <div class="footer-col">
+            <h3>Contacto</h3>
+            <ul class="footer-contact">
+              <li>
+                <svg class="ic-sm"><use href="#ic-phone" /></svg>
+                <span>Tel:</span><a href="tel:+5491123589249" data-legal="telefono" data-legal-link="tel">+54 9 11 2358-9249</a>
+              </li>
+              <li>
+                <svg class="ic-sm"><use href="#ic-mail" /></svg>
+                <span>Email:</span><a href="mailto:contacto@computersell.com.ar" data-legal="emailContacto" data-legal-link="email">contacto@computersell.com.ar</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Botón de arrepentimiento (Disp. 954/2025) -->
+        <div class="footer-legal">
+          <a class="btn-arrepentimiento" href="/arrepentimiento">Botón de arrepentimiento</a>
+        </div>
+
+        <div class="footer-bottom">
+          <span
+            >© <span id="footerYear">2026</span> ComputerSell. Todos los
+            derechos reservados.</span
+          >
+          <div class="footer-bottom-links">
+            <a href="/terminos">Términos y condiciones</a>
+            <a href="/privacidad">Privacidad</a>
+            <button type="button" class="cc-link" data-cookie-settings>Configurar cookies</button>
+          </div>
+          <div class="footer-payments">Visa · Mastercard · Mercado Pago</div>
+        </div>
+      </div>
+    </footer>
+
+    <script src="/assets/js/components/navbar.js"></script>
+    <script src="/assets/js/components/menu.js"></script>
+    <script type="module" src="/assets/js/components/footer-legal.js"></script>
+    <script src="/assets/js/core/env.js"></script>
+    <script src="/assets/js/core/utils.js"></script>
+    <script type="module" src="/assets/js/core/favorites.js"></script>
+    <script type="module" src="/assets/js/core/account.js"></script>
+    <script src="/assets/js/core/cart.js"></script>
+    <script type="module" src="/assets/js/pages/legal.js"></script>
+    <script type="module" src="/assets/js/components/cookie-consent.js"></script>
+  </body>
+</html>

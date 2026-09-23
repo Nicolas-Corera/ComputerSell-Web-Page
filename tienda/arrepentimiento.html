@@ -1,0 +1,506 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Botón de arrepentimiento — ComputerSell</title>
+    <meta name="description" content="Botón de arrepentimiento de ComputerSell: revocá tu compra dentro de los 10 días corridos, sin costo y sin necesidad de registrarte." />
+    <link rel="canonical" href="/arrepentimiento" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="ComputerSell" />
+    <meta property="og:locale" content="es_AR" />
+    <meta property="og:title" content="Botón de arrepentimiento — ComputerSell" />
+    <meta property="og:description" content="Botón de arrepentimiento de ComputerSell: revocá tu compra dentro de los 10 días corridos, sin costo y sin necesidad de registrarte." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15/dist/gsap.min.js"></script>
+    <link rel="stylesheet" href="/assets/css/base.css" />
+    <link rel="stylesheet" href="/assets/css/components/cookie-consent.css" />
+    <link rel="stylesheet" href="/assets/css/loader.css" />
+    <link rel="stylesheet" href="/assets/css/header.css" />
+    <link rel="stylesheet" href="/assets/css/footer.css" />
+    <link rel="stylesheet" href="/assets/css/components/buttons.css" />
+    <link rel="stylesheet" href="/assets/css/components/toast.css" />
+    <link rel="stylesheet" href="/assets/css/components/product-card.css" />
+    <link rel="stylesheet" href="/assets/css/components/cart-drawer.css" />
+    <link rel="stylesheet" href="/assets/css/components/menu-drawer.css" />
+    <link rel="stylesheet" href="/assets/css/components/page.css" />
+    <link rel="stylesheet" href="/assets/css/components/qty-selector.css" />
+    <link rel="stylesheet" href="/assets/css/components/forms.css" />
+    <link rel="stylesheet" href="/assets/css/pages/legal.css" />
+    <link rel="stylesheet" href="/assets/css/responsive.css" />
+  </head>
+
+  <body class="is-loading" id="inicio" data-page="legal">
+    <script src="/assets/js/sprites/sprite.js"></script>
+    <div class="loader-wrap"></div>
+    <script src="/assets/js/components/loader.js"></script>
+    <div class="site" id="site">
+      <div class="marquee">
+        <div class="marquee-content">
+          <span class="marquee-item"
+            ><svg class="ic-sm"><use href="#ic-percent_discount" /></svg>
+            Ofertas imperdibles en selectos productos</span
+          >
+          <span>•</span>
+          <span class="marquee-item"
+            ><svg class="ic-sm"><use href="#ic-shipping_truck" /></svg>Envíos
+            gratias en productos seleccionados</span
+          >
+          <span>•</span>
+          <span class="marquee-item"
+            ><svg class="ic-sm"><use href="#ic-sell_tag" /></svg>Hasta 3 cuotas
+            sin interes en compras superiores al $1.200.000</span
+          >
+        </div>
+      </div>
+      <header class="navbar" id="navbar">
+        <div class="logo" onclick="window.location.href = '/'">
+          <img src="/assets/images/isotipo.png" alt="" />
+          <span>ComputerSell</span>
+        </div>
+        <nav class="listItems">
+          <li class="item" id="productsMenuBtn">
+            <span class="item-spn2">Productos</span>
+          </li>
+          <li
+            class="item"
+            onclick="
+              window.location.href = '/productos.html?categoria=computadoras'
+            "
+          >
+            <span class="item-spn2">Computadoras</span>
+          </li>
+          <li
+            class="item"
+            onclick="
+              window.location.href = '/productos.html?categoria=notebooks'
+            "
+          >
+            <span class="item-spn2">Notebooks</span>
+          </li>
+          <li class="item"><span class="item-spn2">Nosotros</span></li>
+          <li class="item"><span class="item-spn2">Contacto</span></li>
+        </nav>
+        <div class="actionIcons">
+          <li class="actIcon" id="favBtn">
+            <span class="cartIconWrap">
+              <svg class="ic-md"><use href="#ic-favorite" /></svg>
+              <span class="favBadge" id="favBadge"></span>
+            </span>
+            <span class="actLabel">FAVORITOS</span>
+          </li>
+          <li class="actIcon" id="accountBtn">
+            <svg class="ic-md"><use href="#ic-person" /></svg>
+            <span class="actLabel">ACCEDER</span>
+          </li>
+          <li class="actIcon" id="cartBtn">
+            <span class="cartIconWrap">
+              <svg class="ic-md"><use href="#ic-shopping_bag" /></svg>
+              <span class="cartBadge" id="cartBadge"></span>
+            </span>
+            <span class="actLabel">CARRITO</span>
+          </li>
+          <li class="actIcon navToggle" id="navToggle" aria-label="Abrir menú">
+            <svg class="ic-md"><use href="#ic-menu" /></svg>
+          </li>
+        </div>
+      </header>
+
+      <main class="container page-container">
+        <div class="page-head">
+          <div>
+            <p class="legal-kicker">Información legal</p>
+            <h1>Botón de arrepentimiento</h1>
+          </div>
+          <span class="legal-updated"
+            >Última actualización:
+            <time data-legal="fechaVigencia"></time> · Versión
+            <span data-legal="version"></span
+          ></span>
+        </div>
+
+        <div class="legal-layout">
+          <aside class="legal-aside">
+            <details class="legal-toc" id="legalToc" open>
+              <summary>
+                Contenido
+                <svg class="ic-sm"><use href="#ic-expand_more" /></svg>
+              </summary>
+              <!-- Lo arma assets/js/pages/legal.js con las secciones -->
+              <ol></ol>
+            </details>
+          </aside>
+
+          <!-- data-updated="AAAA-MM-DD": fecha propia de este documento (si
+               no está, se usa LEGAL.fechaVigencia) -->
+          <article class="legal-doc" id="legalDoc">
+            <p class="legal-lead">
+              Si compraste en <strong data-legal="nombreFantasia"></strong> y te
+              arrepentiste, podés revocar la compra dentro de los
+              <strong>10 días corridos</strong>, sin costo y sin dar motivos.
+              Completá el formulario de esta página: <strong>no hace falta que
+              tengas cuenta ni que inicies sesión</strong>.
+            </p>
+
+            <section class="legal-section" id="derecho">
+              <h2>Tu derecho a arrepentirte</h2>
+              <p>
+                En las compras a distancia, como las que hacés en este sitio,
+                tenés derecho a revocar la aceptación dentro de los
+                <strong>10 días corridos</strong> contados desde que recibiste
+                el producto o desde que se celebró el contrato, lo último que
+                ocurra. No tenés que dar motivos y no tiene ningún costo ni
+                responsabilidad para vos (art. 34 de la Ley 24.240 y arts. 1110
+                a 1116 del Código Civil y Comercial). Es un derecho
+                irrenunciable: ninguna cláusula puede quitártelo ni limitarlo.
+              </p>
+              <p>
+                El botón de arrepentimiento está en el pie de todas las páginas
+                del sitio y en el detalle de cada pedido. Al usarlo no te pedimos
+                registración previa ni trámites adicionales. Solo te pedimos
+                datos que nos permitan identificar la compra
+                (Disposiciones SSDCyLC N° 954/2025 y N° 3/2026).
+              </p>
+            </section>
+
+            <section class="legal-section" id="solicitud">
+              <h2>Cómo pedirlo</h2>
+              <p>
+                Completá el formulario con el número de pedido (lo ves en la
+                pantalla de confirmación y en "Mis compras" de tu perfil, por
+                ejemplo
+                <strong>CS-10480</strong>) y el email con el que compraste. Al
+                enviarlo, te mostramos en pantalla el
+                <strong>código de identificación</strong> de tu solicitud.
+              </p>
+
+              <form class="legal-form" id="revocationForm" novalidate>
+                <div class="formGrid">
+                  <label class="field">
+                    <span>Número de pedido *</span>
+                    <input type="text" name="pedido" list="revocationOrders" placeholder="CS-10480" autocomplete="off" required />
+                    <datalist id="revocationOrders"></datalist>
+                  </label>
+                  <label class="field">
+                    <span>Email de la compra *</span>
+                    <input type="email" name="email" autocomplete="email" placeholder="nombre@email.com" required />
+                    <small class="field-hint" data-email-hint hidden>Iniciaste sesión: si el pedido es tuyo, no hace falta.</small>
+                  </label>
+                  <label class="field">
+                    <span>Nombre y apellido *</span>
+                    <input type="text" name="nombre" autocomplete="name" maxlength="120" required />
+                  </label>
+                  <label class="field">
+                    <span>DNI (opcional)</span>
+                    <input type="text" name="dni" inputmode="numeric" maxlength="12" />
+                  </label>
+                  <label class="field">
+                    <span>Fecha en que recibiste el producto (opcional)</span>
+                    <input type="date" name="recibido" />
+                    <small class="field-hint">Si ya lo recibiste, nos ayuda a calcular el plazo.</small>
+                  </label>
+                  <label class="field is-full">
+                    <span>Comentarios (opcional)</span>
+                    <textarea name="motivo" rows="3" maxlength="1000" placeholder="No hace falta que expliques por qué. Si querés devolver solo algunos productos del pedido, indicalos acá."></textarea>
+                  </label>
+                </div>
+                <p class="legal-form-note">
+                  Usamos estos datos solo para gestionar tu solicitud, según la
+                  <a href="/privacidad">Política de privacidad</a>.
+                </p>
+                <p class="legal-form-error" id="revocationError" role="alert" tabindex="-1" hidden></p>
+                <button type="submit" class="btn-arrepentimiento">Enviar solicitud de arrepentimiento</button>
+              </form>
+
+              <div class="legal-form-result" id="revocationResult" role="status" tabindex="-1" hidden>
+                <h3>Recibimos tu solicitud</h3>
+                <p data-r="existing" hidden>
+                  Ya tenías una solicitud en curso para este pedido. Estos son
+                  sus datos:
+                </p>
+                <dl class="legal-data">
+                  <div><dt>Código de identificación</dt><dd><strong data-r="code"></strong></dd></div>
+                  <div><dt>Pedido</dt><dd data-r="order"></dd></div>
+                  <div><dt>Fecha de la solicitud</dt><dd data-r="date"></dd></div>
+                  <div><dt>Plazo calculado hasta</dt><dd data-r="deadline"></dd></div>
+                </dl>
+                <p>
+                  Guardá el código. Si tenés cuenta, también lo vas a ver en
+                  tus notificaciones y en el historial del pedido. Te vamos a
+                  contactar para coordinar la devolución del producto y el
+                  reintegro.
+                </p>
+                <div class="legal-actions">
+                  <button type="button" class="cc-btn" id="revocationPrint">Imprimir o guardar constancia</button>
+                </div>
+              </div>
+
+              <div id="revocationMine" hidden>
+                <h3>Tus solicitudes</h3>
+                <div class="legal-table-wrap">
+                  <table class="legal-table">
+                    <thead>
+                      <tr><th scope="col">Código</th><th scope="col">Pedido</th><th scope="col">Fecha</th><th scope="col">Estado</th></tr>
+                    </thead>
+                    <tbody></tbody>
+                  </table>
+                </div>
+              </div>
+
+              <p>
+                Si no podés usar el formulario, escribinos a
+                <a data-legal="emailContacto" data-legal-link="email"></a> con
+                el número de pedido, y te enviamos el código por el mismo medio.
+              </p>
+            </section>
+
+            <section class="legal-section" id="despues">
+              <h2>Qué pasa después</h2>
+              <ol>
+                <li>
+                  <strong>Código de identificación</strong>: lo recibís en el
+                  momento, en pantalla. Si pediste el arrepentimiento por
+                  email, te lo enviamos por email dentro de las 24 horas.
+                </li>
+                <li>
+                  <strong>Contacto</strong>: dentro de las 48 horas hábiles te
+                  escribimos para coordinar la devolución.
+                </li>
+                <li>
+                  <strong>Pedido no despachado</strong>: si todavía no lo
+                  enviamos, lo cancelamos y te reintegramos el total.
+                </li>
+                <li>
+                  <strong>Pedido despachado o entregado</strong>: coordinamos
+                  que nos devuelvas el producto y te reintegramos el dinero.
+                </li>
+              </ol>
+              <p>
+                Podés seguir el estado de tu solicitud (recibida, en curso,
+                reintegrada) en esta misma página si iniciás sesión, o
+                consultarnos con el código.
+              </p>
+            </section>
+
+            <section class="legal-section" id="devolucion">
+              <h2>Devolución del producto</h2>
+              <ul>
+                <li>
+                  Tenés que poner el producto a nuestra disposición en el
+                  estado en que lo recibiste, con sus accesorios, manuales y
+                  regalos promocionales, si los hubo. Podés haberlo revisado
+                  y probado de la forma necesaria para conocerlo, como harías en
+                  un local.
+                </li>
+                <li>
+                  Si conservás la caja, devolvelo en ella. Que no tengas la
+                  caja original no te hace perder el derecho.
+                </li>
+                <li>
+                  <strong>Los gastos de devolución son a cargo de
+                  ComputerSell</strong> (art. 34 de la Ley 24.240 y art. 1115
+                  del Código Civil y Comercial). Te enviamos una etiqueta de
+                  envío prepaga de Correo Argentino o coordinamos que el correo lo busque en tu domicilio, sin
+                  costo.
+                </li>
+              </ul>
+            </section>
+
+            <section class="legal-section" id="reintegro">
+              <h2>Reintegro</h2>
+              <p>
+                Te devolvemos el <strong>precio íntegro</strong>: productos,
+                envío y recargos por medio de pago o por cuotas, sin ningún
+                descuento. Lo reintegramos por el mismo medio con el que
+                pagaste:
+              </p>
+              <ul>
+                <li>
+                  <strong>Tarjeta</strong>: a través de Mercado Pago. Se ve en
+                  tu resumen según los plazos de la entidad emisora (con
+                  crédito, puede aparecer en el resumen siguiente).
+                </li>
+                <li>
+                  <strong>Transferencia</strong>: a la cuenta de origen, o a
+                  otra de tu titularidad que nos indiques.
+                </li>
+              </ul>
+              <p>
+                Las restituciones son simultáneas (art. 1113 del Código Civil y
+                Comercial): iniciamos el reintegro cuando recibimos el producto
+                o cuando nos acreditás su envío, dentro de los 10 días hábiles.
+              </p>
+            </section>
+
+            <section class="legal-section" id="excepciones">
+              <h2>Excepciones</h2>
+              <p>
+                Según el art. 1116 del Código Civil y Comercial, salvo pacto en
+                contrario, el derecho de arrepentimiento no se aplica, entre
+                otros casos, a:
+              </p>
+              <ul>
+                <li>
+                  Productos confeccionados según las especificaciones del
+                  consumidor o claramente personalizados (por ejemplo, una PC
+                  armada a pedido con los componentes que elegiste).
+                </li>
+                <li>
+                  Programas informáticos o licencias que hayas desprecintado o
+                  activado, y contenidos digitales descargados o activados.
+                </li>
+              </ul>
+              <p>
+                Si una excepción se aplica, te lo informamos en la publicación
+                antes de que compres. Aunque no puedas arrepentirte, conservás la
+                garantía legal (ver
+                <a href="/cambios-y-devoluciones">Cambios y devoluciones</a>).
+              </p>
+            </section>
+
+            <section class="legal-section" id="diferencias">
+              <h2>Arrepentimiento, garantía y cambios</h2>
+              <p>
+                El arrepentimiento no requiere que el producto tenga una falla.
+                Si el producto tiene un defecto, usá la garantía; si querés
+                cambiarlo por otro, mirá las condiciones de
+                <a href="/cambios-y-devoluciones">Cambios y devoluciones</a>.
+              </p>
+            </section>
+
+            <section class="legal-section" id="contacto">
+              <h2>Contacto</h2>
+              <dl class="legal-data">
+                <div><dt>Email</dt><dd><a data-legal="emailContacto" data-legal-link="email"></a></dd></div>
+                <div><dt>WhatsApp</dt><dd><a data-legal="whatsapp" data-legal-link="whatsapp" target="_blank" rel="noopener"></a></dd></div>
+                <div><dt>Teléfono</dt><dd><a data-legal="telefono" data-legal-link="tel"></a></dd></div>
+                <div><dt>Horario</dt><dd><span data-legal="horarioAtencion"></span></dd></div>
+              </dl>
+            </section>
+
+            <!-- "Otros documentos": lo completa assets/js/pages/legal.js -->
+            <nav class="legal-related" id="legalRelated" aria-label="Otros documentos legales"></nav>
+          </article>
+        </div>
+      </main>
+    </div>
+
+    <footer class="site-footer">
+      <div class="footer-inner">
+        <div class="footer-top">
+          <div class="footer-col footer-brand">
+            <div class="logo">
+              <img src="/assets/images/isotipo.png" alt="" />
+              <span>ComputerSell</span>
+            </div>
+            <p>
+              Equipos armados a medida, componentes originales y garantía
+              oficial. Gaming, oficina y diseño: la PC que necesitás, al precio
+              justo.
+            </p>
+            <div class="footer-social">
+              <a href="#" aria-label="Instagram"
+                ><svg class="ic-sm"><use href="#ic-instagram" /></svg>
+              </a>
+              <a href="#" aria-label="Mercado Libre"
+                ><svg class="ic-sm"><use href="#ic-mercadolibre" /></svg>
+              </a>
+              <a href="#" aria-label="WhatsApp"
+                ><svg class="ic-sm"><use href="#ic-whatsapp" /></svg>
+              </a>
+            </div>
+          </div>
+
+          <!-- Productos -->
+          <div class="footer-col">
+            <h3>Productos</h3>
+            <ul>
+              <li><a href="#">PCs Armadas</a></li>
+              <li><a href="#">Notebooks</a></li>
+              <li><a href="#">Componentes</a></li>
+              <li><a href="#">Periféricos</a></li>
+              <li><a href="#">Ofertas</a></li>
+            </ul>
+          </div>
+
+          <!-- Ayuda -->
+          <div class="footer-col">
+            <h3>Ayuda</h3>
+            <ul>
+              <li><a href="#">Preguntas frecuentes</a></li>
+              <li><a href="/envios">Envíos</a></li>
+              <li><a href="/cambios-y-devoluciones">Cambios y devoluciones</a></li>
+              <li><a href="#">Garantía</a></li>
+              <li><a href="#">Métodos de pago</a></li>
+            </ul>
+          </div>
+
+          <!-- Información legal -->
+          <div class="footer-col">
+            <h3>Información legal</h3>
+            <ul>
+              <li><a href="/terminos">Términos y condiciones</a></li>
+              <li><a href="/privacidad">Política de privacidad</a></li>
+              <li><a href="/cookies">Política de cookies</a></li>
+              <li><a href="/politica-de-venta">Política de venta</a></li>
+              <li><a href="/envios">Envíos</a></li>
+              <li><a href="/cambios-y-devoluciones">Cambios y devoluciones</a></li>
+              <li><a href="/arrepentimiento">Arrepentimiento</a></li>
+              <li><a href="/informacion-legal">Información legal</a></li>
+            </ul>
+          </div>
+
+          <!-- Contacto -->
+          <div class="footer-col">
+            <h3>Contacto</h3>
+            <ul class="footer-contact">
+              <li>
+                <svg class="ic-sm"><use href="#ic-phone" /></svg>
+                <span>Tel:</span><a href="tel:+5491123589249" data-legal="telefono" data-legal-link="tel">+54 9 11 2358-9249</a>
+              </li>
+              <li>
+                <svg class="ic-sm"><use href="#ic-mail" /></svg>
+                <span>Email:</span><a href="mailto:contacto@computersell.com.ar" data-legal="emailContacto" data-legal-link="email">contacto@computersell.com.ar</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Botón de arrepentimiento (Disp. 954/2025) -->
+        <div class="footer-legal">
+          <a class="btn-arrepentimiento" href="/arrepentimiento">Botón de arrepentimiento</a>
+        </div>
+
+        <div class="footer-bottom">
+          <span
+            >© <span id="footerYear">2026</span> ComputerSell. Todos los
+            derechos reservados.</span
+          >
+          <div class="footer-bottom-links">
+            <a href="/terminos">Términos y condiciones</a>
+            <a href="/privacidad">Privacidad</a>
+            <button type="button" class="cc-link" data-cookie-settings>Configurar cookies</button>
+          </div>
+          <div class="footer-payments">Visa · Mastercard · Mercado Pago</div>
+        </div>
+      </div>
+    </footer>
+
+    <script src="/assets/js/components/navbar.js"></script>
+    <script src="/assets/js/components/menu.js"></script>
+    <script type="module" src="/assets/js/components/footer-legal.js"></script>
+    <script src="/assets/js/core/env.js"></script>
+    <script src="/assets/js/core/utils.js"></script>
+    <script type="module" src="/assets/js/core/favorites.js"></script>
+    <script type="module" src="/assets/js/core/account.js"></script>
+    <script src="/assets/js/core/cart.js"></script>
+    <script type="module" src="/assets/js/pages/legal.js"></script>
+    <script type="module" src="/assets/js/pages/arrepentimiento.js"></script>
+    <script type="module" src="/assets/js/components/cookie-consent.js"></script>
+  </body>
+</html>

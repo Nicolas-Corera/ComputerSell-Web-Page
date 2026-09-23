@@ -7,7 +7,8 @@ Todo lo que se ve en la tienda y en el panel sale de la base y se actualiza en t
 
 ```
 ├── tienda/                   páginas de la tienda (index, productos, detail, carrito, pago, perfil,
-│                             compra-detalle, favoritos, acceso, nosotros, contacto) → dominio raíz
+│                             compra-detalle, favoritos, acceso, nosotros, contacto) y páginas legales
+│                             (terminos, privacidad, …; base: plantilla-legal.html) → dominio raíz
 ├── dash/                     panel de administración (index = dashboard, login) + css/ y js/ propios
 │                             → subdominio dash.<dominio>
 ├── api/                      Vercel Functions: mp/pay.js (cobro con tarjeta) y mp/webhook.js
@@ -56,6 +57,23 @@ Comandos sueltos: `npm run db:push`, `npm run admins:sync`, `npm run auth:config
 | `PUBLIC_KEY` | Mercado Pago, pública: va al navegador vía `env.js` (SDK) |
 | `ACCESS_TOKEN` | Mercado Pago, secreta: solo `api/mp/*` |
 | `CLAVE_WEBHOOK` | clave secreta de los webhooks de Mercado Pago (valida `x-signature`) |
+
+## Páginas legales
+
+| Archivo | Qué tiene |
+| --- | --- |
+| `assets/js/config/seller.js` | Datos de quien vende (`SELLER`): los usan la nota de venta y las páginas legales |
+| `assets/js/config/legal.js` | `LEGAL`: nombre de la tienda y datos de contacto (toma lo que ya está en `SELLER`); `LEGAL_PAGES`: lista de documentos |
+| `assets/js/core/legal.js` | `fillLegal()`: completa `data-legal="campo"`, `data-legal-href` y `data-legal-if` |
+| `assets/js/pages/legal.js` | Índice con anclas, "Última actualización" y "Otros documentos" |
+| `assets/js/components/footer-legal.js` | Completa los datos de contacto del footer de todas las páginas |
+| `assets/js/components/cookie-consent.js` | Banner y configuración de cookies (`window.CookieConsent`): guarda la elección en `cs-cookie-consent` y solo carga scripts opcionales con consentimiento (`onConsent`, `loadScript` o `<script type="text/plain" data-consent="…">`) |
+| `assets/js/pages/arrepentimiento.js` | Formulario del Botón de arrepentimiento: llama a `request_revocation` (migración `0008`), sin exigir sesión (número de pedido + email) |
+| `tienda/plantilla-legal.html` | Plantilla para un documento nuevo (`tienda/<slug>.html` → `/<slug>`) |
+
+Los textos no llevan datos escritos a mano: `<span data-legal="emailContacto"></span>`. Lo que falta completar aparece
+como `[COMPLETAR: …]`, resaltado en la página y listado en la consola. Las páginas tienen `noindex` hasta que el texto
+esté aprobado.
 
 ## Envío y recargos del checkout
 

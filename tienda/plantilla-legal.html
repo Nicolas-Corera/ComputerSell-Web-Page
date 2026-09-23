@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!--
+      Plantilla de página legal. Para un documento nuevo: copiá este archivo
+      como tienda/<slug>.html (queda en /<slug> por cleanUrls), cambiá título,
+      descripción, h1 y secciones, y sumalo a LEGAL_PAGES en
+      assets/js/config/legal.js. Los datos del titular van con data-legal
+      (nunca escritos a mano). Sacá el noindex cuando el texto esté aprobado.
+    -->
+    <title>Documento legal — ComputerSell</title>
+    <meta name="description" content="Descripción breve del documento." />
+    <!-- canonical: cambiar /SLUG por el de la página (lo completa como URL absoluta assets/js/pages/legal.js) -->
+    <link rel="canonical" href="/SLUG" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="ComputerSell" />
+    <meta property="og:locale" content="es_AR" />
+    <meta property="og:title" content="Documento legal — ComputerSell" />
+    <meta property="og:description" content="Descripción breve del documento." />
+    <meta name="robots" content="noindex" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15/dist/gsap.min.js"></script>
+    <link rel="stylesheet" href="/assets/css/base.css" />
+    <link rel="stylesheet" href="/assets/css/components/cookie-consent.css" />
+    <link rel="stylesheet" href="/assets/css/loader.css" />
+    <link rel="stylesheet" href="/assets/css/header.css" />
+    <link rel="stylesheet" href="/assets/css/footer.css" />
+    <link rel="stylesheet" href="/assets/css/components/buttons.css" />
+    <link rel="stylesheet" href="/assets/css/components/toast.css" />
+    <link rel="stylesheet" href="/assets/css/components/product-card.css" />
+    <link rel="stylesheet" href="/assets/css/components/cart-drawer.css" />
+    <link rel="stylesheet" href="/assets/css/components/menu-drawer.css" />
+    <link rel="stylesheet" href="/assets/css/components/page.css" />
+    <link rel="stylesheet" href="/assets/css/components/qty-selector.css" />
+    <link rel="stylesheet" href="/assets/css/pages/legal.css" />
+    <link rel="stylesheet" href="/assets/css/responsive.css" />
+  </head>
+
+  <body class="is-loading" id="inicio" data-page="legal">
+    <script src="/assets/js/sprites/sprite.js"></script>
+    <div class="loader-wrap"></div>
+    <script src="/assets/js/components/loader.js"></script>
+    <div class="site" id="site">
+      <div class="marquee">
+        <div class="marquee-content">
+          <span class="marquee-item"
+            ><svg class="ic-sm"><use href="#ic-percent_discount" /></svg>
+            Ofertas imperdibles en selectos productos</span
+          >
+          <span>•</span>
+          <span class="marquee-item"
+            ><svg class="ic-sm"><use href="#ic-shipping_truck" /></svg>Envíos
+            gratias en productos seleccionados</span
+          >
+          <span>•</span>
+          <span class="marquee-item"
+            ><svg class="ic-sm"><use href="#ic-sell_tag" /></svg>Hasta 3 cuotas
+            sin interes en compras superiores al $1.200.000</span
+          >
+        </div>
+      </div>
+      <header class="navbar" id="navbar">
+        <div class="logo" onclick="window.location.href = '/'">
+          <img src="/assets/images/isotipo.png" alt="" />
+          <span>ComputerSell</span>
+        </div>
+        <nav class="listItems">
+          <li class="item" id="productsMenuBtn">
+            <span class="item-spn2">Productos</span>
+          </li>
+          <li
+            class="item"
+            onclick="
+              window.location.href = '/productos.html?categoria=computadoras'
+            "
+          >
+            <span class="item-spn2">Computadoras</span>
+          </li>
+          <li
+            class="item"
+            onclick="
+              window.location.href = '/productos.html?categoria=notebooks'
+            "
+          >
+            <span class="item-spn2">Notebooks</span>
+          </li>
+          <li class="item"><span class="item-spn2">Nosotros</span></li>
+          <li class="item"><span class="item-spn2">Contacto</span></li>
+        </nav>
+        <div class="actionIcons">
+          <li class="actIcon" id="favBtn">
+            <span class="cartIconWrap">
+              <svg class="ic-md"><use href="#ic-favorite" /></svg>
+              <span class="favBadge" id="favBadge"></span>
+            </span>
+            <span class="actLabel">FAVORITOS</span>
+          </li>
+          <li class="actIcon" id="accountBtn">
+            <svg class="ic-md"><use href="#ic-person" /></svg>
+            <span class="actLabel">ACCEDER</span>
+          </li>
+          <li class="actIcon" id="cartBtn">
+            <span class="cartIconWrap">
+              <svg class="ic-md"><use href="#ic-shopping_bag" /></svg>
+              <span class="cartBadge" id="cartBadge"></span>
+            </span>
+            <span class="actLabel">CARRITO</span>
+          </li>
+          <li class="actIcon navToggle" id="navToggle" aria-label="Abrir menú">
+            <svg class="ic-md"><use href="#ic-menu" /></svg>
+          </li>
+        </div>
+      </header>
+
+      <main class="container page-container">
+        <div class="page-head">
+          <div>
+            <p class="legal-kicker">Información legal</p>
+            <h1>Título del documento</h1>
+          </div>
+          <span class="legal-updated"
+            >Última actualización:
+            <time data-legal="fechaVigencia"></time> · Versión
+            <span data-legal="version"></span
+          ></span>
+        </div>
+
+        <div class="legal-layout">
+          <aside class="legal-aside">
+            <details class="legal-toc" id="legalToc" open>
+              <summary>
+                Contenido
+                <svg class="ic-sm"><use href="#ic-expand_more" /></svg>
+              </summary>
+              <!-- Lo arma assets/js/pages/legal.js con las secciones -->
+              <ol></ol>
+            </details>
+          </aside>
+
+          <!-- data-updated="AAAA-MM-DD": fecha propia de este documento (si
+               no está, se usa LEGAL.fechaVigencia) -->
+          <article class="legal-doc" id="legalDoc">
+            <p class="legal-lead">
+              Introducción breve: qué regula este documento y a quién aplica.
+              <span class="legal-todo">[REDACTAR]</span>
+            </p>
+
+            <!-- Cada sección: id = ancla (/slug#id), h2 = título. El número lo
+                 pone el CSS; los h3 salen como 1.1, 1.2… -->
+            <section class="legal-section" id="seccion-ejemplo">
+              <h2>Título de la sección</h2>
+              <p>
+                Texto de la sección. Los datos de LEGAL se insertan así:
+                <strong data-legal="nombreFantasia"></strong>. Contacto:
+                <a data-legal="emailContacto" data-legal-link="email"></a>.
+              </p>
+              <h3>Subsección</h3>
+              <p class="legal-todo">[REDACTAR]</p>
+            </section>
+
+            <!-- "Otros documentos": lo completa assets/js/pages/legal.js -->
+            <nav class="legal-related" id="legalRelated" aria-label="Otros documentos legales"></nav>
+          </article>
+        </div>
+      </main>
+    </div>
+
+    <footer class="site-footer">
+      <div class="footer-inner">
+        <div class="footer-top">
+          <div class="footer-col footer-brand">
+            <div class="logo">
+              <img src="/assets/images/isotipo.png" alt="" />
+              <span>ComputerSell</span>
+            </div>
+            <p>
+              Equipos armados a medida, componentes originales y garantía
+              oficial. Gaming, oficina y diseño: la PC que necesitás, al precio
+              justo.
+            </p>
+            <div class="footer-social">
+              <a href="#" aria-label="Instagram"
+                ><svg class="ic-sm"><use href="#ic-instagram" /></svg>
+              </a>
+              <a href="#" aria-label="Mercado Libre"
+                ><svg class="ic-sm"><use href="#ic-mercadolibre" /></svg>
+              </a>
+              <a href="#" aria-label="WhatsApp"
+                ><svg class="ic-sm"><use href="#ic-whatsapp" /></svg>
+              </a>
+            </div>
+          </div>
+
+          <!-- Productos -->
+          <div class="footer-col">
+            <h3>Productos</h3>
+            <ul>
+              <li><a href="#">PCs Armadas</a></li>
+              <li><a href="#">Notebooks</a></li>
+              <li><a href="#">Componentes</a></li>
+              <li><a href="#">Periféricos</a></li>
+              <li><a href="#">Ofertas</a></li>
+            </ul>
+          </div>
+
+          <!-- Ayuda -->
+          <div class="footer-col">
+            <h3>Ayuda</h3>
+            <ul>
+              <li><a href="#">Preguntas frecuentes</a></li>
+              <li><a href="/envios">Envíos</a></li>
+              <li><a href="/cambios-y-devoluciones">Cambios y devoluciones</a></li>
+              <li><a href="#">Garantía</a></li>
+              <li><a href="#">Métodos de pago</a></li>
+            </ul>
+          </div>
+
+          <!-- Información legal -->
+          <div class="footer-col">
+            <h3>Información legal</h3>
+            <ul>
+              <li><a href="/terminos">Términos y condiciones</a></li>
+              <li><a href="/privacidad">Política de privacidad</a></li>
+              <li><a href="/cookies">Política de cookies</a></li>
+              <li><a href="/politica-de-venta">Política de venta</a></li>
+              <li><a href="/envios">Envíos</a></li>
+              <li><a href="/cambios-y-devoluciones">Cambios y devoluciones</a></li>
+              <li><a href="/arrepentimiento">Arrepentimiento</a></li>
+              <li><a href="/informacion-legal">Información legal</a></li>
+            </ul>
+          </div>
+
+          <!-- Contacto -->
+          <div class="footer-col">
+            <h3>Contacto</h3>
+            <ul class="footer-contact">
+              <li>
+                <svg class="ic-sm"><use href="#ic-phone" /></svg>
+                <span>Tel:</span><a href="tel:+5491123589249" data-legal="telefono" data-legal-link="tel">+54 9 11 2358-9249</a>
+              </li>
+              <li>
+                <svg class="ic-sm"><use href="#ic-mail" /></svg>
+                <span>Email:</span><a href="mailto:contacto@computersell.com.ar" data-legal="emailContacto" data-legal-link="email">contacto@computersell.com.ar</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Botón de arrepentimiento (Disp. 954/2025) -->
+        <div class="footer-legal">
+          <a class="btn-arrepentimiento" href="/arrepentimiento">Botón de arrepentimiento</a>
+        </div>
+
+        <div class="footer-bottom">
+          <span
+            >© <span id="footerYear">2026</span> ComputerSell. Todos los
+            derechos reservados.</span
+          >
+          <div class="footer-bottom-links">
+            <a href="/terminos">Términos y condiciones</a>
+            <a href="/privacidad">Privacidad</a>
+            <button type="button" class="cc-link" data-cookie-settings>Configurar cookies</button>
+          </div>
+          <div class="footer-payments">Visa · Mastercard · Mercado Pago</div>
+        </div>
+      </div>
+    </footer>
+
+    <script src="/assets/js/components/navbar.js"></script>
+    <script src="/assets/js/components/menu.js"></script>
+    <script type="module" src="/assets/js/components/footer-legal.js"></script>
+    <script src="/assets/js/core/env.js"></script>
+    <script src="/assets/js/core/utils.js"></script>
+    <script type="module" src="/assets/js/core/favorites.js"></script>
+    <script type="module" src="/assets/js/core/account.js"></script>
+    <script src="/assets/js/core/cart.js"></script>
+    <script type="module" src="/assets/js/pages/legal.js"></script>
+    <script type="module" src="/assets/js/components/cookie-consent.js"></script>
+  </body>
+</html>

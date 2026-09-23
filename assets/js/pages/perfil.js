@@ -187,7 +187,7 @@ loading(async () => {
           </div>
           <div class="list-card-right">
             <span class="list-card-amount">${formatPrice(i.total)}</span>
-            <a class="icon-btn" href="/compra-detalle.html?id=${i.orders.id}&factura=${i.id}" aria-label="Ver factura"><svg><use href="#ic-download" /></svg></a>
+            <a class="icon-btn" href="/compra-detalle.html?id=${i.orders.id}&factura=${i.id}" aria-label="Ver nota de venta"><svg><use href="#ic-download" /></svg></a>
           </div>
         </div>`,
       )

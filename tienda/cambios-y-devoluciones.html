@@ -1,0 +1,512 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Sacá el noindex cuando el texto esté aprobado. -->
+    <title>Cambios y devoluciones — ComputerSell</title>
+    <meta name="description" content="Garantía, cambios y devoluciones en ComputerSell: qué cubre la garantía, cómo reclamar por una falla, cambios sin falla y reintegros." />
+    <link rel="canonical" href="/cambios-y-devoluciones" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="ComputerSell" />
+    <meta property="og:locale" content="es_AR" />
+    <meta property="og:title" content="Cambios y devoluciones — ComputerSell" />
+    <meta property="og:description" content="Garantía, cambios y devoluciones en ComputerSell: qué cubre la garantía, cómo reclamar por una falla, cambios sin falla y reintegros." />
+    <meta name="robots" content="noindex" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15/dist/gsap.min.js"></script>
+    <link rel="stylesheet" href="/assets/css/base.css" />
+    <link rel="stylesheet" href="/assets/css/components/cookie-consent.css" />
+    <link rel="stylesheet" href="/assets/css/loader.css" />
+    <link rel="stylesheet" href="/assets/css/header.css" />
+    <link rel="stylesheet" href="/assets/css/footer.css" />
+    <link rel="stylesheet" href="/assets/css/components/buttons.css" />
+    <link rel="stylesheet" href="/assets/css/components/toast.css" />
+    <link rel="stylesheet" href="/assets/css/components/product-card.css" />
+    <link rel="stylesheet" href="/assets/css/components/cart-drawer.css" />
+    <link rel="stylesheet" href="/assets/css/components/menu-drawer.css" />
+    <link rel="stylesheet" href="/assets/css/components/page.css" />
+    <link rel="stylesheet" href="/assets/css/components/qty-selector.css" />
+    <link rel="stylesheet" href="/assets/css/pages/legal.css" />
+    <link rel="stylesheet" href="/assets/css/responsive.css" />
+  </head>
+
+  <body class="is-loading" id="inicio" data-page="legal">
+    <script src="/assets/js/sprites/sprite.js"></script>
+    <div class="loader-wrap"></div>
+    <script src="/assets/js/components/loader.js"></script>
+    <div class="site" id="site">
+      <div class="marquee">
+        <div class="marquee-content">
+          <span class="marquee-item"
+            ><svg class="ic-sm"><use href="#ic-percent_discount" /></svg>
+            Ofertas imperdibles en selectos productos</span
+          >
+          <span>•</span>
+          <span class="marquee-item"
+            ><svg class="ic-sm"><use href="#ic-shipping_truck" /></svg>Envíos
+            gratias en productos seleccionados</span
+          >
+          <span>•</span>
+          <span class="marquee-item"
+            ><svg class="ic-sm"><use href="#ic-sell_tag" /></svg>Hasta 3 cuotas
+            sin interes en compras superiores al $1.200.000</span
+          >
+        </div>
+      </div>
+      <header class="navbar" id="navbar">
+        <div class="logo" onclick="window.location.href = '/'">
+          <img src="/assets/images/isotipo.png" alt="" />
+          <span>ComputerSell</span>
+        </div>
+        <nav class="listItems">
+          <li class="item" id="productsMenuBtn">
+            <span class="item-spn2">Productos</span>
+          </li>
+          <li
+            class="item"
+            onclick="
+              window.location.href = '/productos.html?categoria=computadoras'
+            "
+          >
+            <span class="item-spn2">Computadoras</span>
+          </li>
+          <li
+            class="item"
+            onclick="
+              window.location.href = '/productos.html?categoria=notebooks'
+            "
+          >
+            <span class="item-spn2">Notebooks</span>
+          </li>
+          <li class="item"><span class="item-spn2">Nosotros</span></li>
+          <li class="item"><span class="item-spn2">Contacto</span></li>
+        </nav>
+        <div class="actionIcons">
+          <li class="actIcon" id="favBtn">
+            <span class="cartIconWrap">
+              <svg class="ic-md"><use href="#ic-favorite" /></svg>
+              <span class="favBadge" id="favBadge"></span>
+            </span>
+            <span class="actLabel">FAVORITOS</span>
+          </li>
+          <li class="actIcon" id="accountBtn">
+            <svg class="ic-md"><use href="#ic-person" /></svg>
+            <span class="actLabel">ACCEDER</span>
+          </li>
+          <li class="actIcon" id="cartBtn">
+            <span class="cartIconWrap">
+              <svg class="ic-md"><use href="#ic-shopping_bag" /></svg>
+              <span class="cartBadge" id="cartBadge"></span>
+            </span>
+            <span class="actLabel">CARRITO</span>
+          </li>
+          <li class="actIcon navToggle" id="navToggle" aria-label="Abrir menú">
+            <svg class="ic-md"><use href="#ic-menu" /></svg>
+          </li>
+        </div>
+      </header>
+
+      <main class="container page-container">
+        <div class="page-head">
+          <div>
+            <p class="legal-kicker">Información legal</p>
+            <h1>Cambios y devoluciones</h1>
+          </div>
+          <span class="legal-updated"
+            >Última actualización:
+            <time data-legal="fechaVigencia"></time> · Versión
+            <span data-legal="version"></span
+          ></span>
+        </div>
+
+        <div class="legal-layout">
+          <aside class="legal-aside">
+            <details class="legal-toc" id="legalToc" open>
+              <summary>
+                Contenido
+                <svg class="ic-sm"><use href="#ic-expand_more" /></svg>
+              </summary>
+              <!-- Lo arma assets/js/pages/legal.js con las secciones -->
+              <ol></ol>
+            </details>
+          </aside>
+
+          <!-- data-updated="AAAA-MM-DD": fecha propia de este documento (si
+               no está, se usa LEGAL.fechaVigencia) -->
+          <article class="legal-doc" id="legalDoc">
+            <p class="legal-lead">
+              Acá explicamos qué hacer si un producto de
+              <strong data-legal="nombreFantasia"></strong> tiene una falla, si
+              recibiste algo distinto de lo que pediste o si querés cambiarlo.
+              Si te arrepentiste de la compra dentro de los 10 días, usá el
+              <a href="/arrepentimiento">Botón de arrepentimiento</a>: es más
+              simple y no tiene costo.
+            </p>
+
+            <section class="legal-section" id="garantia">
+              <h2>Garantía</h2>
+              <h3>Garantía legal</h3>
+              <p>
+                Todos los productos tienen la garantía legal de la Ley 24.240
+                por defectos o vicios de cualquier índole, aunque se vean
+                recién con el uso (art. 11):
+              </p>
+              <ul>
+                <li><strong>Productos nuevos</strong>: 6 meses desde la entrega.</li>
+                <li><strong>Productos usados o reacondicionados</strong>: 3 meses desde la entrega.</li>
+              </ul>
+              <p>
+                La garantía la dan en forma solidaria el vendedor, el
+                fabricante, el importador y el distribuidor (art. 13). Podés
+                reclamarnos directamente a nosotros.
+              </p>
+              <h3>Garantía del vendedor y del fabricante</h3>
+              <p>
+                Cada publicación indica la <strong>garantía del vendedor</strong>
+                (por ejemplo, 12 meses). Si es más larga que la legal, rige la
+                más larga, en las mismas condiciones. Muchos productos tienen
+                además garantía oficial del fabricante, que podés usar
+                directamente en su servicio técnico. Usar la del fabricante es
+                opcional: siempre podés reclamarnos a nosotros.
+              </p>
+              <p>
+                Mientras el producto está en reparación, el plazo de garantía
+                se extiende por el tiempo que no pudiste usarlo (art. 16).
+              </p>
+            </section>
+
+            <section class="legal-section" id="cobertura">
+              <h2>Qué cubre y qué no</h2>
+              <p>
+                La garantía cubre las fallas de fabricación y de funcionamiento
+                que aparezcan con un uso normal del producto. No cubre las
+                fallas causadas por:
+              </p>
+              <ul>
+                <li>Uso contrario a las instrucciones del fabricante.</li>
+                <li>Golpes, caídas o roturas físicas.</li>
+                <li>Contacto con líquidos o humedad excesiva.</li>
+                <li>
+                  Reparaciones o modificaciones hechas por personas no
+                  autorizadas (por ejemplo, soldaduras, overclock con cambios de
+                  voltaje o BIOS modificados).
+                </li>
+                <li>
+                  Sobretensiones o problemas de la instalación eléctrica (por
+                  ejemplo, una descarga).
+                </li>
+                <li>
+                  El desgaste normal por el uso de partes que se consumen, como
+                  la capacidad de las baterías con el tiempo o los pads de un
+                  mouse.
+                </li>
+                <li>
+                  Problemas de software, virus, drivers o configuración que no
+                  se deben a una falla del hardware. Te orientamos para
+                  resolverlos igual.
+                </li>
+              </ul>
+              <p>
+                <strong>Estas exclusiones solo se aplican si el diagnóstico
+                técnico demuestra que la falla se debe a esa causa.</strong> Te
+                entregamos el informe por escrito. Por sí sola, la apertura del
+                gabinete para instalar componentes (por ejemplo, sumar memoria
+                RAM o un disco) no hace perder la garantía.
+              </p>
+            </section>
+
+            <section class="legal-section" id="falla">
+              <h2>Si tu producto tiene una falla</h2>
+              <ol>
+                <li>
+                  <strong>Escribinos</strong> a
+                  <a data-legal="emailContacto" data-legal-link="email"></a> o
+                  por <a data-legal="whatsapp" data-legal-link="whatsapp" target="_blank" rel="noopener"></a>
+                  con:
+                  <ul>
+                    <li>El número de pedido o la nota de venta (la descargás desde tu perfil).</li>
+                    <li>Una descripción de la falla: qué pasa y desde cuándo.</li>
+                    <li>Fotos o un video corto, si ayudan a mostrarla.</li>
+                  </ul>
+                </li>
+                <li>
+                  <strong>Primer diagnóstico</strong>: muchas veces se resuelve
+                  a distancia (configuración, drivers, compatibilidad). Si no,
+                  coordinamos el envío del producto.
+                </li>
+                <li>
+                  <strong>Envío al servicio técnico</strong>: los costos de
+                  traslado para hacer efectiva la garantía están a cargo de
+                  ComputerSell. Te damos una etiqueta de envío prepaga o
+                  coordinamos que el correo lo busque en tu domicilio. Cuando recibimos el producto, te damos
+                  una constancia con su estado, la falla informada y la fecha
+                  (art. 15).
+                </li>
+                <li>
+                  <strong>Diagnóstico técnico</strong>: dentro de los 10 días
+                  hábiles de recibido, te informamos el resultado y la solución.
+                </li>
+              </ol>
+              <h3>Tus opciones</h3>
+              <p>
+                Si la falla está cubierta, reparamos el producto sin costo. Si
+                la reparación no es satisfactoria (no queda en condiciones
+                óptimas para el uso al que está destinado), podés elegir
+                (art. 17 de la Ley 24.240):
+              </p>
+              <ul>
+                <li>El cambio por otro producto de idénticas características.</li>
+                <li>La devolución del producto y el reintegro del precio que pagaste.</li>
+                <li>Una quita proporcional del precio.</li>
+              </ul>
+              <p>
+                Además, si una falla aparece dentro de los primeros 7 días desde
+                la entrega, te cambiamos el producto por uno nuevo sin esperar la
+                reparación, si hay stock.
+                Todo esto es sin perjuicio de los daños y perjuicios que
+                correspondan.
+              </p>
+            </section>
+
+            <section class="legal-section" id="cambios">
+              <h2>Cambios sin falla</h2>
+              <p>
+                Dentro de los <strong>10 días corridos</strong> desde la
+                entrega, lo más simple es usar el
+                <a href="/arrepentimiento">Botón de arrepentimiento</a>: te
+                reintegramos el total y los gastos de devolución corren por
+                nuestra cuenta. Después podés hacer una compra nueva.
+              </p>
+              <p>
+                Si te equivocaste de modelo o de producto (por ejemplo, un
+                componente que no es compatible con tu equipo) y pasaron los 10
+                días, también podés cambiarlo, como política comercial nuestra:
+              </p>
+              <ul>
+                <li>Dentro de los 30 días corridos desde la entrega.</li>
+                <li>
+                  Sin uso, completo, con sus accesorios y en su embalaje
+                  original en buen estado.
+                </li>
+                <li>
+                  Por otro producto de la tienda: si cuesta más, pagás la
+                  diferencia; si cuesta menos, te la devolvemos.
+                </li>
+                <li>El envío del cambio corre por tu cuenta.</li>
+              </ul>
+              <h3>Productos con condiciones especiales</h3>
+              <ul>
+                <li>
+                  <strong>Software y licencias</strong>: solo se cambian con el
+                  precinto intacto o sin activar.
+                </li>
+                <li>
+                  <strong>Consumibles y productos de uso personal</strong> (por
+                  ejemplo, pasta térmica o auriculares in-ear): solo se cambian
+                  sin uso, con el envase cerrado, por razones de higiene.
+                </li>
+                <li>
+                  <strong>Productos personalizados o armados a pedido</strong>
+                  (por ejemplo, una PC con los componentes que elegiste): no
+                  tienen cambio sin falla.
+                </li>
+              </ul>
+              <p>
+                Estas condiciones rigen para los cambios sin falla. Si el
+                producto tiene una falla, la garantía se aplica siempre. El
+                derecho de arrepentimiento se rige por sus propias reglas y
+                excepciones (ver <a href="/arrepentimiento#excepciones">Botón de
+                arrepentimiento</a>).
+              </p>
+            </section>
+
+            <section class="legal-section" id="errores">
+              <h2>Errores nuestros o daños en el envío</h2>
+              <p>
+                Si recibiste un producto distinto del que pediste, te faltó algo
+                o llegó dañado por el transporte:
+              </p>
+              <ul>
+                <li>
+                  Avisanos lo antes posible, con el número de pedido y fotos
+                  (ver <a href="/envios#recepcion">Recepción del pedido</a>).
+                </li>
+                <li>
+                  Te enviamos el producto correcto o el faltante, o te
+                  reintegramos el total, a tu elección.
+                </li>
+                <li>
+                  Todos los costos de envío y devolución corren por nuestra
+                  cuenta.
+                </li>
+              </ul>
+            </section>
+
+            <section class="legal-section" id="reintegros">
+              <h2>Reintegros y estado del pedido</h2>
+              <p>
+                Cuando corresponde devolver dinero (arrepentimiento, falla sin
+                reparación satisfactoria, error nuestro o falta de stock):
+              </p>
+              <ul>
+                <li>
+                  Reintegramos el <strong>total pagado</strong> por ese producto:
+                  precio, envío y recargos por tarjeta o por cuotas, sin
+                  descuentos.
+                </li>
+                <li>
+                  Por el mismo medio de pago: con tarjeta, a través de Mercado
+                  Pago, y se ve en tu resumen según los plazos del emisor; con
+                  transferencia, a tu cuenta, dentro de los 10 días hábiles.
+                </li>
+                <li>
+                  <strong>En el historial del pedido</strong> (Mis compras →
+                  detalle) vas a ver la solicitud de arrepentimiento y el cambio
+                  de estado. Si se devuelve el pedido completo, pasa a
+                  <strong>Cancelado</strong> y la nota de venta se anula (un
+                  pedido cancelado no conserva comprobante). Tu constancia es la
+                  del pago y la del reintegro.
+                </li>
+                <li>
+                  Si devolvés solo una parte del pedido, el pedido sigue vigente
+                  y te reintegramos la parte que corresponde.
+                </li>
+              </ul>
+            </section>
+
+            <section class="legal-section" id="contacto">
+              <h2>Contacto</h2>
+              <dl class="legal-data">
+                <div><dt>Email</dt><dd><a data-legal="emailContacto" data-legal-link="email"></a></dd></div>
+                <div><dt>WhatsApp</dt><dd><a data-legal="whatsapp" data-legal-link="whatsapp" target="_blank" rel="noopener"></a></dd></div>
+                <div><dt>Teléfono</dt><dd><a data-legal="telefono" data-legal-link="tel"></a></dd></div>
+                <div><dt>Horario</dt><dd><span data-legal="horarioAtencion"></span></dd></div>
+              </dl>
+            </section>
+
+            <!-- "Otros documentos": lo completa assets/js/pages/legal.js -->
+            <nav class="legal-related" id="legalRelated" aria-label="Otros documentos legales"></nav>
+          </article>
+        </div>
+      </main>
+    </div>
+
+    <footer class="site-footer">
+      <div class="footer-inner">
+        <div class="footer-top">
+          <div class="footer-col footer-brand">
+            <div class="logo">
+              <img src="/assets/images/isotipo.png" alt="" />
+              <span>ComputerSell</span>
+            </div>
+            <p>
+              Equipos armados a medida, componentes originales y garantía
+              oficial. Gaming, oficina y diseño: la PC que necesitás, al precio
+              justo.
+            </p>
+            <div class="footer-social">
+              <a href="#" aria-label="Instagram"
+                ><svg class="ic-sm"><use href="#ic-instagram" /></svg>
+              </a>
+              <a href="#" aria-label="Mercado Libre"
+                ><svg class="ic-sm"><use href="#ic-mercadolibre" /></svg>
+              </a>
+              <a href="#" aria-label="WhatsApp"
+                ><svg class="ic-sm"><use href="#ic-whatsapp" /></svg>
+              </a>
+            </div>
+          </div>
+
+          <!-- Productos -->
+          <div class="footer-col">
+            <h3>Productos</h3>
+            <ul>
+              <li><a href="#">PCs Armadas</a></li>
+              <li><a href="#">Notebooks</a></li>
+              <li><a href="#">Componentes</a></li>
+              <li><a href="#">Periféricos</a></li>
+              <li><a href="#">Ofertas</a></li>
+            </ul>
+          </div>
+
+          <!-- Ayuda -->
+          <div class="footer-col">
+            <h3>Ayuda</h3>
+            <ul>
+              <li><a href="#">Preguntas frecuentes</a></li>
+              <li><a href="/envios">Envíos</a></li>
+              <li><a href="/cambios-y-devoluciones">Cambios y devoluciones</a></li>
+              <li><a href="#">Garantía</a></li>
+              <li><a href="#">Métodos de pago</a></li>
+            </ul>
+          </div>
+
+          <!-- Información legal -->
+          <div class="footer-col">
+            <h3>Información legal</h3>
+            <ul>
+              <li><a href="/terminos">Términos y condiciones</a></li>
+              <li><a href="/privacidad">Política de privacidad</a></li>
+              <li><a href="/cookies">Política de cookies</a></li>
+              <li><a href="/politica-de-venta">Política de venta</a></li>
+              <li><a href="/envios">Envíos</a></li>
+              <li><a href="/cambios-y-devoluciones">Cambios y devoluciones</a></li>
+              <li><a href="/arrepentimiento">Arrepentimiento</a></li>
+              <li><a href="/informacion-legal">Información legal</a></li>
+            </ul>
+          </div>
+
+          <!-- Contacto -->
+          <div class="footer-col">
+            <h3>Contacto</h3>
+            <ul class="footer-contact">
+              <li>
+                <svg class="ic-sm"><use href="#ic-phone" /></svg>
+                <span>Tel:</span><a href="tel:+5491123589249" data-legal="telefono" data-legal-link="tel">+54 9 11 2358-9249</a>
+              </li>
+              <li>
+                <svg class="ic-sm"><use href="#ic-mail" /></svg>
+                <span>Email:</span><a href="mailto:contacto@computersell.com.ar" data-legal="emailContacto" data-legal-link="email">contacto@computersell.com.ar</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Botón de arrepentimiento (Disp. 954/2025) -->
+        <div class="footer-legal">
+          <a class="btn-arrepentimiento" href="/arrepentimiento">Botón de arrepentimiento</a>
+        </div>
+
+        <div class="footer-bottom">
+          <span
+            >© <span id="footerYear">2026</span> ComputerSell. Todos los
+            derechos reservados.</span
+          >
+          <div class="footer-bottom-links">
+            <a href="/terminos">Términos y condiciones</a>
+            <a href="/privacidad">Privacidad</a>
+            <button type="button" class="cc-link" data-cookie-settings>Configurar cookies</button>
+          </div>
+          <div class="footer-payments">Visa · Mastercard · Mercado Pago</div>
+        </div>
+      </div>
+    </footer>
+
+    <script src="/assets/js/components/navbar.js"></script>
+    <script src="/assets/js/components/menu.js"></script>
+    <script type="module" src="/assets/js/components/footer-legal.js"></script>
+    <script src="/assets/js/core/env.js"></script>
+    <script src="/assets/js/core/utils.js"></script>
+    <script type="module" src="/assets/js/core/favorites.js"></script>
+    <script type="module" src="/assets/js/core/account.js"></script>
+    <script src="/assets/js/core/cart.js"></script>
+    <script type="module" src="/assets/js/pages/legal.js"></script>
+    <script type="module" src="/assets/js/components/cookie-consent.js"></script>
+  </body>
+</html>

@@ -659,6 +659,23 @@ body.auth-body {
   height: 20px;
 }
 
+/* Avisos legales del registro (datos personales, Google) */
+.auth-legal {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--ink-soft);
+}
+
+.auth-legal a {
+  color: var(--blue);
+  font-weight: 600;
+}
+
+.auth-google + .auth-legal {
+  text-align: center;
+}
+
 .auth-foot {
   text-align: center;
   font-size: 13px;

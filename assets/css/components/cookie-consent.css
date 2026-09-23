@@ -1,0 +1,324 @@
+/* Banner y configuración de cookies (assets/js/components/cookie-consent.js) */
+
+.cc-banner {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 99998; /* debajo de los drawers (100000+), arriba del contenido */
+  padding: 0 1rem 1rem;
+  font-family: var(--font-body, "Montserrat", sans-serif);
+  pointer-events: none;
+}
+
+.cc-banner-inner {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 1rem 2rem;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 1.1rem 1.25rem;
+  background: var(--bg-1, #1a1d21);
+  border: 1px solid var(--line, rgba(255, 255, 255, 0.08));
+  border-radius: var(--radius-md, 14px);
+  box-shadow: 0 18px 40px -12px rgba(0, 0, 0, 0.6);
+  color: var(--ink-soft, #a0a5ac);
+  animation: cc-in 0.25s ease-out;
+}
+
+@keyframes cc-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+
+/* Espacio para que el banner no tape el final de la página (pagar, iniciar sesión) */
+body.has-cc-banner {
+  padding-bottom: calc(var(--cc-banner-h, 0px) + 1rem);
+}
+
+.cc-title {
+  margin: 0 0 0.35rem;
+  font-family: var(--font-display, "Inter", sans-serif);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ink, #f2f4f6);
+}
+
+.cc-banner-copy p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.cc-banner a,
+.cc-dialog a {
+  color: var(--blue, #3b82f6);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.cc-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+/* Aceptar y rechazar con el mismo peso visual (sin patrones engañosos);
+   "Configurar" y "Guardar selección" van en el estilo secundario */
+.cc-btn {
+  padding: 0.65rem 1rem;
+  border: 1px solid var(--line, rgba(255, 255, 255, 0.08));
+  border-radius: var(--radius-sm, 10px);
+  background: var(--bg-2, #2a2e33);
+  color: var(--ink, #f2f4f6);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.2;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.cc-btn:hover {
+  border-color: var(--ink-soft, #a0a5ac);
+}
+
+.cc-btn-primary {
+  background: var(--ink, #f2f4f6);
+  border-color: var(--ink, #f2f4f6);
+  color: var(--bg-0, #0d0f12);
+}
+
+.cc-btn-primary:hover {
+  background: #fff;
+}
+
+.cc-btn:focus-visible,
+.cc-close:focus-visible,
+.cc-switch:focus-visible,
+.cc-banner a:focus-visible,
+.cc-dialog a:focus-visible {
+  outline: 2px solid var(--blue, #3b82f6);
+  outline-offset: 2px;
+}
+
+/* ---------- Diálogo "Configurar" ---------- */
+
+.cc-dialog {
+  width: min(560px, calc(100% - 2rem));
+  max-height: calc(100vh - 2rem);
+  padding: 0;
+  border: 1px solid var(--line, rgba(255, 255, 255, 0.08));
+  border-radius: var(--radius-lg, 20px);
+  background: var(--bg-1, #1a1d21);
+  color: var(--ink-soft, #a0a5ac);
+  font-family: var(--font-body, "Montserrat", sans-serif);
+  box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.7);
+}
+
+.cc-dialog::backdrop {
+  background: rgba(0, 0, 0, 0.6);
+}
+
+.cc-dialog-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.4rem;
+}
+
+.cc-dialog-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.cc-dialog-head .cc-title {
+  margin: 0;
+  font-size: 18px;
+}
+
+.cc-close {
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--line, rgba(255, 255, 255, 0.08));
+  border-radius: 50%;
+  background: transparent;
+  color: var(--ink, #f2f4f6);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.cc-dialog-desc {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.55;
+}
+
+.cc-cats {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--line, rgba(255, 255, 255, 0.08));
+  border-radius: var(--radius-md, 14px);
+}
+
+.cc-cat {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.9rem 1rem;
+}
+
+.cc-cat + .cc-cat {
+  border-top: 1px solid var(--line, rgba(255, 255, 255, 0.08));
+}
+
+.cc-cat-title {
+  display: block;
+  margin-bottom: 0.2rem;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink, #f2f4f6);
+  cursor: pointer;
+}
+
+.cc-cat p {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+
+/* Interruptor accesible: checkbox nativo con role="switch" */
+.cc-switch {
+  appearance: none;
+  -webkit-appearance: none;
+  position: relative;
+  flex-shrink: 0;
+  width: 42px;
+  height: 24px;
+  margin: 2px 0 0;
+  border-radius: 999px;
+  background: var(--bg-2, #2a2e33);
+  border: 1px solid var(--line, rgba(255, 255, 255, 0.08));
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.cc-switch::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--ink-soft, #a0a5ac);
+  transition:
+    transform 0.15s ease,
+    background 0.15s ease;
+}
+
+.cc-switch:checked {
+  background: var(--blue, #3b82f6);
+  border-color: var(--blue, #3b82f6);
+}
+
+.cc-switch:checked::after {
+  transform: translateX(18px);
+  background: #fff;
+}
+
+.cc-switch:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.cc-dialog-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+/* Botón con aspecto de link (footer y /cookies) */
+.cc-link {
+  padding: 0;
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.cc-link:hover {
+  color: var(--ink, #f2f4f6);
+}
+
+@media (max-width: 767.98px) {
+  .cc-banner {
+    padding: 0 0.5rem 0.5rem;
+  }
+
+  .cc-banner-inner {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+    padding: 0.9rem 1rem;
+  }
+
+  .cc-banner .cc-title {
+    font-size: 14px;
+    margin-bottom: 0.2rem;
+  }
+
+  .cc-banner-copy p {
+    font-size: 12px;
+    line-height: 1.5;
+  }
+
+  /* Rechazar y Aceptar lado a lado (mismo tamaño); Configurar abajo, como link */
+  .cc-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .cc-actions [data-cc="settings"] {
+    grid-column: 1 / -1;
+    order: 1;
+    padding: 0.35rem;
+    border: none;
+    background: none;
+    color: var(--ink-soft, #a0a5ac);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  .cc-dialog-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cc-banner-inner {
+    animation: none;
+  }
+  .cc-switch,
+  .cc-switch::after {
+    transition: none;
+  }
+}

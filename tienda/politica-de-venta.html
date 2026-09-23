@@ -1,0 +1,660 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Sacá el noindex cuando el texto esté aprobado. -->
+    <title>Política de venta — ComputerSell</title>
+    <meta name="description" content="Política de venta de ComputerSell: stock, precios, pagos con tarjeta y transferencia, cuotas, cancelaciones, reembolsos y comprobantes." />
+    <link rel="canonical" href="/politica-de-venta" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="ComputerSell" />
+    <meta property="og:locale" content="es_AR" />
+    <meta property="og:title" content="Política de venta — ComputerSell" />
+    <meta property="og:description" content="Política de venta de ComputerSell: stock, precios, pagos con tarjeta y transferencia, cuotas, cancelaciones, reembolsos y comprobantes." />
+    <meta name="robots" content="noindex" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15/dist/gsap.min.js"></script>
+    <link rel="stylesheet" href="/assets/css/base.css" />
+    <link rel="stylesheet" href="/assets/css/components/cookie-consent.css" />
+    <link rel="stylesheet" href="/assets/css/loader.css" />
+    <link rel="stylesheet" href="/assets/css/header.css" />
+    <link rel="stylesheet" href="/assets/css/footer.css" />
+    <link rel="stylesheet" href="/assets/css/components/buttons.css" />
+    <link rel="stylesheet" href="/assets/css/components/toast.css" />
+    <link rel="stylesheet" href="/assets/css/components/product-card.css" />
+    <link rel="stylesheet" href="/assets/css/components/cart-drawer.css" />
+    <link rel="stylesheet" href="/assets/css/components/menu-drawer.css" />
+    <link rel="stylesheet" href="/assets/css/components/page.css" />
+    <link rel="stylesheet" href="/assets/css/components/qty-selector.css" />
+    <link rel="stylesheet" href="/assets/css/pages/legal.css" />
+    <link rel="stylesheet" href="/assets/css/responsive.css" />
+  </head>
+
+  <body class="is-loading" id="inicio" data-page="legal">
+    <script src="/assets/js/sprites/sprite.js"></script>
+    <div class="loader-wrap"></div>
+    <script src="/assets/js/components/loader.js"></script>
+    <div class="site" id="site">
+      <div class="marquee">
+        <div class="marquee-content">
+          <span class="marquee-item"
+            ><svg class="ic-sm"><use href="#ic-percent_discount" /></svg>
+            Ofertas imperdibles en selectos productos</span
+          >
+          <span>•</span>
+          <span class="marquee-item"
+            ><svg class="ic-sm"><use href="#ic-shipping_truck" /></svg>Envíos
+            gratias en productos seleccionados</span
+          >
+          <span>•</span>
+          <span class="marquee-item"
+            ><svg class="ic-sm"><use href="#ic-sell_tag" /></svg>Hasta 3 cuotas
+            sin interes en compras superiores al $1.200.000</span
+          >
+        </div>
+      </div>
+      <header class="navbar" id="navbar">
+        <div class="logo" onclick="window.location.href = '/'">
+          <img src="/assets/images/isotipo.png" alt="" />
+          <span>ComputerSell</span>
+        </div>
+        <nav class="listItems">
+          <li class="item" id="productsMenuBtn">
+            <span class="item-spn2">Productos</span>
+          </li>
+          <li
+            class="item"
+            onclick="
+              window.location.href = '/productos.html?categoria=computadoras'
+            "
+          >
+            <span class="item-spn2">Computadoras</span>
+          </li>
+          <li
+            class="item"
+            onclick="
+              window.location.href = '/productos.html?categoria=notebooks'
+            "
+          >
+            <span class="item-spn2">Notebooks</span>
+          </li>
+          <li class="item"><span class="item-spn2">Nosotros</span></li>
+          <li class="item"><span class="item-spn2">Contacto</span></li>
+        </nav>
+        <div class="actionIcons">
+          <li class="actIcon" id="favBtn">
+            <span class="cartIconWrap">
+              <svg class="ic-md"><use href="#ic-favorite" /></svg>
+              <span class="favBadge" id="favBadge"></span>
+            </span>
+            <span class="actLabel">FAVORITOS</span>
+          </li>
+          <li class="actIcon" id="accountBtn">
+            <svg class="ic-md"><use href="#ic-person" /></svg>
+            <span class="actLabel">ACCEDER</span>
+          </li>
+          <li class="actIcon" id="cartBtn">
+            <span class="cartIconWrap">
+              <svg class="ic-md"><use href="#ic-shopping_bag" /></svg>
+              <span class="cartBadge" id="cartBadge"></span>
+            </span>
+            <span class="actLabel">CARRITO</span>
+          </li>
+          <li class="actIcon navToggle" id="navToggle" aria-label="Abrir menú">
+            <svg class="ic-md"><use href="#ic-menu" /></svg>
+          </li>
+        </div>
+      </header>
+
+      <main class="container page-container">
+        <div class="page-head">
+          <div>
+            <p class="legal-kicker">Información legal</p>
+            <h1>Política de venta</h1>
+          </div>
+          <span class="legal-updated"
+            >Última actualización:
+            <time data-legal="fechaVigencia"></time> · Versión
+            <span data-legal="version"></span
+          ></span>
+        </div>
+
+        <div class="legal-layout">
+          <aside class="legal-aside">
+            <details class="legal-toc" id="legalToc" open>
+              <summary>
+                Contenido
+                <svg class="ic-sm"><use href="#ic-expand_more" /></svg>
+              </summary>
+              <!-- Lo arma assets/js/pages/legal.js con las secciones -->
+              <ol></ol>
+            </details>
+          </aside>
+
+          <!-- data-updated="AAAA-MM-DD": fecha propia de este documento (si
+               no está, se usa LEGAL.fechaVigencia) -->
+          <article class="legal-doc" id="legalDoc">
+            <p class="legal-lead">
+              Esta Política explica cómo funcionan en la práctica las ventas de
+              <strong data-legal="nombreFantasia"></strong>: productos, precios,
+              pagos, cancelaciones y comprobantes. Complementa los
+              <a href="/terminos">Términos y condiciones</a>, que regulan la
+              relación contractual (formación del contrato, garantía,
+              arrepentimiento, responsabilidad y jurisdicción). Ante cualquier
+              diferencia, prevalecen los Términos y los derechos que te da la
+              ley.
+            </p>
+
+            <section class="legal-section" id="productos">
+              <h2>Productos y disponibilidad</h2>
+              <h3>Descripciones e imágenes</h3>
+              <p>
+                Cada publicación muestra el precio, la marca, las
+                especificaciones técnicas, la garantía del vendedor, si tiene
+                envío gratis, cuotas sin interés y el plazo estimado de
+                despacho. Las especificaciones son las que informa el
+                fabricante.
+              </p>
+              <p>
+                Las fotos pueden ser ilustrativas del modelo: por ejemplo, el
+                color de un accesorio o el contenido de la caja pueden variar
+                según el lote. Las características esenciales son las de la
+                descripción. Si lo que recibís no coincide con ellas, tenés los
+                derechos de la sección <a href="/terminos#precios">Precios,
+                impuestos, stock y errores</a> de los Términos.
+              </p>
+              <h3>Stock</h3>
+              <p>
+                El stock que ves se actualiza en tiempo real ("Stock
+                disponible", "¡Últimas unidades!" o "Sin stock por el momento").
+                Poner un producto en el carrito <strong>no lo reserva</strong>.
+                El stock se verifica cuando confirmás el pedido: si otra
+                persona compró las últimas unidades, el pedido no se crea y te
+                avisamos en pantalla. Si el pedido se crea, las unidades quedan
+                apartadas para vos mientras se procesa el pago y se liberan si
+                el pedido se cancela.
+              </p>
+              <h3>Reservas</h3>
+              <p>
+                ComputerSell puede ofrecer reservar un producto con una seña,
+                por un plazo determinado (7 días, salvo que se acuerde otro).
+                Las condiciones de cada reserva (producto, cantidad, seña y
+                vencimiento) se informan al reservar y se pueden ver en tu
+                cuenta. Si la reserva vence o se cancela sin que se concrete la
+                compra por una causa que no te sea imputable, se reintegra la
+                seña.
+              </p>
+            </section>
+
+            <section class="legal-section" id="precios">
+              <h2>Precios y promociones</h2>
+              <ul>
+                <li>
+                  Los precios están en <strong>pesos argentinos</strong>, sin
+                  decimales, y son precios finales.
+                </li>
+                <li>
+                  El envío y los recargos por tarjeta o por cuotas no están
+                  incluidos en el precio publicado. Se suman en el checkout, con
+                  el detalle de cada concepto, antes de que pagues.
+                </li>
+                <li>
+                  <strong>Vigencia</strong>: el precio vigente es el publicado
+                  al confirmar el pedido. Si cambia mientras estás en el
+                  checkout, el sistema no crea el pedido y te pide revisar el
+                  total. Así nunca se te cobra un precio distinto del que viste.
+                </li>
+                <li>
+                  <strong>Promociones</strong>: cuando un producto está en
+                  oferta, se muestra el precio anterior tachado y el porcentaje
+                  de descuento. El precio anterior es el que efectivamente tuvo
+                  el producto.
+                  Hoy no hay cupones ni códigos de descuento. Si más adelante
+                  se ofrecen, se va a indicar si son acumulables; si no se
+                  indica, no lo son.
+                </li>
+                <li>
+                  <strong>Errores evidentes</strong> de precio o de
+                  características: se aplica lo previsto en los
+                  <a href="/terminos#precios">Términos</a> (cancelación con
+                  reintegro total).
+                </li>
+              </ul>
+            </section>
+
+            <section class="legal-section" id="pagos">
+              <h2>Medios de pago</h2>
+              <h3>Tarjeta de crédito y débito (Mercado Pago)</h3>
+              <ul>
+                <li>
+                  El pago lo procesa <strong>Mercado Pago</strong>. Cargás los
+                  datos de la tarjeta en campos seguros de Mercado Pago. Esos
+                  datos no pasan por nuestros servidores y no los guardamos.
+                </li>
+                <li>
+                  La aprobación depende de Mercado Pago y del banco emisor de
+                  tu tarjeta (límite disponible, validaciones de seguridad).
+                </li>
+                <li>
+                  <strong>Recargo por pago con tarjeta</strong>: crédito
+                  <strong data-rate="credito"></strong> y débito
+                  <strong data-rate="debito"></strong>, sobre el total de
+                  productos más envío. Se muestra como renglón aparte en el
+                  resumen del checkout. La transferencia no tiene recargo.
+                </li>
+                <li>
+                  <strong>Cuotas</strong> (solo con crédito): el producto indica
+                  si tiene cuotas sin interés. En un pedido con varios
+                  productos, las cuotas sin interés son las que admiten
+                  <em>todos</em> los productos del carrito. Las cuotas que las
+                  superan tienen un recargo por financiación, que se aplica sobre
+                  el total con el recargo por tarjeta:
+                </li>
+              </ul>
+              <div class="legal-table-wrap" style="max-width: 360px">
+                <table class="legal-table" id="installmentRates">
+                  <thead>
+                    <tr><th scope="col">Cuotas</th><th scope="col">Recargo por financiación</th></tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+              <p>
+                Antes de pagar, el checkout te muestra el valor de cada cuota y
+                el total final. Lo que ves es exactamente lo que se cobra: el
+                servidor recalcula el total con las mismas tarifas y no acepta
+                montos enviados desde el navegador.
+              </p>
+              <div class="legal-note" id="installmentExample" data-price="500000" data-free="3">
+                <p>
+                  <strong>Ejemplo.</strong> Un producto de
+                  <span data-example-price></span> con 3 cuotas sin interés y
+                  envío gratis. Los valores se calculan con las tarifas
+                  vigentes:
+                </p>
+                <div class="legal-table-wrap">
+                  <table class="legal-table">
+                    <thead>
+                      <tr><th scope="col">Opción</th><th scope="col">Cada cuota</th><th scope="col">Total</th></tr>
+                    </thead>
+                    <tbody></tbody>
+                  </table>
+                </div>
+                <p>
+                  El valor de cada cuota se redondea al peso, así que la suma de
+                  las cuotas puede diferir en unos pocos pesos del total. Tu
+                  banco puede sumar sus propios cargos, según el contrato de tu
+                  tarjeta.
+                </p>
+              </div>
+
+              <h3>Transferencia bancaria</h3>
+              <ol>
+                <li>
+                  Elegís "Transferencia" en el checkout y ves los datos de la
+                  cuenta. Verificá que sean exactamente los que muestra el checkout.
+                </li>
+                <li>
+                  Transferís el total exacto que muestra el checkout y
+                  <strong>subís el comprobante en el mismo checkout</strong>
+                  (PDF, JPG o PNG, hasta 5 MB). Sin comprobante no se puede
+                  confirmar el pedido.
+                </li>
+                <li>
+                  El pedido queda <strong>Pendiente</strong> y una persona de
+                  nuestro equipo verifica la acreditación, en general dentro de
+                  las 24 horas hábiles. Si está todo bien, pasa a
+                  <strong>Pagado</strong>.
+                </li>
+                <li>
+                  Si no podemos validar el comprobante, te avisamos y podés
+                  subir uno nuevo desde el detalle del pedido.
+                </li>
+              </ol>
+              <ul>
+                <li>
+                  <strong>Plazo</strong>: si la transferencia no se acredita
+                  dentro de las <span data-legal="plazoPagoTransferencia"></span>,
+                  podemos cancelar el pedido. Las unidades se liberan y te
+                  avisamos.
+                </li>
+                <li>
+                  <strong>Monto distinto</strong>: si transferiste de menos, te
+                  contactamos para que completes la diferencia dentro del mismo
+                  plazo. Si no la completás, cancelamos el pedido y te
+                  devolvemos lo transferido. Si transferiste de más, te
+                  devolvemos el excedente.
+                </li>
+                <li>
+                  <strong>Acreditación tardía</strong>: si la transferencia se
+                  acredita después de cancelado el pedido, te devolvemos el
+                  importe o, si hay stock y estás de acuerdo, lo aplicamos a un
+                  pedido nuevo al precio vigente.
+                </li>
+              </ul>
+
+              <h3>Rechazos, pagos pendientes, contracargos y reembolsos</h3>
+              <ul>
+                <li>
+                  <strong>Pago rechazado</strong> (por Mercado Pago o por tu
+                  banco): el pedido se cancela automáticamente, las unidades se
+                  liberan y no se te cobra nada. Podés volver a intentar con
+                  otra tarjeta o por transferencia. Si Mercado Pago no responde
+                  por un problema técnico, también se cancela y te avisamos que
+                  la tarjeta no fue cobrada.
+                </li>
+                <li>
+                  <strong>Pago en revisión</strong>: a veces Mercado Pago deja
+                  el pago en proceso o en revisión. El pedido sigue Pendiente y
+                  se actualiza solo cuando Mercado Pago informa el resultado.
+                </li>
+                <li>
+                  <strong>Aprobación tardía</strong>: si Mercado Pago aprueba un
+                  pago cuando el pedido ya estaba cancelado, te reintegramos el
+                  total.
+                </li>
+                <li>
+                  <strong>Contracargos</strong>: si desconocés el pago ante tu
+                  banco, lo analizamos con la documentación del pedido. Ver
+                  también los <a href="/terminos#pagos">Términos</a>.
+                </li>
+                <li>
+                  <strong>Reembolsos</strong>: siempre por el mismo medio de
+                  pago y por el total que corresponda, incluidos el envío y los
+                  recargos. Con tarjeta, lo tramitamos desde Mercado Pago y se
+                  ve en tu resumen según los plazos de Mercado Pago y del emisor
+                  (con crédito, puede aparecer en el resumen siguiente). Con
+                  transferencia, a tu cuenta dentro de los plazos de los
+                  <a href="/terminos#pagos">Términos</a>.
+                </li>
+              </ul>
+            </section>
+
+            <section class="legal-section" id="pedido">
+              <h2>Confirmación del pedido, estados y notificaciones</h2>
+              <p>
+                Al confirmar, el pedido recibe un número (por ejemplo, CS-10480)
+                y aparece en "Mis compras", en tu perfil. Pasa por estos
+                estados, que ves con fecha y hora en el detalle del pedido:
+              </p>
+              <p>
+                <strong>Pendiente</strong> → <strong>Pagado</strong> →
+                <strong>En preparación</strong> → <strong>Enviado</strong> (con
+                código de seguimiento). En cualquier momento antes del envío
+                puede pasar a <strong>Cancelado</strong>.
+              </p>
+              <p>
+                Cada cambio de estado te llega como <strong>notificación en tu
+                cuenta</strong> (la campana del perfil). Hoy no enviamos emails
+                por los cambios de estado de los pedidos: revisá tu cuenta o
+                escribinos si tenés dudas.
+              </p>
+            </section>
+
+            <section class="legal-section" id="cancelacion">
+              <h2>Cancelación de pedidos</h2>
+              <h3>A pedido del cliente</h3>
+              <p>
+                Podés pedir que cancelemos tu pedido mientras no haya sido
+                enviado, escribiéndonos a
+                <a data-legal="emailContacto" data-legal-link="email"></a> con el
+                número de pedido. Lo cancelamos sin costo y te reintegramos el
+                total. Una vez enviado, podés usar el
+                <a href="/arrepentimiento">derecho de arrepentimiento</a>.
+              </p>
+              <h3>Por parte de ComputerSell</h3>
+              <p>Podemos cancelar un pedido, avisándote el motivo, cuando:</p>
+              <ul>
+                <li>El pago es rechazado o no se acredita en término.</li>
+                <li>
+                  No podemos entregar el producto por falta de stock. En ese
+                  caso podés elegir las opciones de los
+                  <a href="/terminos#precios">Términos</a>.
+                </li>
+                <li>Hay un error evidente de precio o de características.</li>
+                <li>
+                  Hay indicios serios de fraude y no se pudo verificar la
+                  identidad (ver <a href="#fraude">Prevención de fraude</a>).
+                </li>
+              </ul>
+              <h3>Qué pasa cuando se cancela</h3>
+              <ul>
+                <li>Las unidades vuelven al stock.</li>
+                <li>
+                  Si habías pagado, te reintegramos el total por el mismo medio.
+                </li>
+                <li>
+                  El pedido cancelado <strong>no conserva comprobante</strong>:
+                  la nota de venta se anula y deja de estar disponible. Tu
+                  constancia del pago y del reintegro es la de Mercado Pago o la
+                  de tu banco.
+                </li>
+              </ul>
+            </section>
+
+            <section class="legal-section" id="comprobantes">
+              <h2>Comprobantes</h2>
+              <p>
+                Cuando se acredita el pago, se genera una <strong>nota de
+                venta</strong> numerada (por ejemplo, NV-020001) con el detalle
+                de la compra. Podés descargarla o imprimirla desde "Mis
+                comprobantes", en tu perfil, o desde el detalle del pedido.
+              </p>
+              <ul>
+                <li>
+                  <strong>Datos que pedimos</strong>: nombre, DNI, email,
+                  teléfono y dirección. La nota de venta sale a nombre de quien
+                  compra.
+                </li>
+                <li>
+                  <strong>Compras para empresas</strong>: si necesitás el
+                  comprobante a nombre de una empresa, escribinos
+                  <strong>antes de comprar</strong>.
+                </li>
+              </ul>
+            </section>
+
+            <section class="legal-section" id="fraude">
+              <h2>Prevención de fraude y verificación de identidad</h2>
+              <p>
+                Para proteger a nuestros clientes, los pagos con tarjeta pasan
+                por los controles antifraude de Mercado Pago, y los
+                comprobantes de transferencia los revisa siempre una persona.
+              </p>
+              <p>
+                En compras de alto valor, o si detectamos datos inconsistentes
+                (por ejemplo, un titular de tarjeta distinto del comprador o
+                una dirección de envío inusual), podemos pedirte antes de
+                despachar una validación adicional razonable: una foto del DNI
+                o una confirmación por teléfono. Solo la usamos para
+                verificar la compra y la tratamos según la
+                <a href="/privacidad">Política de privacidad</a>. Si no se
+                puede verificar, cancelamos el pedido con el reintegro total.
+              </p>
+            </section>
+
+            <section class="legal-section" id="empresas">
+              <h2>Compras para empresas o revendedores</h2>
+              <p>
+                Podés comprar para tu empresa. Tené en cuenta que si comprás
+                para revender o para integrar los productos a un proceso
+                productivo, no revestís el carácter de consumidor, según los
+                <a href="/terminos#aceptacion">Términos</a>. Para compras por
+                cantidad, precios mayoristas o comprobantes a nombre de una
+                empresa, escribinos antes de comprar.
+              </p>
+            </section>
+
+            <section class="legal-section" id="condiciones-especiales">
+              <h2>Productos con condiciones especiales</h2>
+              <h3>Usados y reacondicionados</h3>
+              <p>
+                Si un producto es usado o reacondicionado, lo indicamos de forma
+                visible en la publicación, junto con su estado y su garantía. La
+                garantía legal de los productos usados es de 3 meses (art. 11
+                de la Ley 24.240).
+              </p>
+              <h3>Open box</h3>
+              <p>
+                Productos nuevos con la caja abierta o sin su embalaje
+                original: si se ofrecen, se indica en la publicación y tienen la
+                garantía de un producto nuevo.
+              </p>
+              <h3>A pedido</h3>
+              <p>
+                Algunos productos figuran como "A pedido (consultar)": se
+                consiguen por encargo y el plazo de entrega se acuerda antes de
+                comprar. Solo se pueden comprar online si tienen stock cargado.
+              </p>
+            </section>
+
+            <section class="legal-section" id="contacto">
+              <h2>Contacto y reclamos</h2>
+              <p>
+                Para consultas sobre un pedido, tené a mano su número
+                (CS-XXXXX) y escribinos:
+              </p>
+              <dl class="legal-data">
+                <div><dt>Email</dt><dd><a data-legal="emailContacto" data-legal-link="email"></a></dd></div>
+                <div><dt>WhatsApp</dt><dd><a data-legal="whatsapp" data-legal-link="whatsapp" target="_blank" rel="noopener"></a></dd></div>
+                <div><dt>Teléfono</dt><dd><a data-legal="telefono" data-legal-link="tel"></a></dd></div>
+                <div><dt>Horario</dt><dd><span data-legal="horarioAtencion"></span></dd></div>
+              </dl>
+              <p>
+                El procedimiento y los plazos de respuesta de los reclamos están
+                en los <a href="/terminos#ley-aplicable">Términos</a>.
+              </p>
+            </section>
+
+            <!-- "Otros documentos": lo completa assets/js/pages/legal.js -->
+            <nav class="legal-related" id="legalRelated" aria-label="Otros documentos legales"></nav>
+          </article>
+        </div>
+      </main>
+    </div>
+
+    <footer class="site-footer">
+      <div class="footer-inner">
+        <div class="footer-top">
+          <div class="footer-col footer-brand">
+            <div class="logo">
+              <img src="/assets/images/isotipo.png" alt="" />
+              <span>ComputerSell</span>
+            </div>
+            <p>
+              Equipos armados a medida, componentes originales y garantía
+              oficial. Gaming, oficina y diseño: la PC que necesitás, al precio
+              justo.
+            </p>
+            <div class="footer-social">
+              <a href="#" aria-label="Instagram"
+                ><svg class="ic-sm"><use href="#ic-instagram" /></svg>
+              </a>
+              <a href="#" aria-label="Mercado Libre"
+                ><svg class="ic-sm"><use href="#ic-mercadolibre" /></svg>
+              </a>
+              <a href="#" aria-label="WhatsApp"
+                ><svg class="ic-sm"><use href="#ic-whatsapp" /></svg>
+              </a>
+            </div>
+          </div>
+
+          <!-- Productos -->
+          <div class="footer-col">
+            <h3>Productos</h3>
+            <ul>
+              <li><a href="#">PCs Armadas</a></li>
+              <li><a href="#">Notebooks</a></li>
+              <li><a href="#">Componentes</a></li>
+              <li><a href="#">Periféricos</a></li>
+              <li><a href="#">Ofertas</a></li>
+            </ul>
+          </div>
+
+          <!-- Ayuda -->
+          <div class="footer-col">
+            <h3>Ayuda</h3>
+            <ul>
+              <li><a href="#">Preguntas frecuentes</a></li>
+              <li><a href="/envios">Envíos</a></li>
+              <li><a href="/cambios-y-devoluciones">Cambios y devoluciones</a></li>
+              <li><a href="#">Garantía</a></li>
+              <li><a href="#">Métodos de pago</a></li>
+            </ul>
+          </div>
+
+          <!-- Información legal -->
+          <div class="footer-col">
+            <h3>Información legal</h3>
+            <ul>
+              <li><a href="/terminos">Términos y condiciones</a></li>
+              <li><a href="/privacidad">Política de privacidad</a></li>
+              <li><a href="/cookies">Política de cookies</a></li>
+              <li><a href="/politica-de-venta">Política de venta</a></li>
+              <li><a href="/envios">Envíos</a></li>
+              <li><a href="/cambios-y-devoluciones">Cambios y devoluciones</a></li>
+              <li><a href="/arrepentimiento">Arrepentimiento</a></li>
+              <li><a href="/informacion-legal">Información legal</a></li>
+            </ul>
+          </div>
+
+          <!-- Contacto -->
+          <div class="footer-col">
+            <h3>Contacto</h3>
+            <ul class="footer-contact">
+              <li>
+                <svg class="ic-sm"><use href="#ic-phone" /></svg>
+                <span>Tel:</span><a href="tel:+5491123589249" data-legal="telefono" data-legal-link="tel">+54 9 11 2358-9249</a>
+              </li>
+              <li>
+                <svg class="ic-sm"><use href="#ic-mail" /></svg>
+                <span>Email:</span><a href="mailto:contacto@computersell.com.ar" data-legal="emailContacto" data-legal-link="email">contacto@computersell.com.ar</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Botón de arrepentimiento (Disp. 954/2025) -->
+        <div class="footer-legal">
+          <a class="btn-arrepentimiento" href="/arrepentimiento">Botón de arrepentimiento</a>
+        </div>
+
+        <div class="footer-bottom">
+          <span
+            >© <span id="footerYear">2026</span> ComputerSell. Todos los
+            derechos reservados.</span
+          >
+          <div class="footer-bottom-links">
+            <a href="/terminos">Términos y condiciones</a>
+            <a href="/privacidad">Privacidad</a>
+            <button type="button" class="cc-link" data-cookie-settings>Configurar cookies</button>
+          </div>
+          <div class="footer-payments">Visa · Mastercard · Mercado Pago</div>
+        </div>
+      </div>
+    </footer>
+
+    <script src="/assets/js/components/navbar.js"></script>
+    <script src="/assets/js/components/menu.js"></script>
+    <script type="module" src="/assets/js/components/footer-legal.js"></script>
+    <script src="/assets/js/core/env.js"></script>
+    <script src="/assets/js/core/utils.js"></script>
+    <script type="module" src="/assets/js/core/favorites.js"></script>
+    <script type="module" src="/assets/js/core/account.js"></script>
+    <script src="/assets/js/core/cart.js"></script>
+    <script type="module" src="/assets/js/pages/legal.js"></script>
+    <!-- Recargos y ejemplo de cuotas: mismas tarifas y cálculo que el checkout -->
+    <script src="/assets/js/config/shipping-rates.js"></script>
+    <script src="/assets/js/config/payment-rates.js"></script>
+    <script src="/assets/js/config/installment-rates.js"></script>
+    <script src="/assets/js/core/pricing.js"></script>
+    <script src="/assets/js/pages/politica-de-venta.js"></script>
+    <script type="module" src="/assets/js/components/cookie-consent.js"></script>
+  </body>
+</html>

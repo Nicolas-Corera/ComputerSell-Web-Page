@@ -198,8 +198,9 @@
     <div class="sk-footer"><div class="sk-container">
       <div class="sk-footer-top">
         <div class="sk-stack"><div class="sk-row">${sk("sk-circle")}${text("w-140 lg")}</div>${text("w-90p sm")}${text("w-80p sm")}${text("w-60p sm")}<div class="sk-row">${sk("sk-icon")}${sk("sk-icon")}${sk("sk-icon")}</div></div>
-        ${rep(3, `<div class="sk-stack">${text("w-100 lg")}${rep(5, text("w-120 sm"))}</div>`)}
+        ${rep(4, `<div class="sk-stack">${text("w-100 lg")}${rep(5, text("w-120 sm"))}</div>`)}
       </div>
+      <div class="sk-row wrap" style="margin-bottom:1.5rem">${sk("sk-btn w-220")}${sk("sk-btn w-260")}${text("w-40p sm")}</div>
       <div class="sk-footer-bottom">${text("w-260 sm")}<div class="sk-row">${text("w-120 sm")}${text("w-80 sm")}</div>${text("w-180 sm")}</div>
     </div></div>`;
 
@@ -371,6 +372,12 @@
           <div class="sk-panel">${sk("sk-title w-220")}${formGrid(4)}${field("full")}<div class="sk-field">${text("w-100 sm")}${sk("sk-input")}${sk("sk-input")}</div>${sk("sk-btn w-180")}</div>
         </div>`;
       return page(pageHead() + info + form);
+    },
+
+    legal() {
+      const toc = `<div class="sk-panel">${text("w-100 sm")}${rep(6, text("w-90p sm"))}</div>`;
+      const section = () => `<div class="sk-stack" style="margin-bottom:2rem">${sk("sk-title w-260")}${text("w-90p")}${text("w-80p")}${text("w-60p")}</div>`;
+      return page(`${pageHead()}<div class="sk-layout legal">${toc}<div>${text("w-80p lg")}<div style="height:1.5rem"></div>${rep(3, section)}</div></div>`);
     },
 
     nosotros() {

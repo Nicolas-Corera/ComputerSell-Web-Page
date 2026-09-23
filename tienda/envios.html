@@ -1,0 +1,513 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Sacá el noindex cuando el texto esté aprobado. -->
+    <title>Envíos — ComputerSell</title>
+    <meta name="description" content="Política de envíos de ComputerSell: Correo Argentino a todo el país, cálculo del costo por peso y destino, plazos, seguimiento y qué hacer al recibir tu pedido." />
+    <link rel="canonical" href="/envios" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="ComputerSell" />
+    <meta property="og:locale" content="es_AR" />
+    <meta property="og:title" content="Envíos — ComputerSell" />
+    <meta property="og:description" content="Política de envíos de ComputerSell: Correo Argentino a todo el país, cálculo del costo por peso y destino, plazos, seguimiento y qué hacer al recibir tu pedido." />
+    <meta name="robots" content="noindex" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15/dist/gsap.min.js"></script>
+    <link rel="stylesheet" href="/assets/css/base.css" />
+    <link rel="stylesheet" href="/assets/css/components/cookie-consent.css" />
+    <link rel="stylesheet" href="/assets/css/loader.css" />
+    <link rel="stylesheet" href="/assets/css/header.css" />
+    <link rel="stylesheet" href="/assets/css/footer.css" />
+    <link rel="stylesheet" href="/assets/css/components/buttons.css" />
+    <link rel="stylesheet" href="/assets/css/components/toast.css" />
+    <link rel="stylesheet" href="/assets/css/components/product-card.css" />
+    <link rel="stylesheet" href="/assets/css/components/cart-drawer.css" />
+    <link rel="stylesheet" href="/assets/css/components/menu-drawer.css" />
+    <link rel="stylesheet" href="/assets/css/components/page.css" />
+    <link rel="stylesheet" href="/assets/css/components/qty-selector.css" />
+    <link rel="stylesheet" href="/assets/css/pages/legal.css" />
+    <link rel="stylesheet" href="/assets/css/responsive.css" />
+  </head>
+
+  <body class="is-loading" id="inicio" data-page="legal">
+    <script src="/assets/js/sprites/sprite.js"></script>
+    <div class="loader-wrap"></div>
+    <script src="/assets/js/components/loader.js"></script>
+    <div class="site" id="site">
+      <div class="marquee">
+        <div class="marquee-content">
+          <span class="marquee-item"
+            ><svg class="ic-sm"><use href="#ic-percent_discount" /></svg>
+            Ofertas imperdibles en selectos productos</span
+          >
+          <span>•</span>
+          <span class="marquee-item"
+            ><svg class="ic-sm"><use href="#ic-shipping_truck" /></svg>Envíos
+            gratias en productos seleccionados</span
+          >
+          <span>•</span>
+          <span class="marquee-item"
+            ><svg class="ic-sm"><use href="#ic-sell_tag" /></svg>Hasta 3 cuotas
+            sin interes en compras superiores al $1.200.000</span
+          >
+        </div>
+      </div>
+      <header class="navbar" id="navbar">
+        <div class="logo" onclick="window.location.href = '/'">
+          <img src="/assets/images/isotipo.png" alt="" />
+          <span>ComputerSell</span>
+        </div>
+        <nav class="listItems">
+          <li class="item" id="productsMenuBtn">
+            <span class="item-spn2">Productos</span>
+          </li>
+          <li
+            class="item"
+            onclick="
+              window.location.href = '/productos.html?categoria=computadoras'
+            "
+          >
+            <span class="item-spn2">Computadoras</span>
+          </li>
+          <li
+            class="item"
+            onclick="
+              window.location.href = '/productos.html?categoria=notebooks'
+            "
+          >
+            <span class="item-spn2">Notebooks</span>
+          </li>
+          <li class="item"><span class="item-spn2">Nosotros</span></li>
+          <li class="item"><span class="item-spn2">Contacto</span></li>
+        </nav>
+        <div class="actionIcons">
+          <li class="actIcon" id="favBtn">
+            <span class="cartIconWrap">
+              <svg class="ic-md"><use href="#ic-favorite" /></svg>
+              <span class="favBadge" id="favBadge"></span>
+            </span>
+            <span class="actLabel">FAVORITOS</span>
+          </li>
+          <li class="actIcon" id="accountBtn">
+            <svg class="ic-md"><use href="#ic-person" /></svg>
+            <span class="actLabel">ACCEDER</span>
+          </li>
+          <li class="actIcon" id="cartBtn">
+            <span class="cartIconWrap">
+              <svg class="ic-md"><use href="#ic-shopping_bag" /></svg>
+              <span class="cartBadge" id="cartBadge"></span>
+            </span>
+            <span class="actLabel">CARRITO</span>
+          </li>
+          <li class="actIcon navToggle" id="navToggle" aria-label="Abrir menú">
+            <svg class="ic-md"><use href="#ic-menu" /></svg>
+          </li>
+        </div>
+      </header>
+
+      <main class="container page-container">
+        <div class="page-head">
+          <div>
+            <p class="legal-kicker">Información legal</p>
+            <h1>Envíos</h1>
+          </div>
+          <span class="legal-updated"
+            >Última actualización:
+            <time data-legal="fechaVigencia"></time> · Versión
+            <span data-legal="version"></span
+          ></span>
+        </div>
+
+        <div class="legal-layout">
+          <aside class="legal-aside">
+            <details class="legal-toc" id="legalToc" open>
+              <summary>
+                Contenido
+                <svg class="ic-sm"><use href="#ic-expand_more" /></svg>
+              </summary>
+              <!-- Lo arma assets/js/pages/legal.js con las secciones -->
+              <ol></ol>
+            </details>
+          </aside>
+
+          <!-- data-updated="AAAA-MM-DD": fecha propia de este documento (si
+               no está, se usa LEGAL.fechaVigencia) -->
+          <article class="legal-doc" id="legalDoc">
+            <p class="legal-lead">
+              Esta Política explica cómo enviamos tus compras: quién las
+              transporta, cómo se calcula el costo, cuánto tardan y qué hacer
+              al recibirlas. Complementa los
+              <a href="/terminos#envios">Términos y condiciones</a> y la
+              <a href="/politica-de-venta">Política de venta</a>.
+            </p>
+
+            <section class="legal-section" id="operador">
+              <h2>Operador y cobertura</h2>
+              <p>
+                Enviamos con <strong>Correo Argentino</strong>, servicio
+                <strong>Encomienda Clásica</strong>, <strong>a domicilio</strong>
+                en las 24 jurisdicciones del país (las 23 provincias y la Ciudad
+                Autónoma de Buenos Aires). Hoy no ofrecemos envío a una sucursal
+                del correo.
+              </p>
+              <p>
+                Los envíos a Tierra del Fuego pueden requerir trámites o plazos
+                adicionales por su régimen aduanero especial.
+              </p>
+            </section>
+
+            <section class="legal-section" id="costo">
+              <h2>Cómo se calcula el costo</h2>
+              <p>
+                El costo lo calcula el checkout automáticamente, con las
+                tarifas vigentes de Correo Argentino. Se muestra en el resumen,
+                separado del precio de los productos, <strong>antes de que
+                pagues</strong>. Depende de dos cosas:
+              </p>
+              <ol>
+                <li>
+                  <strong>El peso total del pedido</strong>: la suma del peso de
+                  cada producto por su cantidad. La tarifa sale del rango de peso
+                  en el que cae ese total.
+                </li>
+                <li>
+                  <strong>La provincia de destino</strong>: para
+                  <strong data-ship="regional"></strong> se aplica la tarifa
+                  <em>regional</em>; para el resto del país, la tarifa
+                  <em>nacional</em>.
+                </li>
+              </ol>
+              <h3>Pedidos pesados</h3>
+              <p>
+                El peso máximo por bulto es de <strong data-ship="maxKg"></strong>.
+                Si el pedido pesa más, se arma en varios bultos: cada bulto
+                completo se cobra con la tarifa del rango máximo y lo que sobra,
+                con la tarifa de su rango.
+              </p>
+              <h3>Envío gratis</h3>
+              <p>
+                Los productos con envío gratis lo tienen solo para destinos en
+                <strong data-ship="regional"></strong>: ahí no suman peso, y si
+                todos los productos del pedido tienen envío gratis, el envío no
+                se cobra. En el resto del país, el envío se calcula con el peso
+                de todos los productos, incluidos los que tienen envío gratis.
+              </p>
+              <div class="legal-note" id="shippingExample">
+                <p>
+                  <strong>Ejemplo.</strong> Un pedido con un gabinete de 8 kg y
+                  dos mouse de 150 g con envío gratis:
+                </p>
+                <div class="legal-table-wrap">
+                  <table class="legal-table">
+                    <thead>
+                      <tr><th scope="col">Destino</th><th scope="col">Peso que se cobra</th><th scope="col">Tarifa</th></tr>
+                    </thead>
+                    <tbody></tbody>
+                  </table>
+                </div>
+                <p>Y un pedido de <span data-ship-heavy></span>.</p>
+                <p>
+                  El importe exacto lo ves en el checkout al elegir la provincia.
+                </p>
+              </div>
+            </section>
+
+            <section class="legal-section" id="plazos">
+              <h2>Plazos</h2>
+              <p>
+                Preparamos y despachamos el pedido después de que se
+                <strong>acredita el pago</strong>: con tarjeta, cuando Mercado
+                Pago lo aprueba; con transferencia, cuando la verificamos. Los
+                plazos se cuentan en <strong>días hábiles</strong> desde la
+                acreditación.
+              </p>
+              <p>
+                Cada producto indica su plazo estimado: 24/48 horas hábiles, 3 a
+                5 días hábiles o 7 a 10 días hábiles. En un pedido con varios
+                productos, rige el plazo del más lento, y el checkout te lo
+                muestra antes de pagar. Los productos "A pedido" no tienen un
+                plazo fijo: te contactamos para coordinar la entrega.
+              </p>
+              <p>
+                Son <strong>plazos estimados</strong>: dependen de la
+                operatoria de Correo Argentino y de la distancia al destino.
+                Si el pedido se demora más allá del plazo informado, tenés las
+                opciones de la sección
+                <a href="/terminos#precios">Precios, impuestos, stock y errores</a>
+                de los Términos.
+              </p>
+            </section>
+
+            <section class="legal-section" id="seguimiento">
+              <h2>Seguimiento</h2>
+              <p>
+                Cuando despachamos el pedido, pasa a <strong>Enviado</strong> y
+                recibís una notificación en tu cuenta con el
+                <strong>código de seguimiento</strong> de Correo Argentino.
+                También lo ves en el detalle del pedido, en "Seguimiento del
+                envío", donde podés copiarlo e ir al sitio del correo para
+                consultar el estado.
+              </p>
+            </section>
+
+            <section class="legal-section" id="recepcion">
+              <h2>Recepción del pedido</h2>
+              <h3>Al recibir</h3>
+              <p>
+                Revisá el paquete delante del cartero, antes de firmar. Si está
+                abierto, roto, mojado o visiblemente dañado:
+              </p>
+              <ul>
+                <li>
+                  Dejalo asentado en el comprobante de entrega del correo, o
+                  rechazá la entrega.
+                </li>
+                <li>
+                  Sacá fotos del paquete (todas las caras, etiqueta y cinta) y
+                  del contenido.
+                </li>
+                <li>
+                  <strong>No tires el embalaje</strong> hasta que resolvamos el
+                  caso: puede hacer falta para el reclamo ante el correo.
+                </li>
+                <li>
+                  Escribinos dentro de las <strong>48 horas</strong> de recibido
+                  a <a data-legal="emailContacto" data-legal-link="email"></a>,
+                  con el número de pedido y las fotos.
+                </li>
+              </ul>
+              <p>
+                Lo mismo vale si falta un producto o recibiste uno distinto. Ese
+                aviso rápido nos permite reclamarle al correo. <strong>No limita
+                tus derechos</strong>: los defectos que no se ven a simple vista
+                los cubre la garantía legal (ver
+                <a href="/terminos#derechos">Términos</a>).
+              </p>
+              <h3>Intentos de entrega fallidos</h3>
+              <p>
+                Si no hay nadie para recibir, Correo Argentino deja un aviso y
+                puede volver a intentar la entrega o dejar el paquete en una
+                sucursal para retirarlo en un plazo determinado. Si ese plazo
+                vence, el paquete nos vuelve.
+                En ese caso te contactamos para coordinar un nuevo envío.
+              </p>
+              <h3>Reenvío y dirección incorrecta</h3>
+              <ul>
+                <li>
+                  Revisá bien la dirección antes de pagar. Si notás un error,
+                  escribinos cuanto antes: mientras el pedido no fue despachado,
+                  la corregimos sin costo.
+                </li>
+                <li>
+                  Si el envío no se pudo entregar por datos incorrectos o
+                  incompletos que cargaste, o porque no se retiró de la sucursal
+                  a tiempo, el nuevo envío puede quedar a tu cargo. Te
+                  informamos el costo antes de despacharlo. Si preferís no
+                  reenviarlo, podés cancelar la compra y te reintegramos lo
+                  pagado, descontando el costo del envío fallido.
+                </li>
+                <li>
+                  Si la falla es del correo o nuestra, el reenvío no tiene costo
+                  para vos.
+                </li>
+              </ul>
+            </section>
+
+            <section class="legal-section" id="riesgo">
+              <h2>Extravío, robo o daño en el transporte</h2>
+              <p>
+                Hasta que el pedido se entrega en tu domicilio, el riesgo de
+                extravío, robo o daño en el transporte es de
+                <strong>ComputerSell</strong>. Si pasa algo de eso:
+              </p>
+              <ol>
+                <li>Avisanos con el número de pedido (y fotos, si hubo daño).</li>
+                <li>
+                  Iniciamos el reclamo ante Correo Argentino. El reclamo lo
+                  hacemos nosotros: no necesitás esperar a que el correo lo
+                  resuelva.
+                </li>
+                <li>
+                  Una vez confirmado el extravío o el daño, te enviamos el
+                  producto de nuevo sin costo o te reintegramos el total pagado,
+                  a tu elección.
+                </li>
+              </ol>
+              <p>
+                Los envíos viajan con la cobertura que incluye el servicio de
+                Correo Argentino.
+                Esa cobertura es un tema entre ComputerSell y el correo: no
+                cambia tus derechos ni lo que te devolvemos.
+              </p>
+            </section>
+
+            <section class="legal-section" id="internacionales">
+              <h2>Envíos internacionales</h2>
+              <p>
+                No hacemos envíos fuera de la República Argentina. El checkout
+                solo acepta direcciones en el país.
+              </p>
+            </section>
+
+            <section class="legal-section" id="demoras">
+              <h2>Demoras y fuerza mayor</h2>
+              <p>
+                Los plazos pueden extenderse por hechos ajenos a nosotros y al
+                correo: paros o medidas de fuerza, feriados (los días no hábiles
+                no cuentan para el plazo), condiciones climáticas, cortes de
+                ruta o restricciones de la autoridad. En esos casos te avisamos
+                y te informamos el nuevo plazo estimado. Si no te conviene
+                esperar, podés cancelar la compra con reintegro total, según
+                los <a href="/terminos#responsabilidad">Términos</a>.
+              </p>
+              <p>
+                En fechas de alta demanda (por ejemplo, Hot Sale o CyberMonday)
+                el plazo de preparación puede ser mayor. Si es así, lo
+                informamos antes de que compres.
+              </p>
+            </section>
+
+            <section class="legal-section" id="contacto">
+              <h2>Contacto</h2>
+              <p>Para cualquier consulta sobre un envío, tené a mano el número de pedido:</p>
+              <dl class="legal-data">
+                <div><dt>Email</dt><dd><a data-legal="emailContacto" data-legal-link="email"></a></dd></div>
+                <div><dt>WhatsApp</dt><dd><a data-legal="whatsapp" data-legal-link="whatsapp" target="_blank" rel="noopener"></a></dd></div>
+                <div><dt>Teléfono</dt><dd><a data-legal="telefono" data-legal-link="tel"></a></dd></div>
+                <div><dt>Horario</dt><dd><span data-legal="horarioAtencion"></span></dd></div>
+              </dl>
+            </section>
+
+            <!-- "Otros documentos": lo completa assets/js/pages/legal.js -->
+            <nav class="legal-related" id="legalRelated" aria-label="Otros documentos legales"></nav>
+          </article>
+        </div>
+      </main>
+    </div>
+
+    <footer class="site-footer">
+      <div class="footer-inner">
+        <div class="footer-top">
+          <div class="footer-col footer-brand">
+            <div class="logo">
+              <img src="/assets/images/isotipo.png" alt="" />
+              <span>ComputerSell</span>
+            </div>
+            <p>
+              Equipos armados a medida, componentes originales y garantía
+              oficial. Gaming, oficina y diseño: la PC que necesitás, al precio
+              justo.
+            </p>
+            <div class="footer-social">
+              <a href="#" aria-label="Instagram"
+                ><svg class="ic-sm"><use href="#ic-instagram" /></svg>
+              </a>
+              <a href="#" aria-label="Mercado Libre"
+                ><svg class="ic-sm"><use href="#ic-mercadolibre" /></svg>
+              </a>
+              <a href="#" aria-label="WhatsApp"
+                ><svg class="ic-sm"><use href="#ic-whatsapp" /></svg>
+              </a>
+            </div>
+          </div>
+
+          <!-- Productos -->
+          <div class="footer-col">
+            <h3>Productos</h3>
+            <ul>
+              <li><a href="#">PCs Armadas</a></li>
+              <li><a href="#">Notebooks</a></li>
+              <li><a href="#">Componentes</a></li>
+              <li><a href="#">Periféricos</a></li>
+              <li><a href="#">Ofertas</a></li>
+            </ul>
+          </div>
+
+          <!-- Ayuda -->
+          <div class="footer-col">
+            <h3>Ayuda</h3>
+            <ul>
+              <li><a href="#">Preguntas frecuentes</a></li>
+              <li><a href="/envios">Envíos</a></li>
+              <li><a href="/cambios-y-devoluciones">Cambios y devoluciones</a></li>
+              <li><a href="#">Garantía</a></li>
+              <li><a href="#">Métodos de pago</a></li>
+            </ul>
+          </div>
+
+          <!-- Información legal -->
+          <div class="footer-col">
+            <h3>Información legal</h3>
+            <ul>
+              <li><a href="/terminos">Términos y condiciones</a></li>
+              <li><a href="/privacidad">Política de privacidad</a></li>
+              <li><a href="/cookies">Política de cookies</a></li>
+              <li><a href="/politica-de-venta">Política de venta</a></li>
+              <li><a href="/envios">Envíos</a></li>
+              <li><a href="/cambios-y-devoluciones">Cambios y devoluciones</a></li>
+              <li><a href="/arrepentimiento">Arrepentimiento</a></li>
+              <li><a href="/informacion-legal">Información legal</a></li>
+            </ul>
+          </div>
+
+          <!-- Contacto -->
+          <div class="footer-col">
+            <h3>Contacto</h3>
+            <ul class="footer-contact">
+              <li>
+                <svg class="ic-sm"><use href="#ic-phone" /></svg>
+                <span>Tel:</span><a href="tel:+5491123589249" data-legal="telefono" data-legal-link="tel">+54 9 11 2358-9249</a>
+              </li>
+              <li>
+                <svg class="ic-sm"><use href="#ic-mail" /></svg>
+                <span>Email:</span><a href="mailto:contacto@computersell.com.ar" data-legal="emailContacto" data-legal-link="email">contacto@computersell.com.ar</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Botón de arrepentimiento (Disp. 954/2025) -->
+        <div class="footer-legal">
+          <a class="btn-arrepentimiento" href="/arrepentimiento">Botón de arrepentimiento</a>
+        </div>
+
+        <div class="footer-bottom">
+          <span
+            >© <span id="footerYear">2026</span> ComputerSell. Todos los
+            derechos reservados.</span
+          >
+          <div class="footer-bottom-links">
+            <a href="/terminos">Términos y condiciones</a>
+            <a href="/privacidad">Privacidad</a>
+            <button type="button" class="cc-link" data-cookie-settings>Configurar cookies</button>
+          </div>
+          <div class="footer-payments">Visa · Mastercard · Mercado Pago</div>
+        </div>
+      </div>
+    </footer>
+
+    <script src="/assets/js/components/navbar.js"></script>
+    <script src="/assets/js/components/menu.js"></script>
+    <script type="module" src="/assets/js/components/footer-legal.js"></script>
+    <script src="/assets/js/core/env.js"></script>
+    <script src="/assets/js/core/utils.js"></script>
+    <script type="module" src="/assets/js/core/favorites.js"></script>
+    <script type="module" src="/assets/js/core/account.js"></script>
+    <script src="/assets/js/core/cart.js"></script>
+    <script type="module" src="/assets/js/pages/legal.js"></script>
+    <!-- Lógica del envío: misma configuración y cálculo que el checkout -->
+    <script src="/assets/js/config/shipping-rates.js"></script>
+    <script src="/assets/js/config/payment-rates.js"></script>
+    <script src="/assets/js/config/installment-rates.js"></script>
+    <script src="/assets/js/core/pricing.js"></script>
+    <script src="/assets/js/pages/envios.js"></script>
+    <script type="module" src="/assets/js/components/cookie-consent.js"></script>
+  </body>
+</html>

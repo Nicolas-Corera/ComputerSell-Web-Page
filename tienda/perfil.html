@@ -12,6 +12,7 @@
     />
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.15/dist/gsap.min.js"></script>
     <link rel="stylesheet" href="/assets/css/base.css" />
+    <link rel="stylesheet" href="/assets/css/components/cookie-consent.css" />
     <link rel="stylesheet" href="/assets/css/loader.css" />
     <link rel="stylesheet" href="/assets/css/header.css" />
     <link rel="stylesheet" href="/assets/css/footer.css" />
@@ -106,9 +107,8 @@
         <div class="page-head">
           <h1>Mi perfil</h1>
           <span
-            >Actualizá tu foto, tus datos personales y tu dirección de
-            facturación. Desde acá también podés revisar tus compras y
-            facturas.</span
+            >Actualizá tu foto, tus datos personales y tu dirección. Desde
+            acá también podés revisar tus compras y comprobantes.</span
           >
         </div>
 
@@ -143,7 +143,10 @@
           <div class="card form-card">
             <h3>Información personal</h3>
             <p class="form-sub">
-              Estos datos se usan para tu cuenta y tus compras.
+              Estos datos se usan para tu cuenta y tus compras, según nuestra
+              <a href="/privacidad">Política de privacidad</a>. Podés pedir una
+              copia o la eliminación de tus datos:
+              <a href="/privacidad#derechos">cómo ejercer tus derechos</a>.
             </p>
 
             <form id="profileForm">
@@ -179,7 +182,7 @@
               <div class="form-section">
                 <div class="form-section-title">
                   <svg><use href="#ic-location" /></svg>
-                  Dirección de facturación
+                  Dirección
                 </div>
                 <div class="form-grid">
                   <div class="field">
@@ -249,7 +252,7 @@
             </button>
             <button class="tab-btn" data-tab="facturas" type="button">
               <svg><use href="#ic-document" /></svg>
-              Mis facturas
+              Mis comprobantes
             </button>
             <button class="tab-btn" data-tab="avisos" type="button">
               <svg><use href="#ic-info" /></svg>
@@ -269,7 +272,7 @@
 
           <!-- Mis facturas -->
           <div class="tab-panel" id="panel-facturas">
-            <p class="form-sub" id="invoicesEmpty" hidden>Las facturas aparecen acá cuando se acredita el pago de un pedido.</p>
+            <p class="form-sub" id="invoicesEmpty" hidden>Las notas de venta aparecen acá cuando se acredita el pago de un pedido.</p>
             <div id="invoicesList"></div>
           </div>
 
@@ -325,10 +328,25 @@
             <h3>Ayuda</h3>
             <ul>
               <li><a href="#">Preguntas frecuentes</a></li>
-              <li><a href="#">Envíos</a></li>
-              <li><a href="#">Cambios y devoluciones</a></li>
+              <li><a href="/envios">Envíos</a></li>
+              <li><a href="/cambios-y-devoluciones">Cambios y devoluciones</a></li>
               <li><a href="#">Garantía</a></li>
               <li><a href="#">Métodos de pago</a></li>
+            </ul>
+          </div>
+
+          <!-- Información legal -->
+          <div class="footer-col">
+            <h3>Información legal</h3>
+            <ul>
+              <li><a href="/terminos">Términos y condiciones</a></li>
+              <li><a href="/privacidad">Política de privacidad</a></li>
+              <li><a href="/cookies">Política de cookies</a></li>
+              <li><a href="/politica-de-venta">Política de venta</a></li>
+              <li><a href="/envios">Envíos</a></li>
+              <li><a href="/cambios-y-devoluciones">Cambios y devoluciones</a></li>
+              <li><a href="/arrepentimiento">Arrepentimiento</a></li>
+              <li><a href="/informacion-legal">Información legal</a></li>
             </ul>
           </div>
 
@@ -338,14 +356,19 @@
             <ul class="footer-contact">
               <li>
                 <svg class="ic-sm"><use href="#ic-phone" /></svg>
-                <span>Tel:</span><a href="#">+54 9 11 2358-9249</a>
+                <span>Tel:</span><a href="tel:+5491123589249" data-legal="telefono" data-legal-link="tel">+54 9 11 2358-9249</a>
               </li>
               <li>
                 <svg class="ic-sm"><use href="#ic-mail" /></svg>
-                <span>Email:</span><a href="#">contacto@computersell.com.ar</a>
+                <span>Email:</span><a href="mailto:contacto@computersell.com.ar" data-legal="emailContacto" data-legal-link="email">contacto@computersell.com.ar</a>
               </li>
             </ul>
           </div>
+        </div>
+
+        <!-- Botón de arrepentimiento (Disp. 954/2025) -->
+        <div class="footer-legal">
+          <a class="btn-arrepentimiento" href="/arrepentimiento">Botón de arrepentimiento</a>
         </div>
 
         <div class="footer-bottom">
@@ -354,8 +377,9 @@
             derechos reservados.</span
           >
           <div class="footer-bottom-links">
-            <a href="#">Términos y condiciones</a>
-            <a href="#">Privacidad</a>
+            <a href="/terminos">Términos y condiciones</a>
+            <a href="/privacidad">Privacidad</a>
+            <button type="button" class="cc-link" data-cookie-settings>Configurar cookies</button>
           </div>
           <div class="footer-payments">Visa · Mastercard · Mercado Pago</div>
         </div>
@@ -364,11 +388,13 @@
 
     <script src="/assets/js/components/navbar.js"></script>
     <script src="/assets/js/components/menu.js"></script>
+    <script type="module" src="/assets/js/components/footer-legal.js"></script>
     <script src="/assets/js/core/env.js"></script>
     <script src="/assets/js/core/utils.js"></script>
     <script type="module" src="/assets/js/pages/perfil.js"></script>
     <script type="module" src="/assets/js/core/favorites.js"></script>
     <script type="module" src="/assets/js/core/account.js"></script>
     <script src="/assets/js/core/cart.js"></script>
+    <script type="module" src="/assets/js/components/cookie-consent.js"></script>
   </body>
 </html>

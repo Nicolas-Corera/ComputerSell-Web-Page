@@ -1,0 +1,922 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Sacá el noindex cuando el texto esté aprobado. -->
+    <title>Términos y condiciones — ComputerSell</title>
+    <meta name="description" content="Términos y condiciones de uso del sitio y de compra en ComputerSell: cuenta, pedidos, precios, pagos, envíos, arrepentimiento, garantía y reclamos." />
+    <link rel="canonical" href="/terminos" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="ComputerSell" />
+    <meta property="og:locale" content="es_AR" />
+    <meta property="og:title" content="Términos y condiciones — ComputerSell" />
+    <meta property="og:description" content="Términos y condiciones de uso del sitio y de compra en ComputerSell: cuenta, pedidos, precios, pagos, envíos, arrepentimiento, garantía y reclamos." />
+    <meta name="robots" content="noindex" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15/dist/gsap.min.js"></script>
+    <link rel="stylesheet" href="/assets/css/base.css" />
+    <link rel="stylesheet" href="/assets/css/components/cookie-consent.css" />
+    <link rel="stylesheet" href="/assets/css/loader.css" />
+    <link rel="stylesheet" href="/assets/css/header.css" />
+    <link rel="stylesheet" href="/assets/css/footer.css" />
+    <link rel="stylesheet" href="/assets/css/components/buttons.css" />
+    <link rel="stylesheet" href="/assets/css/components/toast.css" />
+    <link rel="stylesheet" href="/assets/css/components/product-card.css" />
+    <link rel="stylesheet" href="/assets/css/components/cart-drawer.css" />
+    <link rel="stylesheet" href="/assets/css/components/menu-drawer.css" />
+    <link rel="stylesheet" href="/assets/css/components/page.css" />
+    <link rel="stylesheet" href="/assets/css/components/qty-selector.css" />
+    <link rel="stylesheet" href="/assets/css/pages/legal.css" />
+    <link rel="stylesheet" href="/assets/css/responsive.css" />
+  </head>
+
+  <body class="is-loading" id="inicio" data-page="legal">
+    <script src="/assets/js/sprites/sprite.js"></script>
+    <div class="loader-wrap"></div>
+    <script src="/assets/js/components/loader.js"></script>
+    <div class="site" id="site">
+      <div class="marquee">
+        <div class="marquee-content">
+          <span class="marquee-item"
+            ><svg class="ic-sm"><use href="#ic-percent_discount" /></svg>
+            Ofertas imperdibles en selectos productos</span
+          >
+          <span>•</span>
+          <span class="marquee-item"
+            ><svg class="ic-sm"><use href="#ic-shipping_truck" /></svg>Envíos
+            gratias en productos seleccionados</span
+          >
+          <span>•</span>
+          <span class="marquee-item"
+            ><svg class="ic-sm"><use href="#ic-sell_tag" /></svg>Hasta 3 cuotas
+            sin interes en compras superiores al $1.200.000</span
+          >
+        </div>
+      </div>
+      <header class="navbar" id="navbar">
+        <div class="logo" onclick="window.location.href = '/'">
+          <img src="/assets/images/isotipo.png" alt="" />
+          <span>ComputerSell</span>
+        </div>
+        <nav class="listItems">
+          <li class="item" id="productsMenuBtn">
+            <span class="item-spn2">Productos</span>
+          </li>
+          <li
+            class="item"
+            onclick="
+              window.location.href = '/productos.html?categoria=computadoras'
+            "
+          >
+            <span class="item-spn2">Computadoras</span>
+          </li>
+          <li
+            class="item"
+            onclick="
+              window.location.href = '/productos.html?categoria=notebooks'
+            "
+          >
+            <span class="item-spn2">Notebooks</span>
+          </li>
+          <li class="item"><span class="item-spn2">Nosotros</span></li>
+          <li class="item"><span class="item-spn2">Contacto</span></li>
+        </nav>
+        <div class="actionIcons">
+          <li class="actIcon" id="favBtn">
+            <span class="cartIconWrap">
+              <svg class="ic-md"><use href="#ic-favorite" /></svg>
+              <span class="favBadge" id="favBadge"></span>
+            </span>
+            <span class="actLabel">FAVORITOS</span>
+          </li>
+          <li class="actIcon" id="accountBtn">
+            <svg class="ic-md"><use href="#ic-person" /></svg>
+            <span class="actLabel">ACCEDER</span>
+          </li>
+          <li class="actIcon" id="cartBtn">
+            <span class="cartIconWrap">
+              <svg class="ic-md"><use href="#ic-shopping_bag" /></svg>
+              <span class="cartBadge" id="cartBadge"></span>
+            </span>
+            <span class="actLabel">CARRITO</span>
+          </li>
+          <li class="actIcon navToggle" id="navToggle" aria-label="Abrir menú">
+            <svg class="ic-md"><use href="#ic-menu" /></svg>
+          </li>
+        </div>
+      </header>
+
+      <main class="container page-container">
+        <div class="page-head">
+          <div>
+            <p class="legal-kicker">Información legal</p>
+            <h1>Términos y condiciones</h1>
+          </div>
+          <span class="legal-updated"
+            >Última actualización:
+            <time data-legal="fechaVigencia"></time> · Versión
+            <span data-legal="version"></span
+          ></span>
+        </div>
+
+        <div class="legal-layout">
+          <aside class="legal-aside">
+            <details class="legal-toc" id="legalToc" open>
+              <summary>
+                Contenido
+                <svg class="ic-sm"><use href="#ic-expand_more" /></svg>
+              </summary>
+              <!-- Lo arma assets/js/pages/legal.js con las secciones -->
+              <ol></ol>
+            </details>
+          </aside>
+
+          <!-- data-updated="AAAA-MM-DD": fecha propia de este documento (si
+               no está, se usa LEGAL.fechaVigencia) -->
+          <article class="legal-doc" id="legalDoc">
+            <p class="legal-lead">
+              Estos Términos y Condiciones regulan el uso del sitio web de
+              <strong data-legal="nombreFantasia"></strong> y las compras que
+              hagas a través de él. Leelos antes de comprar. Si sos
+              consumidor, nada de lo que dicen limita los derechos que te
+              reconocen la Ley 24.240 de Defensa del Consumidor, el Código
+              Civil y Comercial de la Nación y las demás normas de protección
+              del consumidor. Esas normas prevalecen y, ante cualquier duda, se
+              aplica la interpretación más favorable para vos (art. 3 de la Ley
+              24.240 y arts. 1094 y 1095 del Código Civil y Comercial).
+            </p>
+
+            <section class="legal-section" id="aceptacion">
+              <h2>Aceptación y capacidad para contratar</h2>
+              <p>
+                Al usar el Sitio aceptás estos Términos en la versión vigente
+                (versión <span data-legal="version"></span>). Al confirmar un
+                pedido declarás haberlos leído y aceptado para esa compra.
+                Si no estás de acuerdo, no uses el Sitio para comprar.
+              </p>
+              <p>
+                Para registrarte y comprar tenés que ser mayor de 18 años y
+                tener capacidad para contratar (art. 25 del Código Civil y
+                Comercial). Las personas menores de edad pueden navegar el
+                Sitio, pero sus compras deben hacerlas sus representantes
+                legales.
+              </p>
+              <p>
+                Si comprás para integrar los productos a una actividad
+                comercial, industrial o profesional (por ejemplo, para
+                revenderlos), no revestís el carácter de consumidor y no te
+                aplican las normas de protección del consumidor.
+              </p>
+            </section>
+
+            <section class="legal-section" id="proveedor">
+              <h2>Definiciones y datos del proveedor</h2>
+              <h3>Definiciones</h3>
+              <ul>
+                <li>
+                  <strong>ComputerSell</strong>, <strong>nosotros</strong> o
+                  <strong>el Titular</strong>: quien opera el Sitio y vende los
+                  productos.
+                </li>
+                <li>
+                  <strong>Sitio</strong>: la tienda online de ComputerSell donde
+                  se publican estos Términos.
+                </li>
+                <li>
+                  <strong>Usuario</strong>: toda persona que navega el Sitio.
+                  <strong>Cliente</strong>: el Usuario que realiza un pedido.
+                  <strong>Consumidor</strong>: quien adquiere productos como
+                  destinatario final, en beneficio propio o de su grupo familiar
+                  o social (art. 1 de la Ley 24.240 y art. 1092 del Código Civil
+                  y Comercial).
+                </li>
+                <li>
+                  <strong>Cuenta</strong>: el perfil personal que creás para
+                  comprar, con tus datos, favoritos, historial de compras y
+                  notificaciones.
+                </li>
+                <li>
+                  <strong>Pedido</strong>: la solicitud de compra que confirmás
+                  en el checkout, identificada con un número (por ejemplo,
+                  CS-120).
+                </li>
+                <li>
+                  <strong>Checkout</strong>: la página de pago, donde elegís
+                  envío y medio de pago y ves el total antes de pagar.
+                </li>
+                <li>
+                  <strong>Nota de venta</strong>: la constancia de la operación
+                  que se genera cuando se acredita el pago.
+                </li>
+              </ul>
+
+              <h3>Datos del proveedor</h3>
+              <p>
+                En cumplimiento del deber de información (art. 4 de la Ley
+                24.240) y de la Resolución GMC N° 37/2019 del Mercosur sobre
+                protección del consumidor en el comercio electrónico
+                (incorporada por la Resolución SCI N° 270/2020), estos son
+                nuestros datos:
+              </p>
+              <dl class="legal-data">
+                <div><dt>Nombre de fantasía</dt><dd><span data-legal="nombreFantasia"></span></dd></div>
+                <div><dt>Email</dt><dd><a data-legal="emailContacto" data-legal-link="email"></a></dd></div>
+                <div><dt>Teléfono</dt><dd><a data-legal="telefono" data-legal-link="tel"></a></dd></div>
+                <div><dt>WhatsApp</dt><dd><a data-legal="whatsapp" data-legal-link="whatsapp" target="_blank" rel="noopener"></a></dd></div>
+                <div><dt>Horario de atención</dt><dd><span data-legal="horarioAtencion"></span></dd></div>
+              </dl>
+              <p>
+                También podés consultarlos en
+                <a href="/informacion-legal">Información legal</a>.
+              </p>
+            </section>
+
+            <section class="legal-section" id="cuenta">
+              <h2>Registro y cuenta</h2>
+              <h3>Registro</h3>
+              <p>
+                Para comprar necesitás una Cuenta. Podés crearla con tu email y
+                una contraseña, o con tu cuenta de Google. En ese caso, Google
+                nos comparte tu nombre, tu email y tu foto de perfil según lo
+                que autorices, y el inicio de sesión se rige además por las
+                condiciones de Google.
+              </p>
+              <p>
+                Los datos que cargues (nombre, documento, teléfono, dirección de
+                envío) tienen que ser verdaderos, completos y estar
+                actualizados. Son necesarios para emitir la nota de venta, entregar y
+                contactarte por tus pedidos.
+              </p>
+              <h3>Seguridad de las credenciales</h3>
+              <p>
+                La Cuenta es personal e intransferible. Cuidá tu contraseña y no
+                la compartas. Nunca te la vamos a pedir por email, teléfono ni
+                WhatsApp. Si sospechás que alguien usó tu Cuenta sin permiso,
+                avisanos enseguida a
+                <a data-legal="emailContacto" data-legal-link="email"></a>.
+              </p>
+              <p>
+                Sos responsable por lo que se haga con tu Cuenta, salvo que el
+                uso indebido no te sea imputable (por ejemplo, si se debe a una
+                falla de seguridad del Sitio) o haya ocurrido después de que
+                nos avisaras.
+              </p>
+              <h3>Suspensión o baja por parte de ComputerSell</h3>
+              <p>
+                Podemos suspender o dar de baja una Cuenta solo por causas
+                objetivas y comprobables: datos falsos, fraude o intento de
+                fraude, suplantación de identidad o incumplimiento grave de
+                estos Términos (en especial, de la sección
+                <a href="#uso-prohibido">Uso prohibido</a>). Te vamos a informar
+                el motivo por los medios de contacto de la Cuenta y vas a poder
+                presentar tu descargo. Los pedidos ya pagados se cumplen o, si
+                no pueden cumplirse, se reintegra el total pagado.
+              </p>
+              <h3>Baja a pedido del Cliente</h3>
+              <p>
+                Podés pedir la baja de tu Cuenta cuando quieras, sin costo y
+                sin dar motivo, escribiendo a
+                <a data-legal="emailPrivacidad" data-legal-link="email"></a>.
+                La baja no afecta los pedidos en curso. Conservamos solo los
+                datos que la ley nos obliga a guardar (por ejemplo, los de las
+                operaciones realizadas), según la
+                <a href="/privacidad">Política de privacidad</a>.
+              </p>
+            </section>
+
+            <section class="legal-section" id="compra">
+              <h2>Proceso de compra y confirmación del pedido</h2>
+              <h3>Cómo comprar</h3>
+              <ol>
+                <li>Agregás los productos al carrito.</li>
+                <li>Iniciás sesión con tu Cuenta.</li>
+                <li>Completás tus datos de contacto y la dirección de envío.</li>
+                <li>
+                  Elegís el medio de pago y, si corresponde, la cantidad de
+                  cuotas.
+                </li>
+                <li>
+                  Antes de pagar, el Checkout te muestra el precio de los
+                  productos, el costo de envío, los recargos que correspondan,
+                  el valor de cada cuota y el total final. Podés revisar y
+                  corregir todo antes de confirmar.
+                </li>
+              </ol>
+              <h3>Oferta y aceptación</h3>
+              <p>
+                Los productos publicados, con su precio y condiciones, son una
+                oferta dirigida al público. Rige mientras esté publicada y
+                sujeta al stock disponible (art. 7 de la Ley 24.240 y art. 1108
+                del Código Civil y Comercial). Al confirmar el pedido,
+                aceptás la oferta. El sistema verifica en ese momento el stock y
+                el precio. Si todo está en orden, se crea el Pedido con número y
+                estado <strong>Pendiente</strong>, y las unidades quedan
+                apartadas para vos mientras se procesa el pago. El número de
+                Pedido aparece en pantalla y en el historial de compras de tu
+                Cuenta, como confirmación de que recibimos tu aceptación.
+              </p>
+              <h3>Confirmación de la compra</h3>
+              <p>
+                La compra queda confirmada cuando se acredita el pago:
+              </p>
+              <ul>
+                <li>
+                  <strong>Con tarjeta</strong>: cuando Mercado Pago aprueba el
+                  pago.
+                </li>
+                <li>
+                  <strong>Con transferencia</strong>: cuando verificamos que la
+                  transferencia se acreditó en nuestra cuenta.
+                </li>
+              </ul>
+              <p>
+                En ese momento el Pedido pasa a <strong>Pagado</strong>, se
+                genera la Nota de venta y te avisamos por las notificaciones de
+                tu Cuenta. Si el pago es rechazado, se cancela o vence, el
+                Pedido se cancela automáticamente, las unidades se liberan y no
+                se te cobra nada.
+              </p>
+              <h3>Estados del pedido</h3>
+              <p>
+                En el detalle de cada Pedido ves el estado y el historial de
+                cambios, con fecha y hora:
+              </p>
+              <ul>
+                <li><strong>Pendiente</strong>: el pago todavía no se acreditó.</li>
+                <li><strong>Pagado</strong>: el pago se acreditó y la compra quedó confirmada.</li>
+                <li><strong>En preparación</strong>: estamos preparando tu pedido.</li>
+                <li>
+                  <strong>Enviado</strong>: el pedido se despachó. Te enviamos
+                  el código de seguimiento.
+                </li>
+                <li>
+                  <strong>Cancelado</strong>: el pedido quedó sin efecto. Si
+                  habías pagado, se reintegra el total (ver
+                  <a href="#pagos">Medios de pago</a>).
+                </li>
+              </ul>
+              <h3>Comprobante</h3>
+              <p>
+                Cuando se acredita el pago, se genera una Nota de venta que
+                podés descargar desde el detalle del Pedido.
+                Si el Pedido se cancela, la Nota de venta queda sin efecto y
+                deja de estar disponible. Vas a conservar igualmente el
+                comprobante de tu pago emitido por Mercado Pago o por tu banco.
+              </p>
+              <h3>Reservas</h3>
+              <p>
+                ComputerSell puede ofrecer reservar productos para vos por un
+                plazo determinado, con o sin seña. La reserva la gestiona
+                ComputerSell y vas a verla en tu Cuenta. No es una compra ni te
+                obliga a comprar. Durante su vigencia, se respeta el precio
+                informado al reservar. Si vence o se cancela sin que se
+                concrete la compra por una causa que no te sea imputable, el
+                producto se libera y se reintegra la seña, sin costo para vos
+                (ver <a href="/politica-de-venta#productos">Política de venta</a>).
+              </p>
+            </section>
+
+            <section class="legal-section" id="precios">
+              <h2>Precios, impuestos, stock y errores</h2>
+              <h3>Precios</h3>
+              <p>
+                Los precios están expresados en pesos argentinos y son precios
+                finales para el consumidor. El costo de envío y los recargos por medio de pago o por cuotas
+                no están incluidos en el precio publicado. Se informan en el
+                Checkout antes de pagar.
+              </p>
+              <h3>Cambios de precio y stock</h3>
+              <p>
+                Los precios, las promociones y el stock pueden cambiar en
+                cualquier momento, sin aviso previo, para las compras futuras.
+                Esos cambios no afectan a los pedidos ya realizados: cada
+                Pedido conserva el precio registrado al confirmarlo.
+              </p>
+              <p>
+                El stock es limitado y se verifica al confirmar el Pedido. Si
+                en ese momento no hay unidades suficientes, el Pedido no se crea
+                y te lo informamos en pantalla. Si, excepcionalmente, después de
+                acreditado el pago no podemos entregar el producto, te avisamos
+                y podés elegir entre (a) exigir el cumplimiento, si es posible;
+                (b) aceptar otro producto equivalente; o (c) cancelar la compra
+                con el reintegro total de lo pagado, sin perjuicio de las demás
+                acciones que te correspondan (art. 10 bis de la Ley 24.240).
+              </p>
+              <h3>Errores manifiestos</h3>
+              <p>
+                Si un producto se publica con un error material evidente e
+                inequívoco en el precio o en sus características (por ejemplo,
+                un precio irrisorio por un error de tipeo o de sistema), podemos
+                cancelar el Pedido. Te vamos a avisar explicando el error lo
+                antes posible y te reintegramos el total pagado, incluidos el
+                envío y los recargos, sin ningún costo para vos. Esta cláusula no
+                se aplica a promociones ni a diferencias de precio que no sean
+                un error evidente.
+              </p>
+            </section>
+
+            <section class="legal-section" id="pagos">
+              <h2>Medios de pago, recargos, cuotas y reintegros</h2>
+              <h3>Medios de pago</h3>
+              <ul>
+                <li>
+                  <strong>Tarjeta de crédito y de débito</strong>, procesadas
+                  por Mercado Pago. Cargás los datos de la tarjeta en campos
+                  seguros provistos por Mercado Pago dentro del Checkout.
+                  ComputerSell no accede ni almacena el número completo de la
+                  tarjeta, su vencimiento ni el código de seguridad. Solo
+                  guardamos la marca, los últimos cuatro dígitos y el
+                  identificador de la operación. El pago se rige además por los
+                  términos de Mercado Pago.
+                </li>
+                <li>
+                  <strong>Transferencia bancaria</strong>, a los datos que se
+                  muestran en el Checkout, sin recargo.
+                </li>
+              </ul>
+              <h3>Recargos y cuotas</h3>
+              <p>
+                El pago con tarjeta puede tener un recargo por medio de pago y
+                el pago en cuotas, un recargo por los costos de financiación.
+                Hay productos que ofrecen cuotas sin interés: en ese caso, esas
+                cuotas no tienen recargo por financiación. Antes de pagar, el
+                Checkout te muestra el recargo por tarjeta, el valor de cada
+                cuota (que ya incluye el recargo por financiación) y el total
+                final, y podés elegir otro medio de pago o menos cuotas.
+              </p>
+              <h3>Acreditación</h3>
+              <p>
+                Con tarjeta, el pago se acredita cuando Mercado Pago lo aprueba.
+                A veces Mercado Pago deja el pago en revisión: mientras tanto,
+                el Pedido sigue Pendiente.
+              </p>
+              <h3>Transferencias</h3>
+              <p>
+                Si pagás por transferencia, tenés que subir el comprobante en
+                el Checkout (imagen PNG o JPG, o PDF, de hasta 5 MB). El Pedido
+                queda Pendiente hasta que verifiquemos la acreditación, en
+                general dentro de las 24 horas hábiles. Si no podemos validar
+                el comprobante, te avisamos y podés subir uno nuevo desde el
+                detalle del Pedido.
+              </p>
+              <p>
+                Si la transferencia no se acredita dentro de las
+                <span data-legal="plazoPagoTransferencia"></span> desde que
+                confirmaste el Pedido, podemos cancelarlo y liberar las
+                unidades. Te vamos a avisar por las notificaciones de tu Cuenta.
+                Si la transferencia se acredita después de la cancelación, te
+                reintegramos el importe.
+              </p>
+              <h3>Reintegros</h3>
+              <p>
+                Cuando corresponda un reintegro (cancelación, arrepentimiento,
+                falta de stock, error manifiesto u otra causa legal),
+                reintegramos el total pagado, incluidos el envío y los recargos,
+                sin retenciones ni penalidades, por el mismo medio de pago:
+              </p>
+              <ul>
+                <li>
+                  <strong>Tarjeta</strong>: la devolución se hace a través de
+                  Mercado Pago. Se ve reflejada en tu resumen según los plazos
+                  de la entidad emisora de tu tarjeta.
+                </li>
+                <li>
+                  <strong>Transferencia</strong>: a la cuenta bancaria de origen
+                  (o a otra de tu titularidad que nos indiques) dentro de los
+                  10 días hábiles.
+                </li>
+              </ul>
+              <h3>Contracargos</h3>
+              <p>
+                Si no reconocés un cargo, podés desconocerlo ante la entidad
+                emisora de tu tarjeta o ante Mercado Pago. Te pedimos que, si
+                podés, nos escribas primero para resolverlo más rápido, aunque
+                no es obligatorio. Ante un contracargo podemos aportar a la
+                entidad emisora o a Mercado Pago la información del Pedido
+                (datos de la compra, del envío y de la entrega). Si el
+                desconocimiento es fraudulento, nos reservamos las acciones
+                legales que correspondan.
+              </p>
+            </section>
+
+            <section class="legal-section" id="envios">
+              <h2>Envíos y entrega</h2>
+              <p>
+                Enviamos a todo el país por Correo Argentino (Encomienda
+                Clásica) al domicilio que indiques. El costo de envío depende
+                del peso total del Pedido y de la provincia de destino, y se
+                informa en el Checkout antes de pagar. Algunos productos tienen
+                envío gratis en las zonas indicadas en su publicación y en la
+                página de <a href="/envios">Envíos</a>.
+              </p>
+              <p>
+                Los plazos de entrega son estimados, en días hábiles, y corren
+                desde que se acredita el pago. Se informan en la publicación y
+                en el Checkout. Cuando despachamos el Pedido, te enviamos el
+                código de seguimiento.
+              </p>
+              <h3>Riesgo</h3>
+              <p>
+                Hasta que el Pedido se entrega en el domicilio indicado, el
+                riesgo de pérdida, robo o daño en el transporte corre por
+                cuenta de ComputerSell. Si el envío se pierde o llega dañado por
+                causas del transporte, te enviamos el producto nuevamente o te
+                reintegramos el total, a tu elección.
+              </p>
+              <h3>Recepción y control del paquete</h3>
+              <p>
+                Al recibir el paquete, revisá que el embalaje esté cerrado y en
+                buen estado. Si está abierto o visiblemente dañado, dejalo
+                asentado ante el correo o rechazá la entrega, y avisanos dentro
+                de las 48 horas con fotos del paquete.
+                Esto no limita tu derecho a reclamar por defectos que no se ven
+                a simple vista, que cubre la garantía legal.
+              </p>
+              <p>
+                Si la entrega no puede hacerse porque los datos de envío que
+                cargaste son incorrectos o incompletos, te contactamos para
+                coordinar un nuevo envío. En ese caso, el costo del nuevo envío
+                puede quedar a tu cargo, y te lo informamos antes de
+                despacharlo.
+              </p>
+              <p>
+                Las condiciones completas están en
+                <a href="/envios">Envíos</a>.
+              </p>
+            </section>
+
+            <section class="legal-section" id="derechos">
+              <h2>Arrepentimiento, garantía y cambios</h2>
+              <h3>Derecho de arrepentimiento</h3>
+              <p>
+                Como compraste a distancia, tenés derecho a revocar la compra
+                dentro de los <strong>10 días corridos</strong> desde que
+                recibiste el producto o desde que se celebró el contrato, lo
+                último que ocurra, sin costo y sin dar motivo (art. 34 de la Ley
+                24.240 y arts. 1110 a 1116 del Código Civil y Comercial). Es un
+                derecho irrenunciable. Los gastos de devolución están a cargo
+                de ComputerSell.
+              </p>
+              <p>
+                Podés ejercerlo desde el
+                <a href="/arrepentimiento">Botón de arrepentimiento</a>, que
+                está en el pie de las páginas del Sitio y en el detalle de cada
+                pedido, sin registrarte ni hacer otro trámite. El código de
+                identificación de tu solicitud te lo damos en el momento, en
+                pantalla; si la hacés por email, te lo enviamos por email dentro
+                de las 24 horas (Disp. SSDCyLC N° 954/2025). Tenés que devolver el producto en las condiciones
+                en que lo recibiste, salvo el uso necesario para
+                examinarlo. Las excepciones son las previstas en el art. 1116
+                del Código Civil y Comercial, cuando correspondan.
+              </p>
+              <h3>Garantía legal</h3>
+              <p>
+                Los productos tienen la garantía legal de la Ley 24.240 frente a
+                defectos o vicios: 6 meses para productos nuevos y 3 meses para
+                usados, desde la entrega (art. 11). Si la publicación informa
+                una garantía del vendedor o del fabricante más extensa, se
+                aplica la más favorable para vos. Mientras el producto está en
+                reparación, el plazo de garantía se prolonga (art. 16). Si la
+                reparación no es satisfactoria, podés pedir el cambio por otro
+                producto igual, la devolución de lo pagado o una quita
+                proporcional del precio (art. 17). Los costos de traslado para
+                hacer efectiva la garantía están a cargo de ComputerSell.
+              </p>
+              <h3>Cambios y devoluciones</h3>
+              <p>
+                Las condiciones para cambios y devoluciones (fuera del derecho
+                de arrepentimiento y de la garantía) están en
+                <a href="/cambios-y-devoluciones">Cambios y devoluciones</a>.
+              </p>
+            </section>
+
+            <section class="legal-section" id="propiedad-intelectual">
+              <h2>Propiedad intelectual</h2>
+              <p>
+                El nombre y el logo de ComputerSell, el diseño del Sitio, los
+                textos y las fotografías propias, y el software del Sitio
+                pertenecen al Titular o a quienes le otorgaron licencia. Están
+                protegidos por la Ley 11.723 de Propiedad Intelectual y, en lo
+                que corresponda, por la Ley 22.362 de Marcas.
+                Las marcas, los nombres y las imágenes de los productos de
+                terceros (fabricantes y marcas de hardware) pertenecen a sus
+                titulares y se usan solo para identificar los productos a la
+                venta.
+              </p>
+              <p>
+                Te damos una licencia limitada, personal, no exclusiva,
+                intransferible y revocable para usar el Sitio con el fin de
+                navegar y comprar para uso personal. No podés copiar,
+                reproducir, distribuir, modificar, hacer obras derivadas ni
+                usar con fines comerciales el contenido o el software del Sitio
+                sin nuestra autorización por escrito.
+              </p>
+            </section>
+
+            <section class="legal-section" id="uso-prohibido">
+              <h2>Uso prohibido</h2>
+              <p>No está permitido:</p>
+              <ul>
+                <li>
+                  Extraer de forma automatizada o masiva el contenido del Sitio
+                  (scraping o crawling de precios, catálogo o imágenes), salvo
+                  el indexado de buscadores que respeten las reglas del Sitio.
+                </li>
+                <li>
+                  Usar bots, scripts u otros medios automatizados para comprar,
+                  reservar o acaparar stock.
+                </li>
+                <li>
+                  Cometer o intentar fraude: usar tarjetas o cuentas de
+                  terceros sin autorización, cargar comprobantes falsos o
+                  datos de identidad falsos.
+                </li>
+                <li>
+                  Acceder o intentar acceder sin autorización a cuentas de otras
+                  personas, al panel de administración o a los sistemas del
+                  Sitio, o vulnerar sus medidas de seguridad.
+                </li>
+                <li>
+                  Sobrecargar o interferir el funcionamiento del Sitio, o
+                  introducir virus o código malicioso.
+                </li>
+                <li>
+                  Hacer ingeniería inversa, descompilar o desensamblar el
+                  software del Sitio, salvo en la medida en que la ley lo
+                  permita expresamente.
+                </li>
+                <li>Usar el Sitio para cualquier fin ilícito.</li>
+              </ul>
+              <p>
+                Ante estas conductas podemos tomar medidas proporcionadas:
+                bloquear accesos, suspender la Cuenta (según la sección
+                <a href="#cuenta">Registro y cuenta</a>), cancelar pedidos
+                fraudulentos reintegrando lo que corresponda, y hacer las
+                denuncias que correspondan.
+              </p>
+            </section>
+
+            <section class="legal-section" id="responsabilidad">
+              <h2>Responsabilidad</h2>
+              <p>
+                ComputerSell responde frente al consumidor en los términos que
+                establece la ley, incluida la responsabilidad del art. 40 de la
+                Ley 24.240. Ninguna cláusula de estos Términos excluye o limita
+                esa responsabilidad ni tus derechos. Cualquier cláusula que lo
+                haga se tiene por no escrita (art. 37 de la Ley 24.240 y arts.
+                988 y 1117 a 1119 del Código Civil y Comercial).
+              </p>
+              <h3>Disponibilidad del Sitio</h3>
+              <p>
+                Hacemos esfuerzos razonables para que el Sitio funcione de forma
+                continua y segura. Puede haber interrupciones por mantenimiento,
+                actualizaciones o fallas de proveedores de infraestructura. Las
+                interrupciones no afectan a los pedidos ya confirmados.
+              </p>
+              <h3>Caso fortuito y fuerza mayor</h3>
+              <p>
+                No respondemos por incumplimientos causados por caso fortuito o
+                fuerza mayor (art. 1730 del Código Civil y Comercial). En esos
+                casos te avisamos lo antes posible y podés elegir entre esperar
+                a que se resuelva o cancelar la compra con el reintegro total.
+              </p>
+              <h3>Servicios de terceros</h3>
+              <p>
+                Para operar usamos servicios de terceros con sus propias
+                condiciones: Mercado Pago (pagos con tarjeta), Google (inicio de
+                sesión) y Correo Argentino (envíos). Estos Términos no regulan
+                la relación directa entre vos y esos terceros. Frente a vos,
+                ComputerSell sigue siendo responsable por la venta y la entrega
+                de tu compra, sin perjuicio de la responsabilidad que la ley
+                atribuye a cada uno. Los enlaces a sitios externos son
+                informativos: no controlamos su contenido.
+              </p>
+              <h3>Información de los productos</h3>
+              <p>
+                Publicamos las características de los productos con la mayor
+                precisión posible, según la información de los fabricantes. Si
+                el producto que recibís no coincide en sus características
+                esenciales con lo publicado, tenés los derechos previstos en la
+                sección <a href="#precios">Precios, impuestos, stock y errores</a>
+                y en la garantía legal.
+              </p>
+            </section>
+
+            <section class="legal-section" id="comunicaciones">
+              <h2>Comunicaciones y notificaciones</h2>
+              <p>
+                Te informamos el estado de tus pedidos por las notificaciones de
+                tu Cuenta y, cuando corresponda, por email a la dirección
+                registrada. Mantené tu email actualizado. Al registrarte,
+                aceptás expresamente recibir por medios electrónicos la
+                información y las comunicaciones relacionadas con tus compras.
+                Podés pedirnos esa información en soporte físico en cualquier
+                momento, sin costo.
+                Los documentos electrónicos, como el Pedido y la Nota de venta,
+                cumplen el requisito de forma escrita (art. 1106 del Código
+                Civil y Comercial).
+              </p>
+              <p>
+                Solo te enviamos comunicaciones comerciales o publicitarias si
+                nos diste tu consentimiento, y podés pedir la baja en cualquier
+                momento.
+              </p>
+              <p>
+                Tus comunicaciones con nosotros pueden hacerse por email a
+                <a data-legal="emailContacto" data-legal-link="email"></a>, por
+                teléfono o por WhatsApp (ver
+                <a href="#contacto">Contacto</a>).
+              </p>
+            </section>
+
+            <section class="legal-section" id="privacidad">
+              <h2>Privacidad y cookies</h2>
+              <p>
+                Tratamos tus datos personales según la Ley 25.326 de Protección
+                de los Datos Personales. El detalle de qué datos recolectamos,
+                para qué los usamos, con quién los compartimos y cómo ejercer
+                tus derechos de acceso, rectificación, actualización y supresión
+                está en la <a href="/privacidad">Política de privacidad</a>. El
+                uso de cookies y del almacenamiento del navegador está explicado
+                en la <a href="/cookies">Política de cookies</a>.
+              </p>
+            </section>
+
+            <section class="legal-section" id="modificaciones">
+              <h2>Modificaciones de los Términos</h2>
+              <p>
+                Podemos modificar estos Términos para adaptarlos a cambios
+                legales, del Sitio o de la operación comercial. Cada versión se
+                publica con su número y su fecha de vigencia. La versión actual
+                es la <span data-legal="version"></span>, vigente desde el
+                <time data-legal="fechaVigencia"></time>.
+              </p>
+              <p>
+                Los cambios rigen desde su publicación y solo para las
+                operaciones posteriores. Cada Pedido se rige por la versión
+                vigente al momento de confirmarlo. Si el cambio es relevante,
+                se lo avisamos a los usuarios registrados con anticipación
+                razonable.
+                Si no estás de acuerdo, podés dejar de usar el Sitio y pedir la
+                baja de tu Cuenta sin costo. Si nos pedís una versión anterior,
+                te la enviamos.
+              </p>
+            </section>
+
+            <section class="legal-section" id="ley-aplicable">
+              <h2>Ley aplicable, jurisdicción y reclamos</h2>
+              <p>
+                Estos Términos se rigen por las leyes de la República
+                Argentina, en particular la Ley 24.240 de Defensa del
+                Consumidor y el Código Civil y Comercial de la Nación.
+              </p>
+              <p>
+                Para cualquier controversia son competentes
+                <span data-legal="jurisdiccion"></span>.
+              </p>
+              <h3>Reclamos</h3>
+              <p>
+                Podés hacer consultas y reclamos por los medios de
+                <a href="#contacto">Contacto</a>, en el horario de atención
+                (<span data-legal="horarioAtencion"></span>). Te respondemos
+                dentro de los 10 días hábiles.
+              </p>
+            </section>
+
+            <section class="legal-section" id="contacto">
+              <h2>Contacto</h2>
+              <dl class="legal-data">
+                <div><dt>Email</dt><dd><a data-legal="emailContacto" data-legal-link="email"></a></dd></div>
+                <div><dt>Datos personales</dt><dd><a data-legal="emailPrivacidad" data-legal-link="email"></a></dd></div>
+                <div><dt>Teléfono</dt><dd><a data-legal="telefono" data-legal-link="tel"></a></dd></div>
+                <div><dt>WhatsApp</dt><dd><a data-legal="whatsapp" data-legal-link="whatsapp" target="_blank" rel="noopener"></a></dd></div>
+                <div><dt>Horario</dt><dd><span data-legal="horarioAtencion"></span></dd></div>
+              </dl>
+            </section>
+
+            <!-- "Otros documentos": lo completa assets/js/pages/legal.js -->
+            <nav class="legal-related" id="legalRelated" aria-label="Otros documentos legales"></nav>
+          </article>
+        </div>
+      </main>
+    </div>
+
+    <footer class="site-footer">
+      <div class="footer-inner">
+        <div class="footer-top">
+          <div class="footer-col footer-brand">
+            <div class="logo">
+              <img src="/assets/images/isotipo.png" alt="" />
+              <span>ComputerSell</span>
+            </div>
+            <p>
+              Equipos armados a medida, componentes originales y garantía
+              oficial. Gaming, oficina y diseño: la PC que necesitás, al precio
+              justo.
+            </p>
+            <div class="footer-social">
+              <a href="#" aria-label="Instagram"
+                ><svg class="ic-sm"><use href="#ic-instagram" /></svg>
+              </a>
+              <a href="#" aria-label="Mercado Libre"
+                ><svg class="ic-sm"><use href="#ic-mercadolibre" /></svg>
+              </a>
+              <a href="#" aria-label="WhatsApp"
+                ><svg class="ic-sm"><use href="#ic-whatsapp" /></svg>
+              </a>
+            </div>
+          </div>
+
+          <!-- Productos -->
+          <div class="footer-col">
+            <h3>Productos</h3>
+            <ul>
+              <li><a href="#">PCs Armadas</a></li>
+              <li><a href="#">Notebooks</a></li>
+              <li><a href="#">Componentes</a></li>
+              <li><a href="#">Periféricos</a></li>
+              <li><a href="#">Ofertas</a></li>
+            </ul>
+          </div>
+
+          <!-- Ayuda -->
+          <div class="footer-col">
+            <h3>Ayuda</h3>
+            <ul>
+              <li><a href="#">Preguntas frecuentes</a></li>
+              <li><a href="/envios">Envíos</a></li>
+              <li><a href="/cambios-y-devoluciones">Cambios y devoluciones</a></li>
+              <li><a href="#">Garantía</a></li>
+              <li><a href="#">Métodos de pago</a></li>
+            </ul>
+          </div>
+
+          <!-- Información legal -->
+          <div class="footer-col">
+            <h3>Información legal</h3>
+            <ul>
+              <li><a href="/terminos">Términos y condiciones</a></li>
+              <li><a href="/privacidad">Política de privacidad</a></li>
+              <li><a href="/cookies">Política de cookies</a></li>
+              <li><a href="/politica-de-venta">Política de venta</a></li>
+              <li><a href="/envios">Envíos</a></li>
+              <li><a href="/cambios-y-devoluciones">Cambios y devoluciones</a></li>
+              <li><a href="/arrepentimiento">Arrepentimiento</a></li>
+              <li><a href="/informacion-legal">Información legal</a></li>
+            </ul>
+          </div>
+
+          <!-- Contacto -->
+          <div class="footer-col">
+            <h3>Contacto</h3>
+            <ul class="footer-contact">
+              <li>
+                <svg class="ic-sm"><use href="#ic-phone" /></svg>
+                <span>Tel:</span><a href="tel:+5491123589249" data-legal="telefono" data-legal-link="tel">+54 9 11 2358-9249</a>
+              </li>
+              <li>
+                <svg class="ic-sm"><use href="#ic-mail" /></svg>
+                <span>Email:</span><a href="mailto:contacto@computersell.com.ar" data-legal="emailContacto" data-legal-link="email">contacto@computersell.com.ar</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Botón de arrepentimiento (Disp. 954/2025) -->
+        <div class="footer-legal">
+          <a class="btn-arrepentimiento" href="/arrepentimiento">Botón de arrepentimiento</a>
+        </div>
+
+        <div class="footer-bottom">
+          <span
+            >© <span id="footerYear">2026</span> ComputerSell. Todos los
+            derechos reservados.</span
+          >
+          <div class="footer-bottom-links">
+            <a href="/terminos">Términos y condiciones</a>
+            <a href="/privacidad">Privacidad</a>
+            <button type="button" class="cc-link" data-cookie-settings>Configurar cookies</button>
+          </div>
+          <div class="footer-payments">Visa · Mastercard · Mercado Pago</div>
+        </div>
+      </div>
+    </footer>
+
+    <script src="/assets/js/components/navbar.js"></script>
+    <script src="/assets/js/components/menu.js"></script>
+    <script type="module" src="/assets/js/components/footer-legal.js"></script>
+    <script src="/assets/js/core/env.js"></script>
+    <script src="/assets/js/core/utils.js"></script>
+    <script type="module" src="/assets/js/core/favorites.js"></script>
+    <script type="module" src="/assets/js/core/account.js"></script>
+    <script src="/assets/js/core/cart.js"></script>
+    <script type="module" src="/assets/js/pages/legal.js"></script>
+    <script type="module" src="/assets/js/components/cookie-consent.js"></script>
+  </body>
+</html>

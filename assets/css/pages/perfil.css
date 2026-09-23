@@ -423,3 +423,13 @@
   border: 1px solid rgba(255, 107, 107, 0.25);
 }
 
+
+/* Link a la Política de privacidad */
+.form-sub a {
+  color: var(--blue);
+  font-weight: 600;
+}
+
+.form-sub a:hover {
+  text-decoration: underline;
+}

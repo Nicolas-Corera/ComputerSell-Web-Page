@@ -1,18 +1,13 @@
 // Nota de venta / nota de crédito: documento propio (no es factura fiscal).
 // Lo usan el panel (vista previa + imprimir) y el detalle de pedido del cliente.
-// Completá los datos del vendedor en SELLER. La imagen de la firma no va en
+// Los datos del vendedor están en assets/js/config/seller.js (SELLER), que
+// también usan las páginas legales. La imagen de la firma no va en
 // el repo: se sube al bucket privado "docs" con `npm run firma` y se lee con
 // una URL firmada (solo usuarios con sesión).
 import { sb } from "./supabase.js";
+import { SELLER } from "../config/seller.js";
 
-export const SELLER = {
-  name: "ComputerSell",
-  owner: "Nicolás Corera", // nombre completo de quien vende (aparece en "Vendedor" y en la firma)
-  doc: "20465842920", // DNI o CUIT de quien vende, ej. "CUIT 20-12345678-9"
-  address: "",
-  phone: "+54 9 11 2358-9249",
-  email: "contacto@computersell.com.ar",
-};
+export { SELLER };
 
 const PAYMENT = { credito: "Tarjeta de crédito", debito: "Tarjeta de débito", transferencia: "Transferencia", mercadopago: "Mercado Pago" };
 const money = (n) => "$" + Number(n || 0).toLocaleString("es-AR");
@@ -153,7 +148,7 @@ export function saleNoteHtml(inv, order) {
     </div>
 
     <div class="sn-legal">
-      <strong>Aclaración:</strong> este documento no constituye factura ni comprobante fiscal válido ante ARCA. Es una constancia interna de la operación entre las partes.
+      <strong>Aclaración:</strong> este documento es una constancia de la operación entre las partes. No es un comprobante fiscal.
     </div>
     <div class="sn-foot"><span>Documento generado por ${esc(SELLER.name)}</span><span>Página 1 de 1</span></div>
   </div>`;

@@ -16,7 +16,7 @@
 
 .footer-top {
   display: grid;
-  grid-template-columns: 1.4fr 1fr 1fr 1.2fr;
+  grid-template-columns: 1.4fr 1fr 1fr 1.1fr 1.2fr;
   gap: 2.5rem;
   padding-bottom: 3rem;
 }
@@ -133,6 +133,48 @@
   color: var(--ink);
 }
 
+/* Botón de arrepentimiento (Disp. 954/2025). El componente .btn-arrepentimiento
+   se puede usar también fuera del footer. */
+.footer-legal {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem 1.5rem;
+  padding: 1.5rem 0;
+  border-top: 1px solid var(--line);
+}
+
+.btn-arrepentimiento {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.2rem;
+  border: 1px solid var(--ink);
+  border-radius: var(--radius-sm);
+  background: var(--ink);
+  color: var(--bg-0);
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+
+.btn-arrepentimiento:hover {
+  background: #fff;
+  transform: translateY(-1px);
+}
+
+.btn-arrepentimiento svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
 .footer-payments {
   display: flex;
   align-items: center;
@@ -148,11 +190,18 @@
     grid-template-columns: 1fr 1fr;
     row-gap: 2.5rem;
   }
+  .footer-brand {
+    grid-column: 1 / -1;
+  }
 }
 
 @media (max-width: 575.98px) {
   .footer-top {
     grid-template-columns: 1fr;
+  }
+  .btn-arrepentimiento {
+    width: 100%;
+    justify-content: center;
   }
   .footer-bottom {
     flex-direction: column;

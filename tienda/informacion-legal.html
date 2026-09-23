@@ -1,0 +1,510 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Sacá el noindex cuando el texto esté aprobado. -->
+    <title>Información legal — ComputerSell</title>
+    <meta name="description" content="Información legal de ComputerSell: datos de contacto, datos personales, canales de atención y reclamos, y preguntas frecuentes." />
+    <link rel="canonical" href="/informacion-legal" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="ComputerSell" />
+    <meta property="og:locale" content="es_AR" />
+    <meta property="og:title" content="Información legal — ComputerSell" />
+    <meta property="og:description" content="Información legal de ComputerSell: datos de contacto, datos personales, canales de atención y reclamos, y preguntas frecuentes." />
+    <meta name="robots" content="noindex" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15/dist/gsap.min.js"></script>
+    <link rel="stylesheet" href="/assets/css/base.css" />
+    <link rel="stylesheet" href="/assets/css/components/cookie-consent.css" />
+    <link rel="stylesheet" href="/assets/css/loader.css" />
+    <link rel="stylesheet" href="/assets/css/header.css" />
+    <link rel="stylesheet" href="/assets/css/footer.css" />
+    <link rel="stylesheet" href="/assets/css/components/buttons.css" />
+    <link rel="stylesheet" href="/assets/css/components/toast.css" />
+    <link rel="stylesheet" href="/assets/css/components/product-card.css" />
+    <link rel="stylesheet" href="/assets/css/components/cart-drawer.css" />
+    <link rel="stylesheet" href="/assets/css/components/menu-drawer.css" />
+    <link rel="stylesheet" href="/assets/css/components/page.css" />
+    <link rel="stylesheet" href="/assets/css/components/qty-selector.css" />
+    <link rel="stylesheet" href="/assets/css/pages/legal.css" />
+    <link rel="stylesheet" href="/assets/css/responsive.css" />
+  </head>
+
+  <body class="is-loading" id="inicio" data-page="legal">
+    <script src="/assets/js/sprites/sprite.js"></script>
+    <div class="loader-wrap"></div>
+    <script src="/assets/js/components/loader.js"></script>
+    <div class="site" id="site">
+      <div class="marquee">
+        <div class="marquee-content">
+          <span class="marquee-item"
+            ><svg class="ic-sm"><use href="#ic-percent_discount" /></svg>
+            Ofertas imperdibles en selectos productos</span
+          >
+          <span>•</span>
+          <span class="marquee-item"
+            ><svg class="ic-sm"><use href="#ic-shipping_truck" /></svg>Envíos
+            gratias en productos seleccionados</span
+          >
+          <span>•</span>
+          <span class="marquee-item"
+            ><svg class="ic-sm"><use href="#ic-sell_tag" /></svg>Hasta 3 cuotas
+            sin interes en compras superiores al $1.200.000</span
+          >
+        </div>
+      </div>
+      <header class="navbar" id="navbar">
+        <div class="logo" onclick="window.location.href = '/'">
+          <img src="/assets/images/isotipo.png" alt="" />
+          <span>ComputerSell</span>
+        </div>
+        <nav class="listItems">
+          <li class="item" id="productsMenuBtn">
+            <span class="item-spn2">Productos</span>
+          </li>
+          <li
+            class="item"
+            onclick="
+              window.location.href = '/productos.html?categoria=computadoras'
+            "
+          >
+            <span class="item-spn2">Computadoras</span>
+          </li>
+          <li
+            class="item"
+            onclick="
+              window.location.href = '/productos.html?categoria=notebooks'
+            "
+          >
+            <span class="item-spn2">Notebooks</span>
+          </li>
+          <li class="item"><span class="item-spn2">Nosotros</span></li>
+          <li class="item"><span class="item-spn2">Contacto</span></li>
+        </nav>
+        <div class="actionIcons">
+          <li class="actIcon" id="favBtn">
+            <span class="cartIconWrap">
+              <svg class="ic-md"><use href="#ic-favorite" /></svg>
+              <span class="favBadge" id="favBadge"></span>
+            </span>
+            <span class="actLabel">FAVORITOS</span>
+          </li>
+          <li class="actIcon" id="accountBtn">
+            <svg class="ic-md"><use href="#ic-person" /></svg>
+            <span class="actLabel">ACCEDER</span>
+          </li>
+          <li class="actIcon" id="cartBtn">
+            <span class="cartIconWrap">
+              <svg class="ic-md"><use href="#ic-shopping_bag" /></svg>
+              <span class="cartBadge" id="cartBadge"></span>
+            </span>
+            <span class="actLabel">CARRITO</span>
+          </li>
+          <li class="actIcon navToggle" id="navToggle" aria-label="Abrir menú">
+            <svg class="ic-md"><use href="#ic-menu" /></svg>
+          </li>
+        </div>
+      </header>
+
+      <main class="container page-container">
+        <div class="page-head">
+          <div>
+            <p class="legal-kicker">Información legal</p>
+            <h1>Información legal</h1>
+          </div>
+          <span class="legal-updated"
+            >Última actualización:
+            <time data-legal="fechaVigencia"></time> · Versión
+            <span data-legal="version"></span
+          ></span>
+        </div>
+
+        <div class="legal-layout">
+          <aside class="legal-aside">
+            <details class="legal-toc" id="legalToc" open>
+              <summary>
+                Contenido
+                <svg class="ic-sm"><use href="#ic-expand_more" /></svg>
+              </summary>
+              <!-- Lo arma assets/js/pages/legal.js con las secciones -->
+              <ol></ol>
+            </details>
+          </aside>
+
+          <!-- data-updated="AAAA-MM-DD": fecha propia de este documento (si
+               no está, se usa LEGAL.fechaVigencia) -->
+          <article class="legal-doc" id="legalDoc">
+            <p class="legal-lead">
+              En esta página reunimos los datos de contacto de
+              <strong data-legal="nombreFantasia"></strong>, los canales de
+              atención y reclamos, y los enlaces a todas nuestras políticas.
+            </p>
+
+            <section class="legal-section" id="proveedor">
+              <h2>Datos de contacto</h2>
+              <dl class="legal-data">
+                <div><dt>Nombre de fantasía</dt><dd><span data-legal="nombreFantasia"></span></dd></div>
+                <div><dt>Email</dt><dd><a data-legal="emailContacto" data-legal-link="email"></a></dd></div>
+                <div><dt>Teléfono</dt><dd><a data-legal="telefono" data-legal-link="tel"></a></dd></div>
+                <div><dt>WhatsApp</dt><dd><a data-legal="whatsapp" data-legal-link="whatsapp" target="_blank" rel="noopener"></a></dd></div>
+                <div><dt>Horario de atención</dt><dd><span data-legal="horarioAtencion"></span></dd></div>
+              </dl>
+              <p>
+                Estos son los datos de contacto y atención de ComputerSell,
+                según el deber de información del art. 4 de la Ley 24.240 y la
+                Resolución GMC N° 37/2019 del Mercosur sobre comercio
+                electrónico (incorporada por la Res. SCI N° 270/2020).
+              </p>
+            </section>
+
+            <section class="legal-section" id="datos-personales">
+              <h2>Datos personales</h2>
+              <dl class="legal-data">
+                <div><dt>Consultas sobre tus datos</dt><dd><a data-legal="emailPrivacidad" data-legal-link="email"></a></dd></div>
+              </dl>
+              <p>
+                Cómo tratamos tus datos, con quién los compartimos y cómo ejercer
+                tus derechos de acceso, rectificación y supresión está en la
+                <a href="/privacidad">Política de privacidad</a>. La Agencia de
+                Acceso a la Información Pública es el órgano de control de la
+                Ley 25.326 (ver
+                <a href="/privacidad#derechos">Tus derechos</a>).
+              </p>
+            </section>
+
+            <section class="legal-section" id="propiedad-intelectual">
+              <h2>Propiedad intelectual y marcas de terceros</h2>
+              <p>
+                Las marcas, logos y nombres de productos que aparecen en el
+                sitio pertenecen a sus respectivos titulares (fabricantes y
+                marcas de hardware). Los usamos solo para identificar los
+                productos a la venta. Eso no implica ningún patrocinio ni
+                vínculo con esas marcas, salvo que se indique.
+              </p>
+              <p>
+                Las fotos de los productos pueden ser ilustrativas del modelo.
+                Las características esenciales son las de la descripción (ver
+                <a href="/politica-de-venta#productos">Política de venta</a>).
+                El contenido propio del sitio está protegido según los
+                <a href="/terminos#propiedad-intelectual">Términos</a>.
+              </p>
+              <h3>Denuncias de infracciones</h3>
+              <p>
+                Si creés que algún contenido del sitio infringe tus derechos de
+                propiedad intelectual o de marca, escribinos a
+                <a data-legal="emailContacto" data-legal-link="email"></a> con el
+                asunto "Propiedad intelectual". Incluí:
+              </p>
+              <ul>
+                <li>Tus datos, y si actuás en representación del titular.</li>
+                <li>El derecho que invocás (por ejemplo, el registro de la marca o de la obra).</li>
+                <li>El enlace exacto al contenido y por qué infringe tus derechos.</li>
+              </ul>
+              <p>
+                Lo revisamos y, si corresponde, retiramos o modificamos el
+                contenido. Te respondemos dentro de los 10 días hábiles.
+              </p>
+            </section>
+
+            <section class="legal-section" id="atencion">
+              <h2>Atención y reclamos</h2>
+              <dl class="legal-data">
+                <div><dt>Email</dt><dd><a data-legal="emailContacto" data-legal-link="email"></a></dd></div>
+                <div><dt>WhatsApp</dt><dd><a data-legal="whatsapp" data-legal-link="whatsapp" target="_blank" rel="noopener"></a></dd></div>
+                <div><dt>Teléfono</dt><dd><a data-legal="telefono" data-legal-link="tel"></a></dd></div>
+                <div><dt>Horario</dt><dd><span data-legal="horarioAtencion"></span></dd></div>
+                <div><dt>Página de contacto</dt><dd><a href="/contacto">Ver canales de contacto</a></dd></div>
+              </dl>
+              <ul>
+                <li>
+                  <strong>Consultas y reclamos</strong>: te respondemos dentro
+                  de los 10 días hábiles, y en general mucho antes (ver
+                  <a href="/terminos#ley-aplicable">Términos</a>).
+                </li>
+                <li>
+                  <strong>Arrepentimiento</strong>: el código de tu solicitud lo
+                  recibís en el momento, desde el
+                  <a href="/arrepentimiento">Botón de arrepentimiento</a>.
+                </li>
+                <li>
+                  <strong>Transferencias</strong>: verificamos el comprobante en
+                  general dentro de las 24 horas hábiles.
+                </li>
+              </ul>
+            </section>
+
+            <section class="legal-section" id="documentos">
+              <h2>Responsabilidad y documentos legales</h2>
+              <p>
+                Revisamos la información del sitio (precios, stock,
+                especificaciones y disponibilidad) para que sea correcta y esté
+                actualizada. Aun así, puede haber errores o interrupciones del
+                servicio. En esos casos se aplica lo previsto en los
+                <a href="/terminos#responsabilidad">Términos</a>, sin que eso
+                limite tus derechos como consumidor.
+              </p>
+              <ul>
+                <li><a href="/terminos">Términos y condiciones</a></li>
+                <li><a href="/privacidad">Política de privacidad</a></li>
+                <li><a href="/cookies">Política de cookies</a></li>
+                <li><a href="/politica-de-venta">Política de venta</a></li>
+                <li><a href="/envios">Envíos</a></li>
+                <li><a href="/cambios-y-devoluciones">Cambios y devoluciones</a></li>
+                <li><a href="/arrepentimiento">Botón de arrepentimiento</a></li>
+              </ul>
+              <p>
+                Versión <span data-legal="version"></span>, vigente desde el
+                <time data-legal="fechaVigencia"></time>.
+              </p>
+            </section>
+
+            <section class="legal-section" id="preguntas">
+              <h2>Preguntas legales frecuentes</h2>
+
+              <details class="legal-faq">
+                <summary>¿Puedo cancelar mi compra?</summary>
+                <div>
+                  <p>
+                    Sí. Si todavía no despachamos el pedido, escribinos con el
+                    número de pedido y lo cancelamos sin costo, con reintegro
+                    total. Si ya lo recibiste, tenés 10 días corridos para usar
+                    el <a href="/arrepentimiento">Botón de arrepentimiento</a>.
+                  </p>
+                </div>
+              </details>
+
+              <details class="legal-faq">
+                <summary>¿Necesito una cuenta para arrepentirme de una compra?</summary>
+                <div>
+                  <p>
+                    No. En el <a href="/arrepentimiento">formulario</a> alcanza
+                    con el número de pedido y el email de la compra. Te damos el
+                    código de identificación en el momento.
+                  </p>
+                </div>
+              </details>
+
+              <details class="legal-faq">
+                <summary>¿Cuándo se acredita mi transferencia?</summary>
+                <div>
+                  <p>
+                    Una persona de nuestro equipo verifica el comprobante, en
+                    general dentro de las 24 horas hábiles. Mientras tanto, el
+                    pedido figura como Pendiente. Si la transferencia no se
+                    acredita dentro de las
+                    <span data-legal="plazoPagoTransferencia"></span>, podemos
+                    cancelar el pedido. Ver la
+                    <a href="/politica-de-venta#pagos">Política de venta</a>.
+                  </p>
+                </div>
+              </details>
+
+              <details class="legal-faq">
+                <summary>¿Por qué el total es distinto si pago con tarjeta?</summary>
+                <div>
+                  <p>
+                    El pago con tarjeta tiene un recargo por medio de pago, y el
+                    pago en cuotas que superan las sin interés tiene un recargo
+                    por financiación. Los ves en el checkout antes de pagar. La
+                    transferencia no tiene recargo.
+                  </p>
+                </div>
+              </details>
+
+              <details class="legal-faq">
+                <summary>¿Qué comprobante recibo?</summary>
+                <div>
+                  <p>
+                    Cuando se acredita el pago se genera una nota de venta con
+                    el detalle de tu compra. La descargás desde "Mis comprobantes",
+                    en tu perfil, o desde el detalle del pedido.
+                  </p>
+                </div>
+              </details>
+
+              <details class="legal-faq">
+                <summary>¿Qué hago si mi producto llega dañado?</summary>
+                <div>
+                  <p>
+                    Si el paquete está dañado, dejalo asentado ante el correo o
+                    rechazá la entrega. Sacá fotos, guardá el embalaje y
+                    avisanos dentro de las 48 horas. Te enviamos el producto de
+                    nuevo o te reintegramos el total, a tu elección. Ver
+                    <a href="/envios#recepcion">Envíos</a>.
+                  </p>
+                </div>
+              </details>
+
+              <details class="legal-faq">
+                <summary>¿Cuánto tarda un reintegro?</summary>
+                <div>
+                  <p>
+                    Lo hacemos por el mismo medio de pago y por el total. Con
+                    tarjeta, se ve en tu resumen según los plazos de tu banco;
+                    con transferencia, lo recibís en tu cuenta dentro de los 10
+                    días hábiles.
+                  </p>
+                </div>
+              </details>
+
+              <details class="legal-faq">
+                <summary>¿Qué garantía tienen los productos?</summary>
+                <div>
+                  <p>
+                    Garantía legal de 6 meses para productos nuevos y de 3 meses
+                    para usados, o la garantía del vendedor que indica cada
+                    publicación, si es mayor. Ver
+                    <a href="/cambios-y-devoluciones">Cambios y devoluciones</a>.
+                  </p>
+                </div>
+              </details>
+
+              <details class="legal-faq">
+                <summary>¿Envían a todo el país?</summary>
+                <div>
+                  <p>
+                    Sí, por Correo Argentino a domicilio. El costo depende del
+                    peso del pedido y de la provincia, y lo ves antes de pagar.
+                    El envío gratis de algunos productos aplica en CABA y la
+                    Provincia de Buenos Aires. Ver <a href="/envios">Envíos</a>.
+                  </p>
+                </div>
+              </details>
+
+              <details class="legal-faq">
+                <summary>¿Cómo borro mis datos personales?</summary>
+                <div>
+                  <p>
+                    Escribinos a
+                    <a data-legal="emailPrivacidad" data-legal-link="email"></a>
+                    desde el email de tu cuenta. Eliminamos los datos que no
+                    estemos obligados a conservar por ley. Ver la
+                    <a href="/privacidad#derechos">Política de privacidad</a>.
+                  </p>
+                </div>
+              </details>
+            </section>
+          </article>
+        </div>
+      </main>
+    </div>
+
+    <footer class="site-footer">
+      <div class="footer-inner">
+        <div class="footer-top">
+          <div class="footer-col footer-brand">
+            <div class="logo">
+              <img src="/assets/images/isotipo.png" alt="" />
+              <span>ComputerSell</span>
+            </div>
+            <p>
+              Equipos armados a medida, componentes originales y garantía
+              oficial. Gaming, oficina y diseño: la PC que necesitás, al precio
+              justo.
+            </p>
+            <div class="footer-social">
+              <a href="#" aria-label="Instagram"
+                ><svg class="ic-sm"><use href="#ic-instagram" /></svg>
+              </a>
+              <a href="#" aria-label="Mercado Libre"
+                ><svg class="ic-sm"><use href="#ic-mercadolibre" /></svg>
+              </a>
+              <a href="#" aria-label="WhatsApp"
+                ><svg class="ic-sm"><use href="#ic-whatsapp" /></svg>
+              </a>
+            </div>
+          </div>
+
+          <!-- Productos -->
+          <div class="footer-col">
+            <h3>Productos</h3>
+            <ul>
+              <li><a href="#">PCs Armadas</a></li>
+              <li><a href="#">Notebooks</a></li>
+              <li><a href="#">Componentes</a></li>
+              <li><a href="#">Periféricos</a></li>
+              <li><a href="#">Ofertas</a></li>
+            </ul>
+          </div>
+
+          <!-- Ayuda -->
+          <div class="footer-col">
+            <h3>Ayuda</h3>
+            <ul>
+              <li><a href="#">Preguntas frecuentes</a></li>
+              <li><a href="/envios">Envíos</a></li>
+              <li><a href="/cambios-y-devoluciones">Cambios y devoluciones</a></li>
+              <li><a href="#">Garantía</a></li>
+              <li><a href="#">Métodos de pago</a></li>
+            </ul>
+          </div>
+
+          <!-- Información legal -->
+          <div class="footer-col">
+            <h3>Información legal</h3>
+            <ul>
+              <li><a href="/terminos">Términos y condiciones</a></li>
+              <li><a href="/privacidad">Política de privacidad</a></li>
+              <li><a href="/cookies">Política de cookies</a></li>
+              <li><a href="/politica-de-venta">Política de venta</a></li>
+              <li><a href="/envios">Envíos</a></li>
+              <li><a href="/cambios-y-devoluciones">Cambios y devoluciones</a></li>
+              <li><a href="/arrepentimiento">Arrepentimiento</a></li>
+              <li><a href="/informacion-legal">Información legal</a></li>
+            </ul>
+          </div>
+
+          <!-- Contacto -->
+          <div class="footer-col">
+            <h3>Contacto</h3>
+            <ul class="footer-contact">
+              <li>
+                <svg class="ic-sm"><use href="#ic-phone" /></svg>
+                <span>Tel:</span><a href="tel:+5491123589249" data-legal="telefono" data-legal-link="tel">+54 9 11 2358-9249</a>
+              </li>
+              <li>
+                <svg class="ic-sm"><use href="#ic-mail" /></svg>
+                <span>Email:</span><a href="mailto:contacto@computersell.com.ar" data-legal="emailContacto" data-legal-link="email">contacto@computersell.com.ar</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Botón de arrepentimiento (Disp. 954/2025) -->
+        <div class="footer-legal">
+          <a class="btn-arrepentimiento" href="/arrepentimiento">Botón de arrepentimiento</a>
+        </div>
+
+        <div class="footer-bottom">
+          <span
+            >© <span id="footerYear">2026</span> ComputerSell. Todos los
+            derechos reservados.</span
+          >
+          <div class="footer-bottom-links">
+            <a href="/terminos">Términos y condiciones</a>
+            <a href="/privacidad">Privacidad</a>
+            <button type="button" class="cc-link" data-cookie-settings>Configurar cookies</button>
+          </div>
+          <div class="footer-payments">Visa · Mastercard · Mercado Pago</div>
+        </div>
+      </div>
+    </footer>
+
+    <script src="/assets/js/components/navbar.js"></script>
+    <script src="/assets/js/components/menu.js"></script>
+    <script type="module" src="/assets/js/components/footer-legal.js"></script>
+    <script src="/assets/js/core/env.js"></script>
+    <script src="/assets/js/core/utils.js"></script>
+    <script type="module" src="/assets/js/core/favorites.js"></script>
+    <script type="module" src="/assets/js/core/account.js"></script>
+    <script src="/assets/js/core/cart.js"></script>
+    <script type="module" src="/assets/js/pages/legal.js"></script>
+    <script type="module" src="/assets/js/components/cookie-consent.js"></script>
+  </body>
+</html>
