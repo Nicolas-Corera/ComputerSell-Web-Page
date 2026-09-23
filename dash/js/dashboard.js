@@ -1717,7 +1717,7 @@ import {
         if (!/^image\/(png|jpeg|webp)$/.test(f.type)) return toast(`${f.name}: formato no permitido`, "bad");
         if (f.size > 5 * 1024 * 1024) return toast(`${f.name}: supera los 5 MB`, "bad");
         if (images.length >= 8) return toast("Máximo 8 imágenes", "bad");
-        images.push({ url: URL.createObjectURL(f), name: f.name, file: f });
+        images.push({ url: URL.createObjectURL(f), name: f.name, file: f, isNew: true });
       });
       renderImages();
     }
@@ -1739,35 +1739,109 @@ import {
       }),
     );
 
-    let dragIdx = null;
-    function renderImages() {
+    let dragEl = null;
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    function flipItems(mutate) {
+      const items = $$(".imgItem", imgGrid);
+      const first = new Map(items.map((el) => [el, el.getBoundingClientRect()]));
+      mutate();
+      if (reduceMotion.matches) return;
+      items.forEach((el) => {
+        if (el === dragEl) return;
+        const a = first.get(el), b = el.getBoundingClientRect();
+        const dx = a.left - b.left, dy = a.top - b.top;
+        if (!dx && !dy) return;
+        el.animate([{ transform: `translate(${dx}px, ${dy}px)` }, { transform: "none" }], {
+          id: "flip",
+          duration: 250,
+          easing: "cubic-bezier(0.2, 0.8, 0.2, 1)",
+        });
+      });
+    }
+    function updateMainTag() {
+      $$(".imgItem", imgGrid).forEach((el, i) => el.classList.toggle("is-main", i === 0));
+    }
+    function startSort(item, e) {
+      const r = item.getBoundingClientRect();
+      const offX = e.clientX - r.left, offY = e.clientY - r.top;
+      const from = +item.dataset.i;
+      const ghost = item.cloneNode(true);
+      ghost.className = "imgItem imgGhost";
+      Object.assign(ghost.style, { width: `${r.width}px`, height: `${r.height}px`, left: `${r.left}px`, top: `${r.top}px` });
+      document.body.appendChild(ghost);
+      document.body.classList.add("is-sorting");
+      dragEl = item;
+      item.classList.add("is-dragging");
+      updateMainTag();
+
+      const move = (ev) => {
+        ghost.style.transform = `translate(${ev.clientX - offX - r.left}px, ${ev.clientY - offY - r.top}px) scale(1.06) rotate(-2deg)`;
+        const over = document.elementFromPoint(ev.clientX, ev.clientY)?.closest(".imgItem");
+        if (!over || over === dragEl || !imgGrid.contains(over)) return;
+        if (over.getAnimations().some((a) => a.id === "flip" && a.playState === "running")) return;
+        const items = $$(".imgItem", imgGrid);
+        const after = items.indexOf(dragEl) < items.indexOf(over);
+        flipItems(() => over[after ? "after" : "before"](dragEl));
+        updateMainTag();
+      };
+      const end = () => {
+        window.removeEventListener("pointermove", move);
+        window.removeEventListener("pointerup", end);
+        window.removeEventListener("pointercancel", end);
+        const t = dragEl.getBoundingClientRect();
+        const finish = () => {
+          ghost.remove();
+          document.body.classList.remove("is-sorting");
+          item.classList.remove("is-dragging");
+          const order = $$(".imgItem", imgGrid).map((el) => +el.dataset.i);
+          dragEl = null;
+          if (order.every((v, i) => v === i)) return updateMainTag();
+          images.splice(0, images.length, ...order.map((i) => images[i]));
+          renderImages(order.indexOf(from));
+        };
+        if (reduceMotion.matches) return finish();
+        ghost.style.transition = "transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1)";
+        ghost.style.transform = `translate(${t.left - r.left}px, ${t.top - r.top}px)`;
+        setTimeout(finish, 220);
+      };
+      window.addEventListener("pointermove", move);
+      window.addEventListener("pointerup", end);
+      window.addEventListener("pointercancel", end);
+      move(e);
+    }
+
+    function renderImages(droppedIdx = -1) {
       imgGrid.innerHTML = images
         .map(
           (im, i) => `
-          <div class="imgItem" draggable="true" data-i="${i}">
-            <img src="${im.url}" alt="" />
-            ${i === 0 ? '<span class="imgItem-main">Principal</span>' : ""}
+          <div class="imgItem${im.isNew ? " is-new" : ""}${i === droppedIdx ? " is-dropped" : ""}${i === 0 ? " is-main" : ""}" data-i="${i}">
+            <img src="${im.url}" alt="" draggable="false" />
+            <span class="imgItem-main">Principal</span>
             <div class="imgItem-tools">
               <button type="button" data-remove="${i}" title="Quitar"><svg><use href="#ic-delete" /></svg></button>
             </div>
           </div>`,
         )
         .join("");
+      images.forEach((im) => delete im.isNew);
       $$(".imgItem", imgGrid).forEach((item) => {
-        item.addEventListener("dragstart", () => {
-          dragIdx = +item.dataset.i;
-          item.classList.add("is-dragging");
-        });
-        item.addEventListener("dragend", () => item.classList.remove("is-dragging"));
-        item.addEventListener("dragover", (e) => e.preventDefault());
-        item.addEventListener("drop", (e) => {
+        item.addEventListener("pointerdown", (e) => {
+          if (e.button !== 0 || dragEl || e.target.closest("button")) return;
           e.preventDefault();
-          const to = +item.dataset.i;
-          if (dragIdx === null || dragIdx === to) return;
-          const [moved] = images.splice(dragIdx, 1);
-          images.splice(to, 0, moved);
-          dragIdx = null;
-          renderImages();
+          const sx = e.clientX, sy = e.clientY;
+          const pending = (ev) => {
+            if (Math.hypot(ev.clientX - sx, ev.clientY - sy) < 5) return;
+            cancel();
+            startSort(item, ev);
+          };
+          const cancel = () => {
+            window.removeEventListener("pointermove", pending);
+            window.removeEventListener("pointerup", cancel);
+            window.removeEventListener("pointercancel", cancel);
+          };
+          window.addEventListener("pointermove", pending);
+          window.addEventListener("pointerup", cancel);
+          window.addEventListener("pointercancel", cancel);
         });
       });
       $$("[data-remove]", imgGrid).forEach((b) =>
