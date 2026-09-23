@@ -24,6 +24,9 @@ loading(async function () {
   const Pricing = window.CSPricing;
   // Medios de pago y su recargo (assets/js/config/payment-rates.js)
   const PAYMENT = Pricing.PAYMENT;
+  // Pago con tarjeta (Mercado Pago) desactivado: solo transferencia.
+  // Para reactivarlo: true acá, api/_mp -> api/mp y el SDK en pago.html.
+  const CARD_ENABLED = false;
 
   const user = await requireAuth();
   if (!user) return;
@@ -74,7 +77,7 @@ loading(async function () {
   const provinceSelect = document.getElementById("provincia");
 
   const state = {
-    method: "credito",
+    method: "transferencia",
     completed: false,
     // Tarjeta detectada por Mercado Pago a partir del BIN
     bin: "",
@@ -279,6 +282,7 @@ loading(async function () {
   // débito (misma tarjeta, distinto recargo); solo se reinician las cuotas.
   function setMethod(method) {
     if (method === state.method) return;
+    if (!CARD_ENABLED && PAYMENT[method].card) return;
     state.method = method;
     const isCard = PAYMENT[method].card;
     cuotasSelect.value = "1";
@@ -577,6 +581,7 @@ loading(async function () {
   }
 
   function initMercadoPago() {
+    if (!CARD_ENABLED) return false;
     if (!window.MercadoPago || !ENV.MP_PUBLIC_KEY) {
       console.error("[mp] SDK no cargado o falta MP_PUBLIC_KEY (corré npm run env)");
       mpErrorEl.hidden = false;
@@ -944,8 +949,8 @@ loading(async function () {
   }
 
   store.onChange(render);
-  // Estado inicial: crédito (activa panel y deshabilita los campos del resto)
+  // Estado inicial: transferencia (activa panel y deshabilita los campos del resto)
   state.method = "";
-  setMethod("credito");
+  setMethod(CARD_ENABLED ? "credito" : "transferencia");
   render();
 });
