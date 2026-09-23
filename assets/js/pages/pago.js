@@ -2,11 +2,17 @@
 // tarjeta animada y resumen lateral con envío + recargo + total.
 // Requiere sesión.
 //
+// Envío (por peso y provincia), recargo por tarjeta y recargo por cuotas se
+// calculan con window.CSPricing (assets/js/core/pricing.js, tarifas en
+// assets/js/config/). El backend usa el mismo código para crear la orden, así
+// que lo que se ve acá es lo que se cobra. Se recalcula al cambiar provincia,
+// medio de pago o cuotas.
+//
 // Tarjeta (crédito/débito): Mercado Pago Checkout API. El número, vencimiento
 // y CVV son Secure Fields del SDK (iframes de MP: los datos nunca pasan por
 // acá). Al pagar se crea un token y se manda a /api/mp/pay, que crea la orden
 // (place_order valida stock y precios en la base) y cobra con la API de Orders.
-// Transferencia: la orden se crea desde acá con place_order y se sube el
+// Transferencia: /api/orders/transfer crea la orden y desde acá se sube el
 // comprobante para que el panel lo revise.
 import { sb, requireAuth, getProfile, loading } from "../core/supabase.js";
 import { createCatalog } from "../core/catalog.js";
@@ -15,30 +21,23 @@ loading(async function () {
   const { formatPrice, escapeHtml, toast } = window.CS;
   const store = window.CartStore;
   const ENV = window.CS_ENV || {};
+  const Pricing = window.CSPricing;
+  // Medios de pago y su recargo (assets/js/config/payment-rates.js)
+  const PAYMENT = Pricing.PAYMENT;
 
   const user = await requireAuth();
   if (!user) return;
   const profile = await getProfile();
   const catalog = await createCatalog().ready; // precio/stock del carrito al día
-  // Entrega y cuotas sin interés de cada producto (se configuran en el panel)
+  // Entrega, peso, envío gratis y cuotas sin interés de cada producto (panel)
   const productInfo = (id) => catalog.cards().find((c) => c.id === id) || {};
 
-  // ---------- Configuración (valores de la demo) ----------
-  // Envío a domicilio: se cobra siempre (salvo que todo tenga envío gratis)
-  const SHIPPING = { label: "Envío a domicilio", cost: 15000 };
   // Tiempo de entrega por producto (panel): el pedido llega con el más lento
   const DELIVERY = {
     "24-48hs": { rank: 0, label: "Llega en 24/48 hs hábiles" },
     "3-5": { rank: 1, label: "Llega en 3 a 5 días hábiles" },
     "7-10": { rank: 2, label: "Llega en 7 a 10 días hábiles" },
     "a-pedido": { rank: 3, label: "A pedido: te contactamos para coordinar la entrega" },
-  };
-
-  // Recargo sobre el subtotal según el medio de pago
-  const PAYMENT = {
-    credito: { label: "Tarjeta de crédito", surcharge: 0.1, card: true },
-    debito: { label: "Tarjeta de débito", surcharge: 0.03, card: true },
-    transferencia: { label: "Transferencia", surcharge: 0, card: false },
   };
 
   // ---------- DOM ----------
@@ -62,9 +61,8 @@ loading(async function () {
   const summaryItems = document.getElementById("summaryItems");
   const sumSubtotal = document.getElementById("sumSubtotal");
   const sumShipping = document.getElementById("sumShipping");
-  const sumShippingLabel = document.getElementById("sumShippingLabel");
-  const sumPayment = document.getElementById("sumPayment");
-  const sumPaymentLabel = document.getElementById("sumPaymentLabel");
+  const sumCardLine = document.getElementById("sumCardLine");
+  const sumCard = document.getElementById("sumCard");
   const sumTotal = document.getElementById("sumTotal");
   const sumCuotas = document.getElementById("sumCuotas");
   const payBtn = document.getElementById("payBtn");
@@ -73,6 +71,7 @@ loading(async function () {
   const panels = Array.from(document.querySelectorAll(".payPanel"));
   const cuotasField = document.getElementById("cuotasField");
   const cuotasSelect = document.getElementById("cuotas");
+  const provinceSelect = document.getElementById("provincia");
 
   const state = {
     method: "credito",
@@ -86,15 +85,23 @@ loading(async function () {
     processing: false, // pago en curso: el botón queda bloqueado hasta que termine
   };
 
-  // Cuotas sin interés del pedido: las que admiten TODOS los productos del carrito
-  function freeInstallments() {
-    const items = store.getItems();
-    if (!items.length) return 0;
-    return items.reduce((min, it) => {
-      const n = productInfo(it.id).installments ?? it.installments ?? 0;
-      return Math.min(min, n || 0);
-    }, Infinity) || 0;
+  // Ítems del carrito con lo que necesita el cálculo: peso, envío gratis y
+  // cuotas sin interés salen del catálogo al día
+  function pricingItems() {
+    return store.getItems().map((it) => {
+      const p = productInfo(it.id);
+      return {
+        price: it.price,
+        qty: it.qty,
+        weight: p.weight ?? 0,
+        weightUnit: p.weightUnit || "kg",
+        freeShipping: p.freeShipping ?? it.freeShipping,
+        installments: p.installments ?? it.installments ?? 0,
+      };
+    });
   }
+
+  const selectedInstallments = () => (state.method === "credito" ? parseInt(cuotasSelect.value, 10) || 1 : 1);
 
   // Tiempo de entrega del pedido: el más lento de los productos
   function deliveryInfo() {
@@ -108,14 +115,9 @@ loading(async function () {
   }
 
   // ---------- Resumen ----------
+  // {subtotal, shipping (null = falta provincia), cardSurcharge, base, installments, total...}
   function totals() {
-    const subtotal = store.totalPrice();
-    const items = store.getItems();
-    const allFree = items.length > 0 && items.every((it) => it.freeShipping);
-    const shipping = allFree ? 0 : SHIPPING.cost;
-    const rate = PAYMENT[state.method].surcharge;
-    const surcharge = Math.round(subtotal * rate);
-    return { subtotal, shipping, surcharge, rate, total: subtotal + shipping + surcharge };
+    return Pricing.quote({ items: pricingItems(), province: provinceSelect.value, method: state.method, installments: selectedInstallments() });
   }
 
   function bump(el) {
@@ -125,6 +127,7 @@ loading(async function () {
   }
 
   function renderSummary() {
+    setInstallmentOptions(); // los montos de cada cuota dependen del envío
     const items = store.getItems();
     const t = totals();
 
@@ -146,32 +149,33 @@ loading(async function () {
 
     sumSubtotal.textContent = formatPrice(t.subtotal);
 
-    sumShippingLabel.textContent = SHIPPING.label;
-    sumShipping.textContent = t.shipping ? formatPrice(t.shipping) : "Gratis";
-    shippingHint.textContent = `${SHIPPING.label} · ${deliveryInfo().label} · ${t.shipping ? "$" + formatPrice(t.shipping) : "Gratis"}`;
+    // Envío: según provincia y peso (falta la provincia / gratis / monto)
+    const noProvince = t.shipping === null;
+    const shippingText = noProvince ? "Elegí tu provincia" : t.shipping ? formatPrice(t.shipping) : "Gratis";
+    sumShipping.classList.toggle("is-none", noProvince || t.shipping === 0);
+    sumShipping.textContent = shippingText;
+    shippingHint.textContent = `Envío a domicilio · ${deliveryInfo().label} · ${noProvince ? "Elegí tu provincia para calcular el costo" : t.shipping ? "$" + shippingText : "Gratis"}`;
 
-    const pct = Math.round(t.rate * 100);
-    sumPaymentLabel.textContent = PAYMENT[state.method].label;
-    sumPayment.classList.toggle("is-none", t.surcharge === 0);
-    sumPayment.textContent =
-      t.surcharge === 0 ? "Sin recargo" : `${formatPrice(t.surcharge)} (+${pct}%)`;
+    // Recargo por tarjeta (crédito y débito)
+    sumCardLine.hidden = !PAYMENT[state.method].card;
+    sumCard.textContent = formatPrice(t.cardSurcharge);
 
+    // Total final: ya incluye el recargo por cuotas, que no se muestra aparte
     sumTotal.textContent = formatPrice(t.total);
     bump(sumTotal);
 
-    // Cuotas sin interés (solo crédito): las configuradas en los productos
-    const n = state.method === "credito" ? parseInt(cuotasSelect.value, 10) || 1 : 1;
-    if (n > 1) {
+    if (t.installments > 1) {
+      const plan = Pricing.installmentPlan(t.base, t.installments, t.freeInstallments);
       sumCuotas.hidden = false;
-      sumCuotas.textContent = `${n} cuotas sin interés de $${formatPrice(Math.round(t.total / n))}`;
+      sumCuotas.textContent = `${t.installments}x $${formatPrice(plan.each)}${plan.free ? " sin interés" : ""}`;
     } else {
       sumCuotas.hidden = true;
     }
 
-    if (!state.processing) payBtn.textContent = `Pagar $${formatPrice(t.total)}`;
+    if (!state.processing) payBtn.textContent = noProvince ? "Pagar" : `Pagar $${formatPrice(t.total)}`;
     updatePayButton();
     syncSummarySheet();
-    if (state.method === "credito" && state.bin && state.installmentsAmount !== t.total) refreshInstallments();
+    if (state.method === "credito" && state.bin && state.installmentsAmount !== t.base) refreshInstallments();
   }
 
   // ---------- Resumen desplegable desde abajo (móvil/tablet) ----------
@@ -304,6 +308,17 @@ loading(async function () {
     tab.addEventListener("click", () => setMethod(tab.dataset.method));
   });
   cuotasSelect.addEventListener("change", renderSummary);
+  provinceSelect.addEventListener("change", renderSummary);
+
+  // Bajada de cada pestaña según la configuración de recargos y las cuotas del carrito
+  function renderTabs() {
+    const maxCuotas = Math.max(...Pricing.installmentOptions(Pricing.freeInstallments(pricingItems())));
+    tabs.forEach((tab) => {
+      const pay = PAYMENT[tab.dataset.method];
+      const text = pay.surcharge ? `+${Math.round(pay.surcharge * 100)}%` : "Sin recargo";
+      tab.querySelector("small").textContent = tab.dataset.method === "credito" && maxCuotas > 1 ? `${text} · hasta ${maxCuotas} cuotas` : text;
+    });
+  }
 
   // ---------- Tarjeta animada ----------
   const preview = document.getElementById("cardPreview");
@@ -509,41 +524,48 @@ loading(async function () {
     return !mismatch;
   }
 
-  // Opciones de cuotas: de 1 hasta las cuotas sin interés que admiten los
-  // productos del carrito (todas al mismo precio total). Si ya se conoce la
-  // tarjeta, se dejan solo las que Mercado Pago confirma para ese BIN.
+  // Opciones de cuotas (estilo Mercado Libre): valor de cada cuota y total,
+  // con el recargo ya incluido; nunca el porcentaje. Hasta las cuotas sin
+  // interés de los productos del carrito van sin recargo; el resto con el de
+  // assets/js/config/installment-rates.js.
+  // Si ya se conoce la tarjeta, quedan solo las cuotas que Mercado Pago admite
+  // para ese BIN sin sumarle interés propio al comprador (si no, pagaría más
+  // de lo que se le muestra acá).
   function setInstallmentOptions() {
     const current = parseInt(cuotasSelect.value, 10) || 1;
-    const t = totals();
-    const max = freeInstallments();
-    const supported = state.installmentPlans.map((p) => p.installments);
-    const list = [1];
-    for (let n = 2; n <= max; n++) if (!supported.length || supported.includes(n)) list.push(n);
+    const items = pricingItems();
+    const base = Pricing.quote({ items, province: provinceSelect.value, method: "credito", installments: 1 }).base;
+    const freeMax = Pricing.freeInstallments(items);
+    const supported = state.installmentPlans.filter((p) => !p.installment_rate).map((p) => p.installments);
+    const list = Pricing.installmentOptions(freeMax).filter((n) => n === 1 || !supported.length || supported.includes(n));
     cuotasSelect.innerHTML = "";
     list.forEach((n) => {
+      const plan = Pricing.installmentPlan(base, n, freeMax);
       const opt = document.createElement("option");
       opt.value = String(n);
-      opt.textContent = n === 1 ? "1 cuota" : `${n} cuotas sin interés de $${formatPrice(Math.round(t.total / n))}`;
+      opt.textContent =
+        n === 1
+          ? `1x $${formatPrice(plan.total)}`
+          : plan.free
+            ? `${n}x $${formatPrice(plan.each)} sin interés`
+            : `${n}x $${formatPrice(plan.each)} → Total $${formatPrice(plan.total)}`;
       cuotasSelect.appendChild(opt);
     });
     cuotasSelect.value = list.includes(current) ? String(current) : "1";
-    cuotasHint.textContent = !max
-      ? "Este pedido no tiene cuotas sin interés"
-      : supported.length && list.length === 1
-        ? "Tu tarjeta no admite las cuotas sin interés de este pedido"
-        : `Hasta ${max} cuotas sin interés`;
-    cuotasHint.hidden = false;
+    cuotasHint.textContent =
+      supported.length && list.length === 1 ? "Tu tarjeta no admite cuotas para este pedido" : freeMax > 1 ? `Hasta ${freeMax} cuotas sin interés` : "";
+    cuotasHint.hidden = !cuotasHint.textContent;
   }
 
-  // Planes de la tarjeta (BIN) para el total actual: filtran las cuotas que no admite
+  // Planes de la tarjeta (BIN) para el monto a financiar: filtran las cuotas que no admite
   let installmentsSeq = 0;
   async function refreshInstallments() {
     const t = totals();
-    state.installmentsAmount = t.total;
+    state.installmentsAmount = t.base;
     if (!mp || !state.bin || state.method !== "credito") return;
     const seq = ++installmentsSeq;
     try {
-      const res = await mp.getInstallments({ amount: String(t.total), bin: state.bin, paymentTypeId: "credit_card", locale: "es-AR" });
+      const res = await mp.getInstallments({ amount: String(t.base), bin: state.bin, paymentTypeId: "credit_card", locale: "es-AR" });
       if (seq !== installmentsSeq) return; // llegó una consulta más nueva
       state.installmentPlans = (res && res[0] && res[0].payer_costs) || [];
     } catch (e) {
@@ -771,19 +793,31 @@ loading(async function () {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
-  // Transferencia: orden desde acá + comprobante al storage privado
-  async function payWithTransfer(data) {
-    const items = store.getItems().map((it) => ({ product_id: it.id, qty: it.qty }));
-    const { data: rows, error } = await sb.rpc("place_order", {
-      p_items: items,
-      p_payment_method: "transferencia",
-      p_shipping_method: "domicilio",
-      p_customer: data.customer,
-      p_installments: 1,
-      p_note: "",
+  // POST a /api/* con la sesión de Supabase -> {res, out}
+  async function postApi(path, body) {
+    const { data: sess } = await sb.auth.getSession();
+    if (!sess || !sess.session) throw new Error("Tu sesión venció. Volvé a ingresar.");
+    const res = await fetch(path, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: "Bearer " + sess.session.access_token },
+      body: JSON.stringify(body),
     });
-    if (error) throw error;
-    const order = Array.isArray(rows) ? rows[0] : rows;
+    let out = {};
+    try {
+      out = await res.json();
+    } catch (e) {
+      out = {};
+    }
+    return { res, out };
+  }
+
+  const cartItems = () => store.getItems().map((it) => ({ product_id: it.id, qty: it.qty }));
+
+  // Transferencia: orden en el backend (calcula el envío) + comprobante al storage privado
+  async function payWithTransfer(data) {
+    const { res, out } = await postApi("/api/orders/transfer", { items: cartItems(), customer: data.customer, address: data.address });
+    if (!res.ok || !out.order) throw new Error(out.error || "No pudimos crear el pedido");
+    const order = out.order;
 
     const file = receiptInput.files[0];
     if (file) {
@@ -819,34 +853,20 @@ loading(async function () {
     }
     if (!token || !token.id) throw new Error("No pudimos validar la tarjeta. Intentá de nuevo.");
 
-    const { data: sess } = await sb.auth.getSession();
-    if (!sess || !sess.session) throw new Error("Tu sesión venció. Volvé a ingresar.");
-
-    const items = store.getItems();
     const pm = state.paymentMethod;
-    const res = await fetch("/api/mp/pay", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: "Bearer " + sess.session.access_token },
-      body: JSON.stringify({
-        method: state.method,
-        items: items.map((it) => ({ product_id: it.id, qty: it.qty })),
-        customer: data.customer,
-        address: data.address,
-        installments: state.method === "credito" ? parseInt(cuotasSelect.value, 10) || 1 : 1,
-        card: {
-          token: token.id,
-          payment_method_id: pm.id,
-          brand: pm.name,
-          last_four: token.last_four_digits || "",
-        },
-      }),
+    const { res, out } = await postApi("/api/mp/pay", {
+      method: state.method,
+      items: cartItems(),
+      customer: data.customer,
+      address: data.address,
+      installments: selectedInstallments(),
+      card: {
+        token: token.id,
+        payment_method_id: pm.id,
+        brand: pm.name,
+        last_four: token.last_four_digits || "",
+      },
     });
-    let out = {};
-    try {
-      out = await res.json();
-    } catch (e) {
-      out = {};
-    }
     if (!res.ok) {
       const err = new Error(out.error || "No pudimos procesar el pago");
       err.rejected = res.status === 402;
@@ -855,7 +875,7 @@ loading(async function () {
 
     saveProfile(data);
     const card = out.payment || {};
-    const label = `${PAYMENT[state.method].label.toLowerCase()}${card.brand ? ` ${card.brand}` : ""}${card.last_four ? ` •••• ${card.last_four}` : ""}${card.installments > 1 ? ` en ${card.installments} cuotas sin interés` : ""}`;
+    const label = `${PAYMENT[state.method].label.toLowerCase()}${card.brand ? ` ${card.brand}` : ""}${card.last_four ? ` •••• ${card.last_four}` : ""}${card.installments > 1 ? ` en ${card.installments} cuotas` : ""}`;
     if (out.result === "pending") {
       return () => {
         document.getElementById("orderSuccessText").innerHTML = `Mercado Pago está procesando tu pago con <strong>${escapeHtml(label)}</strong> por <strong>$${formatPrice(out.order.total)}</strong>.`;
@@ -917,7 +937,7 @@ loading(async function () {
     checkout.hidden = items.length === 0;
     empty.hidden = items.length !== 0;
     if (items.length) {
-      setInstallmentOptions();
+      renderTabs();
       renderSummary();
     }
   }

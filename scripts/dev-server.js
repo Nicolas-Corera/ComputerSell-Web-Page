@@ -39,8 +39,9 @@ function runApi(url, req, res) {
     res.writeHead(404, { "Content-Type": "application/json" });
     return res.end(JSON.stringify({ error: "404 · " + url }));
   }
+  // (también las tarifas de assets/js que usa api/_lib/checkout.js)
   Object.keys(require.cache)
-    .filter((k) => k.startsWith(path.join(ROOT, "api")))
+    .filter((k) => k.startsWith(path.join(ROOT, "api")) || k.startsWith(path.join(ROOT, "assets", "js")))
     .forEach((k) => delete require.cache[k]);
   Promise.resolve()
     .then(() => require(file)(req, res))

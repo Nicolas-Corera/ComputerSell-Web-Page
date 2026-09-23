@@ -168,11 +168,12 @@ import {
   //  CONSTANTES DE DOMINIO
   // =====================================================================
 
+  // Etiquetas (los recargos están en assets/js/config/payment-rates.js)
   const PAYMENTS = {
-    credito: { label: "Tarjeta de crédito", surcharge: 0.1 },
-    debito: { label: "Tarjeta de débito", surcharge: 0.03 },
-    transferencia: { label: "Transferencia", surcharge: 0 },
-    mercadopago: { label: "Mercado Pago", surcharge: 0.05 },
+    credito: { label: "Tarjeta de crédito" },
+    debito: { label: "Tarjeta de débito" },
+    transferencia: { label: "Transferencia" },
+    mercadopago: { label: "Mercado Pago" },
   };
 
   const ORDER_STATUS = {
@@ -1264,7 +1265,7 @@ import {
       <div>
         <h4>Pago y envío</h4>
         <dl class="kv">
-          <dt>Medio de pago</dt><dd>${(PAYMENTS[o.payment] || { label: o.payment }).label}${o.installments > 1 ? ` · ${o.installments} cuotas sin interés` : ""}</dd>
+          <dt>Medio de pago</dt><dd>${(PAYMENTS[o.payment] || { label: o.payment }).label}${o.installments > 1 ? ` · ${o.installments} cuotas` : ""}</dd>
           <dt>Entrega</dt><dd>${o.shippingMethod === "domicilio" ? "Envío a domicilio · " + escapeHtml(o.customer.address) : "Retiro en el local"}</dd>
           <dt>Subtotal</dt><dd>$${formatPrice(o.subtotal)}</dd>
           <dt>Envío</dt><dd>${o.shipping ? "$" + formatPrice(o.shipping) : "Gratis"}</dd>
@@ -1901,6 +1902,7 @@ import {
         ["Descripción", d.description.length >= 40, desc.closest(".field"), desc],
         ["Precio", d.price > 0, price.closest(".field"), price],
         ["Stock", stock.value !== "", stock.closest(".field"), stock],
+        ["Peso", +d.weight > 0, $("#pWeight").closest(".field"), $("#pWeight")],
         ["Imágenes", d.images.length > 0, imgDrop, imgDrop],
         ["Especificaciones", d.specs.length > 0, specRows, specRows],
       ];

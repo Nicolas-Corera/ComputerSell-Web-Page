@@ -57,6 +57,27 @@ Comandos sueltos: `npm run db:push`, `npm run admins:sync`, `npm run auth:config
 | `ACCESS_TOKEN` | Mercado Pago, secreta: solo `api/mp/*` |
 | `CLAVE_WEBHOOK` | clave secreta de los webhooks de Mercado Pago (valida `x-signature`) |
 
+## Envío y recargos del checkout
+
+Tarifas y porcentajes en archivos separados, fáciles de editar (los usan el checkout **y** el backend que crea la
+orden, así que lo que ve el cliente es lo que se cobra):
+
+| Archivo | Qué tiene |
+| --- | --- |
+| `assets/js/config/shipping-rates.js` | Tarifas de Correo Argentino (Encomienda Clásica) por rango de peso: regional (CABA y Bs As) y nacional |
+| `assets/js/config/payment-rates.js` | Recargo por medio de pago (tarjeta de crédito y débito: 10%) |
+| `assets/js/config/installment-rates.js` | Recargo por cuotas con crédito (3: 11%, 6: 20%, 9: 30%, 12: 35%) |
+
+El cálculo está en `assets/js/core/pricing.js`:
+
+- **Envío**: peso total del pedido (peso × cantidad) según la tabla. CABA y Buenos Aires usan la columna regional y
+  los productos con "Envío gratis" no suman peso (si todos lo tienen, el envío es gratis); el resto del país usa la
+  nacional para todos los productos. Más de 25 kg: bultos de 25 kg.
+- **Recargo por tarjeta**: sobre productos + envío.
+- **Recargo por cuotas**: sobre el total con el recargo por tarjeta. Las cuotas hasta las "cuotas sin interés" de los
+  productos del carrito (panel) van sin recargo. El checkout muestra el valor de cada cuota y el total, nunca el %.
+- `orders.surcharge` = recargo por tarjeta + recargo por cuotas.
+
 ## Pagos con tarjeta (Mercado Pago · Checkout API / Orders)
 
 El cobro es transparente: el comprador nunca sale del sitio.
@@ -66,8 +87,8 @@ El cobro es transparente: el comprador nunca sale del sitio.
    la tarjeta (marca, crédito/débito) y trae las cuotas reales para el monto.
 2. Al pagar, el navegador crea el token (`mp.fields.createCardToken`) y llama a `POST /api/mp/pay` con la sesión de
    Supabase, los ítems del carrito, los datos del comprador, el medio (`credito`/`debito`), las cuotas y el token.
-3. `api/mp/pay.js` crea la orden con `place_order` **como el usuario** (valida stock y precios; el total sale de la
-   base, nunca del cliente), arma la order en Mercado Pago (`POST /v1/orders`, `processing_mode: automatic`,
+3. `api/mp/pay.js` crea la orden (`api/_lib/checkout.js`: calcula envío y recargos, `place_order` valida stock y
+   precios; nunca se usa un monto del cliente), arma la order en Mercado Pago (`POST /v1/orders`, `processing_mode: automatic`,
    `external_reference` = id de la orden, `X-Idempotency-Key` = id de la orden) y aplica el resultado con la RPC
    `mp_apply_payment` (service role): `processed` → `pagado` (nota de venta + notificaciones), `failed` → `cancelado`
    (devuelve stock, motivo en el timeline), `processing`/`action_required` → sigue `pendiente`.
@@ -75,8 +96,8 @@ El cobro es transparente: el comprador nunca sale del sitio.
    lee la order con `GET /v1/orders/{id}` (nunca confía en el body) y vuelve a aplicar `mp_apply_payment`
    (idempotente: acreditaciones tardías, reembolsos desde Mercado Pago → `cancelado` sin comprobante, contracargos → aviso al panel).
 
-Las órdenes con tarjeta nacen `pendiente` y las confirma el backend; la transferencia sigue igual (comprobante y
-revisión en el panel). En `orders` quedan `mp_order_id` y `payment` (marca, últimos 4, ids y estado de MP).
+Las órdenes con tarjeta nacen `pendiente` y las confirma el backend; la transferencia crea la orden con
+`POST /api/orders/transfer` y después el navegador sube el comprobante (revisión en el panel). En `orders` quedan `mp_order_id` y `payment` (marca, últimos 4, ids y estado de MP).
 
 Configuración en Mercado Pago (Tus integraciones → aplicación):
 
@@ -107,7 +128,8 @@ Con Google, el nombre y la foto de perfil se toman de la cuenta de Google.
 - `orders` + `order_items` + `order_events` (timeline), `invoices`, `payment_receipts` (bucket `receipts`)
 - `reservations`, `notifications` (panel y clientes)
 
-RPCs: `place_order` (valida stock y precios, descuenta stock; la orden nace pendiente), `mp_apply_payment`
+RPCs: `place_order` (solo service role, la llama `api/_lib/checkout.js`: valida stock y precios, descuenta stock;
+la orden nace pendiente), `mp_apply_payment`
 (solo service role: aplica el resultado de Mercado Pago),
 `set_order_status` (admin; al cancelar devuelve stock y borra la nota de venta: un pedido cancelado no tiene comprobante), `review_receipt` (admin),
 `mark_notifications_read`. Todo protegido con RLS.

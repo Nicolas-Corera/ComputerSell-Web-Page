@@ -189,7 +189,7 @@
             <section class="checkout-section">
               <h2><span class="step">2</span> Datos de envío</h2>
               <p class="hint" id="shippingHint">
-                Envío a domicilio · $15.000
+                Envío a domicilio · Elegí tu provincia para calcular el costo
               </p>
               <div class="formGrid" id="addressFields">
                 <label class="field">
@@ -227,7 +227,7 @@
                 </label>
                 <label class="field">
                   <span>Provincia</span>
-                  <select name="provincia" required>
+                  <select name="provincia" id="provincia" required>
                     <option value="">Seleccionar</option>
                     <option>Buenos Aires</option>
                     <option>CABA</option>
@@ -277,17 +277,17 @@
                   type="button"
                   data-method="credito"
                 >
-                  Tarjeta de crédito<small>+10% · hasta 12 cuotas</small>
+                  Tarjeta de crédito<small></small>
                 </button>
                 <button class="payTab" type="button" data-method="debito">
-                  Tarjeta de débito<small>+3%</small>
+                  Tarjeta de débito<small></small>
                 </button>
                 <button
                   class="payTab"
                   type="button"
                   data-method="transferencia"
                 >
-                  Transferencia<small>Sin recargo</small>
+                  Transferencia<small></small>
                 </button>
               </div>
 
@@ -452,20 +452,20 @@
             <ul class="summaryItems" id="summaryItems"></ul>
             <div class="summaryLines">
               <div class="summaryLine">
-                <span>Subtotal</span>
+                <span>Subtotal productos</span>
                 <strong id="sumSubtotal">0</strong>
               </div>
               <div class="summaryLine">
-                <span id="sumShippingLabel">Envío</span>
+                <span>Envío</span>
                 <strong id="sumShipping">0</strong>
               </div>
-              <div class="summaryLine">
-                <span id="sumPaymentLabel">Medio de pago</span>
-                <strong id="sumPayment">0</strong>
+              <div class="summaryLine" id="sumCardLine">
+                <span>Recargo por tarjeta</span>
+                <strong id="sumCard">0</strong>
               </div>
             </div>
             <div class="summaryTotal">
-              <span>Total</span>
+              <span>Total final</span>
               <strong id="sumTotal">0</strong>
             </div>
             <span class="summaryCuotas" id="sumCuotas" hidden></span>
@@ -635,6 +635,12 @@
     <script src="/assets/js/core/env.js"></script>
     <script src="/assets/js/core/utils.js"></script>
     <script src="/assets/js/core/cart.js"></script>
+    <!-- Tarifas de envío, recargo por tarjeta y por cuotas + cálculo del total
+         (los mismos archivos que usa el backend para crear la orden) -->
+    <script src="/assets/js/config/shipping-rates.js"></script>
+    <script src="/assets/js/config/payment-rates.js"></script>
+    <script src="/assets/js/config/installment-rates.js"></script>
+    <script src="/assets/js/core/pricing.js"></script>
     <script type="module" src="/assets/js/core/favorites.js"></script>
     <script type="module" src="/assets/js/core/account.js"></script>
     <script type="module" src="/assets/js/pages/pago.js"></script>

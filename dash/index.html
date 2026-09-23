@@ -877,7 +877,7 @@
                       <span class="track"></span>
                       <span class="switch-text">
                         Envío gratis
-                        <small>El envío no se cobra en el checkout</small>
+                        <small>Solo para CABA y Provincia de Buenos Aires. En el resto del país el envío se cobra según el peso</small>
                       </span>
                     </label>
                   </div>
@@ -893,9 +893,9 @@
                       </select>
                     </label>
                     <label class="field">
-                      <span>Peso</span>
+                      <span>Peso (para calcular el envío)</span>
                       <div class="input-unit">
-                        <input type="number" name="weight" id="pWeight" min="0" step="0.01" placeholder="0.0" />
+                        <input type="number" name="weight" id="pWeight" min="0.01" step="0.01" placeholder="0.0" required />
                         <select name="weightUnit" id="pWeightUnit" aria-label="Unidad de peso">
                           <option value="g">g</option>
                           <option value="kg" selected>kg</option>
