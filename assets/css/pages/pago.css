@@ -634,6 +634,14 @@
   color: #ff3b3b;
 }
 
+.fileDrop-preview {
+  margin-left: auto;
+}
+
+.fileDrop-preview:hover {
+  color: var(--ink);
+}
+
 .fileDrop-error {
   font-size: 13px;
   color: #ff3b3b;

@@ -608,6 +608,7 @@ loading(async function () {
   const receiptFile = document.getElementById("receiptFile");
   const receiptName = document.getElementById("receiptName");
   const receiptRemove = document.getElementById("receiptRemove");
+  const receiptPreview = document.getElementById("receiptPreview");
   const receiptError = document.getElementById("receiptError");
 
   const RECEIPT_TYPES = ["application/pdf", "image/jpeg", "image/png"];
@@ -640,6 +641,15 @@ loading(async function () {
 
   receiptInput.addEventListener("change", () => setReceipt(receiptInput.files[0]));
   receiptRemove.addEventListener("click", () => setReceipt(null));
+
+  // Abre el comprobante elegido en otra pestaña para revisarlo antes de pagar
+  receiptPreview.addEventListener("click", () => {
+    const file = receiptInput.files[0];
+    if (!file) return;
+    const url = URL.createObjectURL(file);
+    window.open(url, "_blank", "noopener");
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+  });
 
   // Arrastrar y soltar sobre la zona
   ["dragenter", "dragover"].forEach((ev) =>
