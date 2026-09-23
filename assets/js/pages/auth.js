@@ -222,10 +222,10 @@ async function finish() {
   return null;
 }
 
-// ¿El correo está habilitado para ser admin? (tabla admin_allowlist)
+// ¿El correo está habilitado para ser admin? (RPC: la tabla admin_allowlist no es pública)
 async function isAllowedAdmin(email) {
-  const { data } = await sb.from("admin_allowlist").select("email").ilike("email", email).maybeSingle();
-  return !!data;
+  const { data } = await sb.rpc("is_admin_email", { p_email: email });
+  return data === true;
 }
 
 // Crear cuenta

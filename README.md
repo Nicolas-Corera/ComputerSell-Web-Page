@@ -49,7 +49,7 @@ Comandos sueltos: `npm run db:push`, `npm run admins:sync`, `npm run auth:config
 | --- | --- |
 | `SUPABASE` | access token de la Management API (solo scripts) |
 | `SUPABASE_URL`, `SUPABASE_ANON_KEY` | públicos, van al navegador vía `assets/js/core/env.js` |
-| `ADMIN_EMAILS` | correos que pueden crear cuenta en el panel (`npm run admins:sync`) |
+| `ADMIN_EMAILS` | correos que pueden crear cuenta en el panel (`npm run admins:sync`); no se publican en `env.js` |
 | `SITE_URL`, `EXTRA_REDIRECT_URLS` | URLs permitidas para el login (`npm run auth:configure`) |
 | `MAILER_AUTOCONFIRM` | `true` = sin verificación de correo (desarrollo) |
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | login con Google |
@@ -166,7 +166,7 @@ La tienda y el panel se despliegan juntos; `vercel.json` rutea por dominio:
 
 Pasos:
 
-1. Variables de entorno del proyecto: `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `ADMIN_EMAILS`, y para el pago:
+1. Variables de entorno del proyecto: `SUPABASE_URL`, `SUPABASE_ANON_KEY`, y para el pago:
    `SUPABASE_SECRET_KEY`, `PUBLIC_KEY`, `ACCESS_TOKEN`, `CLAVE_WEBHOOK`.
 2. Settings → Domains: agregar `<dominio>` **y** `dash.<dominio>` al mismo proyecto (en el DNS, un CNAME `dash` → `cname.vercel-dns.com`).
 3. En el `.env`: `SITE_URL=https://<dominio>` y `EXTRA_REDIRECT_URLS=https://dash.<dominio>,http://dash.localhost:3000`, y correr `npm run auth:configure`.

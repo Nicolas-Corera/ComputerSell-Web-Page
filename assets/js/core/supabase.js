@@ -14,8 +14,6 @@ export const sb = createClient(ENV.SUPABASE_URL || "https://invalid.supabase.co"
 });
 window.sb = sb; // útil para depurar desde la consola
 
-export const ADMIN_EMAILS = (ENV.ADMIN_EMAILS || []).map((e) => String(e).toLowerCase());
-
 // ---------- Loader inicial ----------
 // Registra una carga en el skeleton de la página (loader.js): el sitio no se
 // muestra hasta que resuelva. En páginas sin loader devuelve la promesa tal cual.
