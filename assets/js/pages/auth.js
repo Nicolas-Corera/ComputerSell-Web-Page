@@ -11,7 +11,18 @@ const $$ = (sel, root) => Array.from((root || document).querySelectorAll(sel));
 const body = document.body;
 const IS_ADMIN = body.dataset.auth === "admin";
 const params = new URLSearchParams(location.search);
-const NEXT = params.get("next") && params.get("next").startsWith("/") ? params.get("next") : null;
+// ?next solo acepta rutas de este mismo sitio: "//host" o "/\host" el
+// navegador los trata como otro dominio (open redirect).
+function safeNext(value) {
+  if (!value || !/^\/(?![\/\\])/.test(value)) return null;
+  try {
+    const u = new URL(value, location.origin);
+    return u.origin === location.origin ? u.pathname + u.search + u.hash : null;
+  } catch (e) {
+    return null;
+  }
+}
+const NEXT = safeNext(params.get("next"));
 const REDIRECT = NEXT || (IS_ADMIN ? "./" : "/index.html"); // el panel queda junto a login.html
 const THIS_PAGE = location.origin + location.pathname;
 if (IS_ADMIN) applyStoreLinks();
@@ -222,10 +233,10 @@ async function finish() {
   return null;
 }
 
-// ¿El correo está habilitado para ser admin? (tabla admin_allowlist)
+// ¿El correo está habilitado para ser admin? (RPC: la tabla admin_allowlist no es pública)
 async function isAllowedAdmin(email) {
-  const { data } = await sb.from("admin_allowlist").select("email").ilike("email", email).maybeSingle();
-  return !!data;
+  const { data } = await sb.rpc("is_admin_email", { p_email: email });
+  return data === true;
 }
 
 // Crear cuenta

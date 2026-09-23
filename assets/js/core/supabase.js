@@ -14,8 +14,6 @@ export const sb = createClient(ENV.SUPABASE_URL || "https://invalid.supabase.co"
 });
 window.sb = sb; // útil para depurar desde la consola
 
-export const ADMIN_EMAILS = (ENV.ADMIN_EMAILS || []).map((e) => String(e).toLowerCase());
-
 // ---------- Loader inicial ----------
 // Registra una carga en el skeleton de la página (loader.js): el sitio no se
 // muestra hasta que resuelva. En páginas sin loader devuelve la promesa tal cual.
@@ -207,8 +205,15 @@ export function toCard(p) {
   };
 }
 
+// Columnas de products que puede leer la tienda (cost y created_by son solo
+// del panel: migración 0017). Con permisos por columna, select("*") falla.
+export const PRODUCT_COLUMNS =
+  "id,sku,title,brand,category,subcategory,description,tags,price,old_price,on_sale,stock,stock_min,status," +
+  "warranty,warranty_unit,featured,installments,free_shipping,delivery,weight,weight_unit,dimensions,dimensions_unit," +
+  "condition,images,specs,highlights,created_at,updated_at";
+
 export function fetchPublished(extra) {
-  let q = sb.from("products").select("*").eq("status", "publicado").order("created_at", { ascending: false });
+  let q = sb.from("products").select(PRODUCT_COLUMNS).eq("status", "publicado").order("created_at", { ascending: false });
   if (extra) q = extra(q);
   return q.then(({ data, error }) => {
     if (error) console.error(error);

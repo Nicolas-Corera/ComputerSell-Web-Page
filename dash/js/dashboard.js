@@ -559,7 +559,7 @@ import {
       .map(
         (n) => `
         <article class="notif ${isRead(n) ? "" : "is-unread"}" data-id="${n.id}">
-          <span class="notif-icon is-${n.type}"><svg><use href="#ic-${n.icon}" /></svg></span>
+          <span class="notif-icon is-${escapeHtml(n.type)}"><svg><use href="#ic-${escapeHtml(n.icon)}" /></svg></span>
           <div class="notif-body">
             <strong>${escapeHtml(n.title)}</strong>
             <p>${escapeHtml(n.body)}</p>
@@ -1480,7 +1480,7 @@ import {
               <td class="mono">${r.id}</td>
               <td>${escapeHtml(r.customer.name)}</td>
               <td class="muted">${r.order ? r.order.id : "—"}</td>
-              <td class="muted">${r.bank || "—"}</td>
+              <td class="muted">${escapeHtml(r.bank) || "—"}</td>
               <td class="muted">${fmtDateTime(r.date)}</td>
               <td class="num is-money">${formatPrice(r.amount)}</td>
               <td>${badge(RECEIPT_STATUS, r.status)}</td>
@@ -1570,8 +1570,8 @@ import {
           <dt>Estado</dt><dd>${badge(RECEIPT_STATUS, r.status)}</dd>
           <dt>Cliente</dt><dd>${escapeHtml(r.customer.name)}</dd>
           <dt>Orden</dt><dd>${r.order ? `${r.order.id} · $${formatPrice(r.order.total)}` : "—"}</dd>
-          <dt>Banco</dt><dd>${r.bank || "—"}</dd>
-          <dt>Referencia</dt><dd>${r.reference || "—"}</dd>
+          <dt>Banco</dt><dd>${escapeHtml(r.bank) || "—"}</dd>
+          <dt>Referencia</dt><dd>${escapeHtml(r.reference) || "—"}</dd>
           <dt>Monto</dt><dd>$${formatPrice(r.amount)}</dd>
           <dt>Recibido</dt><dd>${fmtDateTime(r.date)}</dd>
         </dl>
@@ -2089,7 +2089,8 @@ import {
         highlights: d.highlights,
       };
       if (!editingId) row.created_by = USER.id;
-      const { error } = await sb.from("products").upsert(row, { onConflict: "id" });
+      // insert / update (no upsert: leer excluded.cost exige SELECT sobre cost, que solo tiene admin_products)
+      const { error } = editingId ? await sb.from("products").update(row).eq("id", productId) : await sb.from("products").insert(row);
       if (error) {
         if (/products_sku_key|duplicate key/i.test(error.message)) throw new Error(`Ya existe un producto con el SKU ${d.sku}`);
         throw error;
@@ -2429,7 +2430,7 @@ import {
             .map(
               (it) =>
                 `<button class="palette-item ${idx === 0 ? "is-focused" : ""}" type="button" data-idx="${idx++}">
-                  <svg><use href="#ic-${it.icon}" /></svg>
+                  <svg><use href="#ic-${escapeHtml(it.icon)}" /></svg>
                   <div class="body"><strong>${escapeHtml(it.title)}</strong><small>${escapeHtml(it.sub)}</small></div>
                   ${it.right || ""}
                 </button>`,

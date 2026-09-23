@@ -2,7 +2,9 @@
 // Regenera assets/js/core/env.js al arrancar y reproduce el ruteo de vercel.json:
 //   http://localhost:3000       -> tienda/   (dominio raíz)
 //   http://dash.localhost:3000  -> dash/     (subdominio del panel)
-// Lo compartido (/assets, y también /dash y /tienda) se sirve desde la raíz.
+// Lo compartido (/assets, y también /dash y /tienda) se sirve desde la raíz;
+// nada más de la raíz del repo (.env, .git, scripts, package.json...).
+// Escucha solo en 127.0.0.1; DEV_HOST=0.0.0.0 lo expone en la red local.
 // /api/* ejecuta las funciones de api/ (mismas que Vercel) para probar el
 // pago con Mercado Pago en local.
 const http = require("http");
@@ -14,6 +16,16 @@ const { ROOT } = require("./lib");
 execFileSync(process.execPath, [path.join(__dirname, "build-env.js")], { stdio: "inherit" });
 
 const PORT = +(process.env.PORT || 3000);
+const HOST = process.env.DEV_HOST || "127.0.0.1";
+// Carpetas de la raíz que se pueden servir (igual que en Vercel)
+const SHARED = ["assets", "dash", "tienda"].map((d) => path.join(ROOT, d));
+// ¿file está dentro de dir? (con separador: "app-sibling" no está dentro de "app")
+const inside = (dir, file) => {
+  const rel = path.relative(dir, file);
+  return rel !== "" && !rel.startsWith("..") && !path.isAbsolute(rel);
+};
+// Ningún segmento puede empezar con "." (.env, .git, .vercel...)
+const hasDotSegment = (f) => path.relative(ROOT, f).split(path.sep).some((seg) => seg.startsWith("."));
 const MIME = {
   ".html": "text/html; charset=utf-8",
   ".css": "text/css; charset=utf-8",
@@ -35,7 +47,7 @@ const MIME = {
 function runApi(url, req, res) {
   const rel = url.replace(/^\/api\//, "").replace(/\/$/, "");
   const file = path.normalize(path.join(ROOT, "api", rel + ".js"));
-  if (!file.startsWith(path.join(ROOT, "api")) || /(^|[\/])_/.test(rel) || !fs.existsSync(file)) {
+  if (!inside(path.join(ROOT, "api"), file) || /(^|[\/])_/.test(rel) || !fs.existsSync(file)) {
     res.writeHead(404, { "Content-Type": "application/json" });
     return res.end(JSON.stringify({ error: "404 · " + url }));
   }
@@ -54,7 +66,14 @@ function runApi(url, req, res) {
 
 http
   .createServer((req, res) => {
-    const url = decodeURIComponent(req.url.split("?")[0]);
+    // Un %-encoding inválido (p. ej. /%E0%A4%A) no puede tirar el proceso
+    let url;
+    try {
+      url = decodeURIComponent(req.url.split("?")[0]);
+    } catch (e) {
+      res.writeHead(400, { "Content-Type": "text/plain; charset=utf-8" });
+      return res.end("400 · URL inválida");
+    }
     if (url.startsWith("/api/")) return runApi(url, req, res);
     const app = /^dash./i.test(req.headers.host || "") ? "dash" : "tienda";
     // Primero la carpeta de la app, después la raíz (assets compartidos).
@@ -63,7 +82,14 @@ http
       const base = path.normalize(path.join(ROOT, dir, url));
       return [base, base + ".html", path.join(base, "index.html")];
     });
-    const file = found.find((f) => f.startsWith(ROOT) && fs.existsSync(f) && fs.statSync(f).isFile());
+    const isFile = (f) => {
+      try {
+        return fs.statSync(f).isFile();
+      } catch (e) {
+        return false; // no existe, nombre inválido, sin permiso...
+      }
+    };
+    const file = found.find((f) => SHARED.some((dir) => inside(dir, f)) && !hasDotSegment(f) && isFile(f));
     if (!file) {
       res.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" });
       return res.end("404 · " + url);
@@ -72,6 +98,8 @@ http
       "Content-Type": MIME[path.extname(file).toLowerCase()] || "application/octet-stream",
       "Cache-Control": "no-store",
     });
-    fs.createReadStream(file).pipe(res);
+    fs.createReadStream(file)
+      .on("error", () => res.destroy())
+      .pipe(res);
   })
-  .listen(PORT, () => console.log(`[dev] http://localhost:${PORT}`));
+  .listen(PORT, HOST, () => console.log(`[dev] http://localhost:${PORT}` + (HOST === "127.0.0.1" ? "" : ` (escuchando en ${HOST})`)));

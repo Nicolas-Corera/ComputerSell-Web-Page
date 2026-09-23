@@ -213,7 +213,7 @@ loading(async () => {
             <div class="title-row"><strong>${escapeHtml(n.title)}</strong></div>
             <div class="meta">${escapeHtml(n.body)} · ${fmtDate(n.created_at)}</div>
           </div>
-          ${n.target && n.target.order ? `<div class="list-card-right"><a class="icon-btn" href="/compra-detalle.html?id=${n.target.order}" aria-label="Ver pedido"><svg><use href="#ic-arrow_forward" /></svg></a></div>` : ""}
+          ${n.target && n.target.order ? `<div class="list-card-right"><a class="icon-btn" href="/compra-detalle.html?id=${encodeURIComponent(n.target.order)}" aria-label="Ver pedido"><svg><use href="#ic-arrow_forward" /></svg></a></div>` : ""}
         </div>`,
       )
       .join("");
