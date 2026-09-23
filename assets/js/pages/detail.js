@@ -90,7 +90,7 @@ function render(p) {
   $("#addCartBtn").querySelector("span").textContent = out ? "Sin stock" : "Agregar al carrito";
   changeQty(0);
 
-  $("#shipLine span").innerHTML = p.free_shipping ? "<strong>Envío gratis</strong> para CABA y Provincia de Buenos Aires" : "<strong>Envío a domicilio</strong> o retiro en el local";
+  $("#shipLine span").innerHTML = p.free_shipping ? "<strong>Envío gratis</strong> para CABA y Provincia de Buenos Aires" : "<strong>Envío a domicilio</strong> a todo el país";
   const UNIT = { dias: ["día", "días"], meses: ["mes", "meses"], anios: ["año", "años"] };
   const warranty = p.warranty ? `${p.warranty} ${(UNIT[p.warranty_unit] || UNIT.meses)[p.warranty === 1 ? 0 : 1]} de garantía oficial` : "";
   $("#warrantyLine").innerHTML = warranty ? `<strong>${warranty}</strong> ComputerSell` : "Garantía oficial ComputerSell";

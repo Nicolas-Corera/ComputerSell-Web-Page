@@ -90,7 +90,7 @@ function render(o) {
   $("#sumTotal").textContent = formatPrice(o.total);
 
   const c = o.customer || {};
-  $("#shipAddress").textContent = o.shipping_method === "retiro" ? "Retiro en el local" : c.address || "—";
+  $("#shipAddress").textContent = c.address || "—";
   // Con Mercado Pago la orden guarda marca y últimos 4 dígitos de la tarjeta
   const pay = o.payment || {};
   const card = pay.brand ? ` · ${pay.brand}${pay.last_four ? " •••• " + pay.last_four : ""}` : "";

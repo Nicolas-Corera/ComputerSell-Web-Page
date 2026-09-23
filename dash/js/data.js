@@ -93,8 +93,7 @@ export function normOrder(o) {
     userId: o.user_id,
     items,
     payment: o.payment_method,
-    paymentInfo: o.payment || {}, // Mercado Pago: marca, últimos 4, ids y estado del pago
-    shippingMethod: o.shipping_method,
+    paymentInfo: o.payment || {}, // Mercado Pago: marca, últimos 4, ids y estado del pago
     shipping: o.shipping_cost,
     surcharge: o.surcharge,
     subtotal: o.subtotal,

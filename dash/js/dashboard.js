@@ -1266,7 +1266,7 @@ import {
         <h4>Pago y envío</h4>
         <dl class="kv">
           <dt>Medio de pago</dt><dd>${(PAYMENTS[o.payment] || { label: o.payment }).label}${o.installments > 1 ? ` · ${o.installments} cuotas` : ""}</dd>
-          <dt>Entrega</dt><dd>${o.shippingMethod === "domicilio" ? "Envío a domicilio · " + escapeHtml(o.customer.address) : "Retiro en el local"}</dd>
+          <dt>Entrega</dt><dd>Envío a domicilio · ${escapeHtml(o.customer.address)}</dd>
           <dt>Subtotal</dt><dd>$${formatPrice(o.subtotal)}</dd>
           <dt>Envío</dt><dd>${o.shipping ? "$" + formatPrice(o.shipping) : "Gratis"}</dd>
           <dt>Recargo</dt><dd>${o.surcharge ? "$" + formatPrice(o.surcharge) : "—"}</dd>

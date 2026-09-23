@@ -863,6 +863,7 @@ loading(async function () {
       card: {
         token: token.id,
         payment_method_id: pm.id,
+        bin: state.bin, // el backend verifica que MP no le sume interés en cuotas
         brand: pm.name,
         last_four: token.last_four_digits || "",
       },
