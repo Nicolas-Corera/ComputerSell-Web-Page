@@ -2,7 +2,9 @@
 // Regenera assets/js/core/env.js al arrancar y reproduce el ruteo de vercel.json:
 //   http://localhost:3000       -> tienda/   (dominio raíz)
 //   http://dash.localhost:3000  -> dash/     (subdominio del panel)
-// Lo compartido (/assets, y también /dash y /tienda) se sirve desde la raíz.
+// Lo compartido (/assets, y también /dash y /tienda) se sirve desde la raíz;
+// nada más de la raíz del repo (.env, .git, scripts, package.json...).
+// Escucha solo en 127.0.0.1; DEV_HOST=0.0.0.0 lo expone en la red local.
 // /api/* ejecuta las funciones de api/ (mismas que Vercel) para probar el
 // pago con Mercado Pago en local.
 const http = require("http");
@@ -14,6 +16,11 @@ const { ROOT } = require("./lib");
 execFileSync(process.execPath, [path.join(__dirname, "build-env.js")], { stdio: "inherit" });
 
 const PORT = +(process.env.PORT || 3000);
+const HOST = process.env.DEV_HOST || "127.0.0.1";
+// Carpetas de la raíz que se pueden servir (igual que en Vercel)
+const SHARED = ["assets", "dash", "tienda"].map((d) => path.join(ROOT, d));
+// Ningún segmento puede empezar con "." (.env, .git, .vercel...)
+const hasDotSegment = (f) => path.relative(ROOT, f).split(path.sep).some((seg) => seg.startsWith("."));
 const MIME = {
   ".html": "text/html; charset=utf-8",
   ".css": "text/css; charset=utf-8",
@@ -63,7 +70,7 @@ http
       const base = path.normalize(path.join(ROOT, dir, url));
       return [base, base + ".html", path.join(base, "index.html")];
     });
-    const file = found.find((f) => f.startsWith(ROOT) && fs.existsSync(f) && fs.statSync(f).isFile());
+    const file = found.find((f) => SHARED.some((dir) => f.startsWith(dir)) && !hasDotSegment(f) && fs.existsSync(f) && fs.statSync(f).isFile());
     if (!file) {
       res.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" });
       return res.end("404 · " + url);
@@ -74,4 +81,4 @@ http
     });
     fs.createReadStream(file).pipe(res);
   })
-  .listen(PORT, () => console.log(`[dev] http://localhost:${PORT}`));
+  .listen(PORT, HOST, () => console.log(`[dev] http://localhost:${PORT}` + (HOST === "127.0.0.1" ? "" : ` (escuchando en ${HOST})`)));
