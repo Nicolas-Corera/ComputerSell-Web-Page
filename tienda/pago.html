@@ -11,8 +11,8 @@
       rel="stylesheet"
     />
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.15/dist/gsap.min.js"></script>
-    <!-- SDK de Mercado Pago: tokeniza la tarjeta en el navegador (Secure Fields) -->
-    <script src="https://sdk.mercadopago.com/js/v2"></script>
+    <!-- SDK de Mercado Pago desactivado (pago con tarjeta oculto, ver api/_mp):
+    <script src="https://sdk.mercadopago.com/js/v2"></script> -->
     <link rel="stylesheet" href="/assets/css/base.css" />
     <link rel="stylesheet" href="/assets/css/components/cookie-consent.css" />
     <link rel="stylesheet" href="/assets/css/loader.css" />
@@ -274,17 +274,18 @@
               <h2><span class="step">3</span> Forma de pago</h2>
               <div class="payTabs" role="tablist">
                 <button
-                  class="payTab is-active"
+                  class="payTab"
                   type="button"
                   data-method="credito"
+                  hidden
                 >
                   Tarjeta de crédito<small></small>
                 </button>
-                <button class="payTab" type="button" data-method="debito">
+                <button class="payTab" type="button" data-method="debito" hidden>
                   Tarjeta de débito<small></small>
                 </button>
                 <button
-                  class="payTab"
+                  class="payTab is-active"
                   type="button"
                   data-method="transferencia"
                 >
@@ -293,7 +294,7 @@
               </div>
 
               <!-- Panel tarjeta (crédito y débito) -->
-              <div class="payPanel is-active" data-panel="card">
+              <div class="payPanel" data-panel="card" hidden>
                 <div class="cardLayout">
                   <div class="cardPreview" id="cardPreview" aria-hidden="true">
                     <div class="cardPreview-inner">
@@ -385,7 +386,7 @@
               </div>
 
               <!-- Panel transferencia -->
-              <div class="payPanel" data-panel="transferencia">
+              <div class="payPanel is-active" data-panel="transferencia">
                 <div class="transferBox">
                   <p>
                     Transferí el total a la siguiente cuenta. El pedido se
@@ -460,7 +461,7 @@
                 <span>Envío</span>
                 <strong id="sumShipping">0</strong>
               </div>
-              <div class="summaryLine" id="sumCardLine">
+              <div class="summaryLine" id="sumCardLine" hidden>
                 <span>Recargo por tarjeta</span>
                 <strong id="sumCard">0</strong>
               </div>
@@ -472,7 +473,7 @@
             <span class="summaryCuotas" id="sumCuotas" hidden></span>
 
             <span class="checkout-secure">
-              Compra protegida · Pagos con tarjeta procesados por Mercado Pago
+              Compra protegida · Pago por transferencia bancaria
             </span>
           </aside>
         </div>
