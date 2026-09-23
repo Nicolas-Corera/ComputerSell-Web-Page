@@ -50,3 +50,20 @@ test("panel: icono de la paleta de comandos escapado", () => {
   const html = renderLine("dash/js/dashboard.js", /#ic-\$\{(escapeHtml\()?it\.icon/, { it: { icon: ATTR }, escapeHtml });
   assertInert(html, "palette icon");
 });
+
+const TAG = '<img src=x onerror=document.title="xss-bank">';
+
+test("panel: banco del comprobante escapado en la tabla de recibidos", () => {
+  const html = renderLine("dash/js/dashboard.js", /<td class="muted">\$\{(escapeHtml\()?r\.bank/, { r: { bank: TAG }, escapeHtml });
+  assertInert(html, "tabla banco");
+});
+
+test("panel: banco y referencia escapados en la vista previa del comprobante", () => {
+  const r = { bank: TAG, reference: TAG };
+  assertInert(renderLine("dash/js/dashboard.js", "<dt>Banco</dt>", { r, escapeHtml }), "preview banco");
+  assertInert(renderLine("dash/js/dashboard.js", "<dt>Referencia</dt>", { r, escapeHtml }), "preview referencia");
+});
+
+test("panel: sin banco se sigue mostrando el guion", () => {
+  assert.match(renderLine("dash/js/dashboard.js", "<dt>Banco</dt>", { r: { bank: "" }, escapeHtml }), /<dd>—<\/dd>/);
+});

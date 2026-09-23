@@ -1480,7 +1480,7 @@ import {
               <td class="mono">${r.id}</td>
               <td>${escapeHtml(r.customer.name)}</td>
               <td class="muted">${r.order ? r.order.id : "—"}</td>
-              <td class="muted">${r.bank || "—"}</td>
+              <td class="muted">${escapeHtml(r.bank) || "—"}</td>
               <td class="muted">${fmtDateTime(r.date)}</td>
               <td class="num is-money">${formatPrice(r.amount)}</td>
               <td>${badge(RECEIPT_STATUS, r.status)}</td>
@@ -1570,8 +1570,8 @@ import {
           <dt>Estado</dt><dd>${badge(RECEIPT_STATUS, r.status)}</dd>
           <dt>Cliente</dt><dd>${escapeHtml(r.customer.name)}</dd>
           <dt>Orden</dt><dd>${r.order ? `${r.order.id} · $${formatPrice(r.order.total)}` : "—"}</dd>
-          <dt>Banco</dt><dd>${r.bank || "—"}</dd>
-          <dt>Referencia</dt><dd>${r.reference || "—"}</dd>
+          <dt>Banco</dt><dd>${escapeHtml(r.bank) || "—"}</dd>
+          <dt>Referencia</dt><dd>${escapeHtml(r.reference) || "—"}</dd>
           <dt>Monto</dt><dd>$${formatPrice(r.amount)}</dd>
           <dt>Recibido</dt><dd>${fmtDateTime(r.date)}</dd>
         </dl>
