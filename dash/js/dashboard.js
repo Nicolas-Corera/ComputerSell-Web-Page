@@ -559,7 +559,7 @@ import {
       .map(
         (n) => `
         <article class="notif ${isRead(n) ? "" : "is-unread"}" data-id="${n.id}">
-          <span class="notif-icon is-${n.type}"><svg><use href="#ic-${n.icon}" /></svg></span>
+          <span class="notif-icon is-${escapeHtml(n.type)}"><svg><use href="#ic-${escapeHtml(n.icon)}" /></svg></span>
           <div class="notif-body">
             <strong>${escapeHtml(n.title)}</strong>
             <p>${escapeHtml(n.body)}</p>
@@ -2429,7 +2429,7 @@ import {
             .map(
               (it) =>
                 `<button class="palette-item ${idx === 0 ? "is-focused" : ""}" type="button" data-idx="${idx++}">
-                  <svg><use href="#ic-${it.icon}" /></svg>
+                  <svg><use href="#ic-${escapeHtml(it.icon)}" /></svg>
                   <div class="body"><strong>${escapeHtml(it.title)}</strong><small>${escapeHtml(it.sub)}</small></div>
                   ${it.right || ""}
                 </button>`,
