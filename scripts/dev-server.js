@@ -19,6 +19,11 @@ const PORT = +(process.env.PORT || 3000);
 const HOST = process.env.DEV_HOST || "127.0.0.1";
 // Carpetas de la raíz que se pueden servir (igual que en Vercel)
 const SHARED = ["assets", "dash", "tienda"].map((d) => path.join(ROOT, d));
+// ¿file está dentro de dir? (con separador: "app-sibling" no está dentro de "app")
+const inside = (dir, file) => {
+  const rel = path.relative(dir, file);
+  return rel !== "" && !rel.startsWith("..") && !path.isAbsolute(rel);
+};
 // Ningún segmento puede empezar con "." (.env, .git, .vercel...)
 const hasDotSegment = (f) => path.relative(ROOT, f).split(path.sep).some((seg) => seg.startsWith("."));
 const MIME = {
@@ -42,7 +47,7 @@ const MIME = {
 function runApi(url, req, res) {
   const rel = url.replace(/^\/api\//, "").replace(/\/$/, "");
   const file = path.normalize(path.join(ROOT, "api", rel + ".js"));
-  if (!file.startsWith(path.join(ROOT, "api")) || /(^|[\/])_/.test(rel) || !fs.existsSync(file)) {
+  if (!inside(path.join(ROOT, "api"), file) || /(^|[\/])_/.test(rel) || !fs.existsSync(file)) {
     res.writeHead(404, { "Content-Type": "application/json" });
     return res.end(JSON.stringify({ error: "404 · " + url }));
   }
@@ -84,7 +89,7 @@ http
         return false; // no existe, nombre inválido, sin permiso...
       }
     };
-    const file = found.find((f) => SHARED.some((dir) => f.startsWith(dir)) && !hasDotSegment(f) && isFile(f));
+    const file = found.find((f) => SHARED.some((dir) => inside(dir, f)) && !hasDotSegment(f) && isFile(f));
     if (!file) {
       res.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" });
       return res.end("404 · " + url);

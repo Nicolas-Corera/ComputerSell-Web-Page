@@ -45,6 +45,9 @@ before(async () => {
   // Carpeta hermana cuyo nombre empieza igual que la raíz (app-sibling vs app)
   fs.mkdirSync(path.join(TMP, "app-sibling"));
   fs.writeFileSync(path.join(TMP, "app-sibling", "secret.txt"), MARKER);
+  // Carpeta dentro de la raíz cuyo nombre empieza como una servida (tienda-x vs tienda)
+  fs.mkdirSync(path.join(APP, "tienda-x"));
+  fs.writeFileSync(path.join(APP, "tienda-x", "secret.txt"), MARKER);
   // Módulo "api" hermano (app/api-x) que no debe ejecutarse
   fs.mkdirSync(path.join(APP, "api-x"));
   fs.writeFileSync(path.join(APP, "api-x", "echo.js"), `module.exports = (req, res) => { require("fs").writeFileSync(${JSON.stringify(path.join(TMP, "executed"))}, "1"); res.end("${MARKER}"); };`);
@@ -101,4 +104,16 @@ test("[LOW] un %-encoding inválido responde 400 y no tira el proceso", async ()
   assert.strictEqual(r.status, 400);
   assert.strictEqual(server.exitCode, null, "el proceso terminó");
   assert.strictEqual((await request("GET", "/")).status, 200);
+});
+
+test("[LOW] no sale de la raíz hacia carpetas hermanas (app-sibling, api-x)", async () => {
+  const r1 = await request("GET", "/..%2Fapp-sibling%2Fsecret.txt");
+  assert.strictEqual(r1.status, 404, `archivo hermano devolvió ${r1.status}`);
+  assert.ok(!r1.body.includes(MARKER));
+  const r3 = await request("GET", "/..%2Ftienda-x%2Fsecret.txt");
+  assert.strictEqual(r3.status, 404, `tienda-x devolvió ${r3.status}`);
+  assert.ok(!r3.body.includes(MARKER));
+  const r2 = await request("POST", "/api/..%2Fapi-x%2Fecho");
+  assert.strictEqual(r2.status, 404, `módulo hermano devolvió ${r2.status}`);
+  assert.ok(!fs.existsSync(path.join(TMP, "executed")), "se ejecutó un módulo fuera de api/");
 });
