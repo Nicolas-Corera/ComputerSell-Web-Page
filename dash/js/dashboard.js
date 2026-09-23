@@ -2089,7 +2089,8 @@ import {
         highlights: d.highlights,
       };
       if (!editingId) row.created_by = USER.id;
-      const { error } = await sb.from("products").upsert(row, { onConflict: "id" });
+      // insert / update (no upsert: leer excluded.cost exige SELECT sobre cost, que solo tiene admin_products)
+      const { error } = editingId ? await sb.from("products").update(row).eq("id", productId) : await sb.from("products").insert(row);
       if (error) {
         if (/products_sku_key|duplicate key/i.test(error.message)) throw new Error(`Ya existe un producto con el SKU ${d.sku}`);
         throw error;

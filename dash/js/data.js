@@ -93,7 +93,7 @@ export function normOrder(o) {
     userId: o.user_id,
     items,
     payment: o.payment_method,
-    paymentInfo: o.payment || {}, // Mercado Pago: marca, últimos 4, ids y estado del pago
+    paymentInfo: o.payment || {}, // Mercado Pago: marca, últimos 4, ids y estado del pago
     shipping: o.shipping_cost,
     surcharge: o.surcharge,
     subtotal: o.subtotal,
@@ -149,7 +149,8 @@ function normNotif(n) {
 
 // ---------- Carga ----------
 export async function loadProducts() {
-  const { data } = await sb.from("products").select("*").order("created_at", { ascending: false });
+  // admin_products(): fila completa (incluye cost), solo para admins
+  const { data } = await sb.rpc("admin_products").order("created_at", { ascending: false });
   replace(PRODUCTS, (data || []).map(normProduct));
 }
 
