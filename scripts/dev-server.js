@@ -61,7 +61,14 @@ function runApi(url, req, res) {
 
 http
   .createServer((req, res) => {
-    const url = decodeURIComponent(req.url.split("?")[0]);
+    // Un %-encoding inválido (p. ej. /%E0%A4%A) no puede tirar el proceso
+    let url;
+    try {
+      url = decodeURIComponent(req.url.split("?")[0]);
+    } catch (e) {
+      res.writeHead(400, { "Content-Type": "text/plain; charset=utf-8" });
+      return res.end("400 · URL inválida");
+    }
     if (url.startsWith("/api/")) return runApi(url, req, res);
     const app = /^dash./i.test(req.headers.host || "") ? "dash" : "tienda";
     // Primero la carpeta de la app, después la raíz (assets compartidos).
@@ -70,7 +77,14 @@ http
       const base = path.normalize(path.join(ROOT, dir, url));
       return [base, base + ".html", path.join(base, "index.html")];
     });
-    const file = found.find((f) => SHARED.some((dir) => f.startsWith(dir)) && !hasDotSegment(f) && fs.existsSync(f) && fs.statSync(f).isFile());
+    const isFile = (f) => {
+      try {
+        return fs.statSync(f).isFile();
+      } catch (e) {
+        return false; // no existe, nombre inválido, sin permiso...
+      }
+    };
+    const file = found.find((f) => SHARED.some((dir) => f.startsWith(dir)) && !hasDotSegment(f) && isFile(f));
     if (!file) {
       res.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" });
       return res.end("404 · " + url);
@@ -79,6 +93,8 @@ http
       "Content-Type": MIME[path.extname(file).toLowerCase()] || "application/octet-stream",
       "Cache-Control": "no-store",
     });
-    fs.createReadStream(file).pipe(res);
+    fs.createReadStream(file)
+      .on("error", () => res.destroy())
+      .pipe(res);
   })
   .listen(PORT, HOST, () => console.log(`[dev] http://localhost:${PORT}` + (HOST === "127.0.0.1" ? "" : ` (escuchando en ${HOST})`)));

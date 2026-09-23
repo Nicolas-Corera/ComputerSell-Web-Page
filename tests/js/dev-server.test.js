@@ -95,3 +95,10 @@ test("[HIGH] escucha solo en 127.0.0.1 por defecto", async () => {
   });
   assert.strictEqual(reachable, false, `el dev server responde en ${lan.address}`);
 });
+
+test("[LOW] un %-encoding inválido responde 400 y no tira el proceso", async () => {
+  const r = await request("GET", "/%E0%A4%A");
+  assert.strictEqual(r.status, 400);
+  assert.strictEqual(server.exitCode, null, "el proceso terminó");
+  assert.strictEqual((await request("GET", "/")).status, 200);
+});
