@@ -10,10 +10,10 @@ const { handler, send, readJson, requireUser } = require("../_lib/mp");
 const { parseItems, parseCustomer, placeOrder } = require("../_lib/checkout");
 
 module.exports = handler(["POST"], async (req, res) => {
-  const { user } = await requireUser(req);
+  const { user, token } = await requireUser(req);
   const body = await readJson(req);
   const items = parseItems(body.items);
   const { customer } = parseCustomer(body, user);
-  const { order } = await placeOrder({ user, method: "transferencia", items, installments: 1, customer });
+  const { order } = await placeOrder({ user, token, method: "transferencia", items, installments: 1, customer });
   send(res, 200, { order });
 });

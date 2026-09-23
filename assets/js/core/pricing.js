@@ -13,8 +13,10 @@
   } else {
     root.CSPricing = factory(root.CS_SHIPPING_RATES, root.CS_PAYMENT_RATES, root.CS_INSTALLMENT_RATES);
   }
-})(typeof self !== "undefined" ? self : this, function (SHIPPING, PAYMENT, INSTALLMENTS) {
+})(typeof self !== "undefined" ? self : this, function (SHIPPING, PAYMENT, MP_FEES) {
   const qtyOf = (it) => Math.max(1, parseInt(it.qty, 10) || 1);
+  // Máximo de cuotas que se ofrece: la mayor de la tabla de costos de MP (12)
+  const MAX_INSTALLMENTS = Math.max(...Object.keys(MP_FEES.installments).map(Number));
   const toKg = (weight, unit) => (Number(weight) || 0) / (unit === "g" ? 1000 : 1);
 
   function isRegional(province) {
@@ -46,10 +48,10 @@
     return { cost: rateForWeight(kg, regional ? "regional" : "national"), kg, regional };
   }
 
-  // Cuotas sin interés del pedido: las que admiten TODOS los productos
+  // Cuotas sin interés del pedido: las que admiten TODOS los productos (hasta el máximo)
   function freeInstallments(items) {
     if (!items.length) return 0;
-    return Math.min(...items.map((it) => parseInt(it.installments, 10) || 0));
+    return Math.min(MAX_INSTALLMENTS, ...items.map((it) => parseInt(it.installments, 10) || 0));
   }
 
   // Cuotas que se ofrecen: todas hasta las sin interés del pedido y, por
@@ -57,17 +59,24 @@
   function installmentOptions(freeMax) {
     const list = [1];
     for (let n = 2; n <= freeMax; n++) list.push(n);
-    Object.keys(INSTALLMENTS)
+    Object.keys(MP_FEES.installments)
       .map(Number)
       .sort((a, b) => a - b)
       .forEach((n) => n > freeMax && list.push(n));
     return list;
   }
 
-  // Recargo de una cantidad de cuotas (0 si es sin interés, null si no se ofrece)
+  // Recargo de una cantidad de cuotas (0 si es sin interés, null si no se
+  // ofrece). Compensa lo que cobra Mercado Pago: con el recargo, lo que queda
+  // después de sus costos (que también se cobran sobre el recargo) es lo mismo
+  // que en 1 cuota. total × (1 − cobro − cuotas) = base × (1 − cobro)
   function installmentRate(n, freeMax) {
     if (n <= 1 || n <= freeMax) return 0;
-    return INSTALLMENTS[n] != null ? INSTALLMENTS[n] : null;
+    const fee = MP_FEES.installments[n];
+    if (fee == null) return null;
+    const processing = MP_FEES.processing * (1 + MP_FEES.iva);
+    const installments = fee * (1 + MP_FEES.iva);
+    return (1 - processing) / (1 - processing - installments) - 1;
   }
 
   // Total en n cuotas a partir del total con recargo por tarjeta

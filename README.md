@@ -66,7 +66,7 @@ orden, así que lo que ve el cliente es lo que se cobra):
 | --- | --- |
 | `assets/js/config/shipping-rates.js` | Tarifas de Correo Argentino (Encomienda Clásica) por rango de peso: regional (CABA y Bs As) y nacional |
 | `assets/js/config/payment-rates.js` | Recargo por medio de pago (tarjeta de crédito y débito: 10%) |
-| `assets/js/config/installment-rates.js` | Recargo por cuotas con crédito (3: 11%, 6: 20%, 9: 30%, 12: 35%) |
+| `assets/js/config/installment-rates.js` | Costos de Mercado Pago tal cual el simulador (costo por cobro y por ofrecer cuotas sin interés, + IVA) |
 
 El cálculo está en `assets/js/core/pricing.js`:
 
@@ -74,8 +74,12 @@ El cálculo está en `assets/js/core/pricing.js`:
   los productos con "Envío gratis" no suman peso (si todos lo tienen, el envío es gratis); el resto del país usa la
   nacional para todos los productos. Más de 25 kg: bultos de 25 kg.
 - **Recargo por tarjeta**: sobre productos + envío.
-- **Recargo por cuotas**: sobre el total con el recargo por tarjeta. Las cuotas hasta las "cuotas sin interés" de los
+- **Recargo por cuotas**: sobre el total con el recargo por tarjeta, calculado para compensar lo que cobra Mercado
+  Pago: después de sus costos (que también se aplican sobre el recargo) se recibe lo mismo que en 1 cuota.
+  `total × (1 − cobro − cuotas) = total en 1 cuota × (1 − cobro)`. Las cuotas hasta las "cuotas sin interés" de los
   productos del carrito (panel) van sin recargo. El checkout muestra el valor de cada cuota y el total, nunca el %.
+- Solo se ofrecen cuotas que Mercado Pago cobra **sin interés para el comprador** (la cuenta tiene que tener
+  configuradas las cuotas sin interés); `api/mp/pay.js` lo vuelve a verificar con el BIN antes de crear la orden.
 - `orders.surcharge` = recargo por tarjeta + recargo por cuotas.
 
 ## Pagos con tarjeta (Mercado Pago · Checkout API / Orders)
