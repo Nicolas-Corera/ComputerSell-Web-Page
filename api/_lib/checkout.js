@@ -50,9 +50,12 @@ function parseCustomer(body, user) {
 }
 
 // Calcula el total y crea la orden. Devuelve {order, quote}.
-async function placeOrder({ user, method, items, installments, customer }) {
+// Los productos se leen con la sesión del comprador (token): el service role
+// de este proyecto solo ejecuta RPCs, no tiene permisos sobre las tablas.
+// beforeCreate(quote): validación extra antes de crear la orden (puede tirar).
+async function placeOrder({ user, token, method, items, installments, customer, beforeCreate }) {
   const ids = items.map((it) => it.product_id);
-  const rows = await sbFetch(`/rest/v1/products?id=in.(${ids.join(",")})&select=id,price,weight,weight_unit,free_shipping,installments`, { secret: true });
+  const rows = await sbFetch(`/rest/v1/products?id=in.(${ids.join(",")})&status=eq.publicado&select=id,price,weight,weight_unit,free_shipping,installments`, { token });
   const byId = new Map((rows || []).map((r) => [r.id, r]));
   if (ids.some((id) => !byId.has(id))) throw new HttpError(409, "Un producto del carrito ya no está disponible");
 
@@ -66,6 +69,7 @@ async function placeOrder({ user, method, items, installments, customer }) {
     installments,
   });
   if (!quote.valid) throw new HttpError(400, "Esa cantidad de cuotas no está disponible para este pedido");
+  if (beforeCreate) await beforeCreate(quote);
 
   let placed;
   try {

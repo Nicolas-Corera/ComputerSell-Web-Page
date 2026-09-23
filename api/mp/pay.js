@@ -52,7 +52,16 @@ module.exports = handler(["POST"], async (req, res) => {
   const lastName = rest.join(" ") || firstName;
 
   // ---------- 1. Orden en la base (total calculado acá) ----------
-  const { order, quote } = await placeOrder({ user, method, items, installments: body.installments, customer });
+  const bin = digits(card.bin).slice(0, 8);
+  const { order, quote } = await placeOrder({
+    user,
+    token,
+    method,
+    items,
+    installments: body.installments,
+    customer,
+    beforeCreate: (q) => assertNoBuyerInterest(bin, q),
+  });
   const installments = quote.installments;
 
   // Detalle de la orden desde la base (precios reales) para informar los ítems a MP
@@ -176,6 +185,20 @@ module.exports = handler(["POST"], async (req, res) => {
     order: { id: order.id, number: order.number },
   });
 });
+
+// En cuotas, el total ya lleva nuestro recargo. Si Mercado Pago además le
+// cobrara su propio interés al comprador (la cuenta no ofrece esa cantidad de
+// cuotas sin interés para la tarjeta), pagaría más de lo que vio: no se cobra.
+async function assertNoBuyerInterest(bin, quote) {
+  if (quote.installments <= 1) return;
+  const unavailable = new HttpError(400, "Tu tarjeta no admite esa cantidad de cuotas para este pedido. Elegí otra cantidad.");
+  if (bin.length < 6) throw unavailable;
+  const r = await mpFetch(`/v1/payment_methods/installments?amount=${quote.base}&bin=${bin}&payment_type_id=credit_card`);
+  const plans = r.ok && Array.isArray(r.data) && r.data[0] ? r.data[0].payer_costs || [] : null;
+  if (!plans) throw new HttpError(502, "No pudimos consultar las cuotas con Mercado Pago. Volvé a intentar en unos minutos.");
+  const plan = plans.find((p) => p.installments === quote.installments);
+  if (!plan || Number(plan.installment_rate) > 0) throw unavailable;
+}
 
 // Aplica el estado en la base con el service role (pagado / cancelado / pendiente)
 async function apply(orderId, mpOrderId, status, detail, payment) {
