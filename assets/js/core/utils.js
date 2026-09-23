@@ -78,6 +78,7 @@ window.CS = (function () {
           ${p.image ? `<img src="${escapeHtml(p.image)}" alt="${escapeHtml(p.name)}" loading="lazy" />` : ""}
           ${p.oldPrice ? `<span class="cardBadge-sale">${Math.round((1 - p.price / p.oldPrice) * 100)}% OFF</span>` : ""}
           ${out ? `<span class="cardBadge-out">Sin stock</span>` : ""}
+          ${p.freeShipping ? `<span class="cardBadge-ship"><svg><use href="#ic-shipping_truck" /></svg>Envío gratis</span>` : ""}
         </a>
         <div class="textCard">
           <span>${escapeHtml(p.name)}</span>

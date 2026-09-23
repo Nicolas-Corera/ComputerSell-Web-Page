@@ -197,7 +197,9 @@ export function toCard(p) {
     delivery: p.delivery || "24-48hs", // tiempo de entrega configurado en el panel
     image: p.images && p.images[0] ? p.images[0] : "",
     stock: p.stock,
-    freeShipping: p.free_shipping,
+    freeShipping: p.free_shipping, // envío gratis (solo CABA y Buenos Aires)
+    weight: Number(p.weight) || 0, // peso para calcular el envío en el checkout
+    weightUnit: p.weight_unit || "kg",
     category: p.category,
     subcategory: p.subcategory,
     brand: p.brand,

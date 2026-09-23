@@ -1,20 +1,21 @@
 // POST /api/mp/pay — cobro con tarjeta (Mercado Pago Checkout API / Orders).
 //
 // El navegador tokeniza la tarjeta con el SDK de Mercado Pago (los datos
-// nunca pasan por acá) y manda: ítems, datos del comprador, medio (crédito o
-// débito), cuotas y el token. Este endpoint:
+// nunca pasan por acá) y manda: ítems, datos del comprador y dirección, medio
+// (crédito o débito), cuotas y el token. Este endpoint:
 //   1. valida la sesión de Supabase (Authorization: Bearer <jwt>)
-//   2. crea la orden con place_order como ese usuario (valida stock y precios,
-//      calcula el total en la base: nunca se confía en un monto del cliente)
+//   2. crea la orden (api/_lib/checkout.js): envío por peso y provincia,
+//      recargo por tarjeta y por cuotas calculados acá; place_order valida
+//      stock y precios en la base. Nunca se confía en un monto del cliente.
 //   3. crea la order en Mercado Pago (POST /v1/orders, modo automático)
 //   4. aplica el resultado con mp_apply_payment: pagado / cancelado / pendiente
 //
 // Respuestas: 200 {result:'approved'|'pending', order}, 402 {error, order}
 // cuando la tarjeta rechazó, 4xx/5xx {error} en el resto.
 const { handler, HttpError, send, readJson, requireUser, rpc, sbFetch, mpFetch, rejectionMessage, summarizeOrder } = require("../_lib/mp");
+const { parseItems, parseCustomer, placeOrder } = require("../_lib/checkout");
 
 const CARD_TYPES = { credito: "credit_card", debito: "debit_card" };
-const MAX_INSTALLMENTS = 18; // tope del panel (cuotas sin interés por producto)
 
 const str = (v, max) => String(v == null ? "" : v).trim().slice(0, max || 200);
 const digits = (v) => String(v == null ? "" : v).replace(/\D/g, "");
@@ -35,10 +36,7 @@ module.exports = handler(["POST"], async (req, res) => {
   const method = str(body.method, 20);
   if (!CARD_TYPES[method]) throw new HttpError(400, "Medio de pago inválido");
 
-  const items = Array.isArray(body.items)
-    ? body.items.map((it) => ({ product_id: str(it.product_id, 64), qty: Math.max(1, parseInt(it.qty, 10) || 1) })).filter((it) => it.product_id)
-    : [];
-  if (!items.length) throw new HttpError(400, "El carrito está vacío");
+  const items = parseItems(body.items);
 
   const card = body.card || {};
   const cardToken = str(card.token, 128);
@@ -46,33 +44,16 @@ module.exports = handler(["POST"], async (req, res) => {
   if (!cardToken) throw new HttpError(400, "Falta el token de la tarjeta");
   if (!paymentMethodId) throw new HttpError(400, "No pudimos identificar la tarjeta");
 
-  let installments = method === "credito" ? parseInt(body.installments, 10) || 1 : 1;
-  installments = Math.min(MAX_INSTALLMENTS, Math.max(1, installments));
-
-  const c = body.customer || {};
-  const customer = {
-    name: str(c.name, 120),
-    email: str(c.email, 120).toLowerCase() || str(user.email, 120).toLowerCase(),
-    phone: str(c.phone, 40),
-    dni: str(c.dni, 20),
-    address: str(c.address, 300),
-  };
+  const { customer, address: addr } = parseCustomer(body, user);
   const dni = digits(customer.dni);
-  if (!customer.name || !customer.email) throw new HttpError(400, "Faltan datos del comprador");
   if (dni.length < 7 || dni.length > 8) throw new HttpError(400, "El DNI no es válido");
 
   const [firstName, ...rest] = customer.name.split(/\s+/);
   const lastName = rest.join(" ") || firstName;
-  const addr = body.address || {};
 
-  // ---------- 1. Orden en la base (como el usuario) ----------
-  const placed = await rpc(
-    "place_order",
-    { p_items: items, p_payment_method: method, p_shipping_method: "domicilio", p_customer: customer, p_installments: installments, p_note: "" },
-    { token },
-  );
-  const order = Array.isArray(placed) ? placed[0] : placed;
-  if (!order || !order.id) throw new HttpError(500, "No pudimos crear la orden");
+  // ---------- 1. Orden en la base (total calculado acá) ----------
+  const { order, quote } = await placeOrder({ user, method, items, installments: body.installments, customer });
+  const installments = quote.installments;
 
   // Detalle de la orden desde la base (precios reales) para informar los ítems a MP
   let orderDetail = null;
@@ -140,7 +121,7 @@ module.exports = handler(["POST"], async (req, res) => {
       ...(it.image && /^https?:\/\//.test(it.image) ? { picture_url: str(it.image, 500) } : {}),
     }));
     if (orderDetail.shipping_cost > 0) lines.push({ title: "Envío a domicilio", unit_price: money(orderDetail.shipping_cost), quantity: 1, external_code: "ENVIO" });
-    if (orderDetail.surcharge > 0) lines.push({ title: `Recargo ${method === "credito" ? "tarjeta de crédito" : "tarjeta de débito"}`, unit_price: money(orderDetail.surcharge), quantity: 1, external_code: "RECARGO" });
+    if (orderDetail.surcharge > 0) lines.push({ title: `Recargo pago con ${method === "credito" ? "tarjeta de crédito" : "tarjeta de débito"}`, unit_price: money(orderDetail.surcharge), quantity: 1, external_code: "RECARGO" });
     const sum = lines.reduce((acc, l) => acc + Number(l.unit_price) * l.quantity, 0);
     if (money(sum) === total) mpBody.items = lines;
   }
