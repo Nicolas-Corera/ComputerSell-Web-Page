@@ -67,3 +67,12 @@ test("panel: banco y referencia escapados en la vista previa del comprobante", (
 test("panel: sin banco se sigue mostrando el guion", () => {
   assert.match(renderLine("dash/js/dashboard.js", "<dt>Banco</dt>", { r: { bank: "" }, escapeHtml }), /<dd>—<\/dd>/);
 });
+
+test("perfil: target.order de la notificación codificado en el href", () => {
+  for (const order of ['x" onmouseover="document.title=1', '"><img src=x onerror=document.title="xss">']) {
+    const html = renderLine("assets/js/pages/perfil.js", "n.target && n.target.order ?", { n: { target: { order } }, encodeURIComponent });
+    assertInert(html, "perfil target.order");
+  }
+  const ok = renderLine("assets/js/pages/perfil.js", "n.target && n.target.order ?", { n: { target: { order: "8319c40a-9a21-4dad-a3cf-e0b6e27293c1" } }, encodeURIComponent });
+  assert.match(ok, /href="\/compra-detalle\.html\?id=8319c40a-9a21-4dad-a3cf-e0b6e27293c1"/);
+});
