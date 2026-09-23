@@ -451,10 +451,10 @@
                 <label class="field">
                   <select id="ordersPayment">
                     <option value="">Todos los medios</option>
-                    <option value="credito">Tarjeta de crédito</option>
-                    <option value="debito">Tarjeta de débito</option>
+                    <option value="credito" hidden>Tarjeta de crédito</option>
+                    <option value="debito" hidden>Tarjeta de débito</option>
                     <option value="transferencia">Transferencia</option>
-                    <option value="mercadopago">Mercado Pago</option>
+                    <option value="mercadopago" hidden>Mercado Pago</option>
                   </select>
                 </label>
                 <span class="spacer"></span>
@@ -849,7 +849,8 @@
                     <h2><span class="step">3</span> Pagos y envío</h2>
                   </div>
 
-                  <div class="optionRow">
+                  <!-- Cuotas sin interés ocultas: solo se paga por transferencia -->
+                  <div class="optionRow" hidden style="display: none">
                     <label class="switch">
                       <input type="checkbox" name="installments" id="pCuotas" />
                       <span class="track"></span>
@@ -1504,7 +1505,7 @@
                     <li>
                       <span class="ver">0.9.0<small>ago 2026</small></span>
                       <ul>
-                        <li>Checkout con tarjeta animada y transferencia</li>
+                        <li>Checkout con transferencia</li>
                         <li>Carrito y favoritos persistentes</li>
                       </ul>
                     </li>

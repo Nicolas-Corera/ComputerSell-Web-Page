@@ -1123,7 +1123,6 @@ import {
           ${r.on_sale && r.old_price ? `<dt>Antes</dt><dd><s>$${formatPrice(r.old_price)}</s> · ${Math.round((1 - p.price / r.old_price) * 100)}% off</dd>` : ""}
           <dt>Costo</dt><dd>${p.cost ? "$" + formatPrice(p.cost) : "—"}</dd>
           <dt>Margen</dt><dd>${p.cost && p.price ? Math.round((1 - p.cost / p.price) * 100) + "%" : "—"}</dd>
-          <dt>Cuotas</dt><dd>${r.installments ? `${r.installments} sin interés` : "No"}</dd>
         </dl>
       </div>
       <div>
@@ -1269,7 +1268,7 @@ import {
           <dt>Entrega</dt><dd>Envío a domicilio · ${escapeHtml(o.customer.address)}</dd>
           <dt>Subtotal</dt><dd>$${formatPrice(o.subtotal)}</dd>
           <dt>Envío</dt><dd>${o.shipping ? "$" + formatPrice(o.shipping) : "Gratis"}</dd>
-          <dt>Recargo</dt><dd>${o.surcharge ? "$" + formatPrice(o.surcharge) : "—"}</dd>
+          ${o.surcharge ? `<dt>Recargo</dt><dd>$${formatPrice(o.surcharge)}</dd>` : ""}
           <dt><strong>Total</strong></dt><dd><strong style="font-family:var(--font-display);font-size:16px">$${formatPrice(o.total)}</strong></dd>
           ${o.status === "enviado" ? `<dt>Seguimiento</dt><dd>${o.tracking ? `<span class="mono">${escapeHtml(o.tracking)}</span>` : '<span class="muted">Sin código</span>'} <button class="btn-text" type="button" id="editTracking" style="margin-left:6px">Editar</button></dd>` : ""}
         </dl>
@@ -1894,7 +1893,7 @@ import {
       pvOld.hidden = !(sale.checked && o > p);
       pvOld.textContent = "$" + formatPrice(o);
       const pvC = $("#pvCuotas");
-      pvC.hidden = !cuotas.checked;
+      pvC.hidden = true; // cuotas sin interés ocultas: solo se paga por transferencia
       pvC.textContent = `${cuotasN.value} cuotas sin interés`;
 
       const pvImage = $("#pvImage"), pvImg = $("#pvImage img");

@@ -76,7 +76,8 @@ function render(p) {
   $("#pOld").textContent = card.oldPrice ? `$${formatPrice(card.oldPrice)}` : "";
   $("#pPrice").textContent = formatPrice(p.price);
   const cuotas = $("#pCuotas");
-  cuotas.hidden = !p.installments;
+  // Cuotas sin interés ocultas: solo se paga por transferencia
+  cuotas.hidden = true;
   if (p.installments) cuotas.textContent = `${p.installments} cuotas sin interés de $${formatPrice(Math.round(p.price / p.installments))}`;
 
   const DELIVERY = { "24-48hs": "Envío en 24/48 hs", "3-5": "Envío en 3 a 5 días hábiles", "7-10": "Envío en 7 a 10 días hábiles", "a-pedido": "A pedido (consultar)" };

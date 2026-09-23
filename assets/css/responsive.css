@@ -301,7 +301,7 @@
     justify-content: flex-start;
   }
 
-  .step {
+  .stepper .step {
     min-width: 110px;
   }
 }
@@ -476,20 +476,20 @@
     gap: 4px;
   }
 
-  .step {
+  .stepper .step {
     min-width: 96px;
   }
 
-  .step-icon {
+  .stepper .step-icon {
     width: 38px;
     height: 38px;
   }
 
-  .step::before {
+  .stepper .step::before {
     top: 18px;
   }
 
-  .step-label {
+  .stepper .step-label {
     font-size: 12px;
   }
 

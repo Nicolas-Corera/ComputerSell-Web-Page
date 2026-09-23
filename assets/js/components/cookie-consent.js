@@ -31,7 +31,7 @@ const CATEGORIES = [
   {
     id: "necesarias",
     title: "Estrictamente necesarias",
-    desc: "Mantienen tu sesión, el carrito y tu elección de cookies, y permiten pagar con Mercado Pago de forma segura. No se pueden desactivar.",
+    desc: "Mantienen tu sesión, el carrito y tu elección de cookies. No se pueden desactivar.",
     locked: true,
   },
   {
@@ -146,7 +146,7 @@ function buildBanner() {
       <div class="cc-banner-copy">
         <h2 class="cc-title">Usamos cookies</h2>
         <p id="ccBannerText">
-          Usamos cookies y almacenamiento local necesarios para que el sitio funcione (sesión, carrito y pagos).
+          Usamos cookies y almacenamiento local necesarios para que el sitio funcione (sesión y carrito).
           Si sumamos cookies opcionales, solo las vamos a usar con tu consentimiento.
           <a href="/cookies">Política de cookies</a>
         </p>

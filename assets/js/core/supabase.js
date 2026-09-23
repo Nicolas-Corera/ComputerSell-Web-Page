@@ -190,7 +190,7 @@ export function toCard(p) {
     name: p.title,
     price: p.price,
     oldPrice: p.on_sale && p.old_price > p.price ? p.old_price : 0,
-    cuotas: p.installments ? `${p.installments} cuotas sin interés` : "",
+    cuotas: "", // etiqueta de cuotas oculta: solo se paga por transferencia
     installments: p.installments || 0, // cuotas sin interés configuradas en el panel
     delivery: p.delivery || "24-48hs", // tiempo de entrega configurado en el panel
     image: p.images && p.images[0] ? p.images[0] : "",

@@ -42,7 +42,7 @@ export const LEGAL = {
 
   // --- Vigencia de los documentos ---
   fechaVigencia: "2026-09-23", // se muestra como "23 de septiembre de 2026"
-  version: "3.1", // subir en cada cambio de los textos
+  version: "3.2", // subir en cada cambio de los textos
   // Versión de la Política de cookies: si cambia, el banner vuelve a pedir el consentimiento.
   versionCookies: "3.0",
 
