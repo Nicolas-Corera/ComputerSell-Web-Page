@@ -23,6 +23,14 @@ function safeNext(value) {
   }
 }
 const NEXT = safeNext(params.get("next"));
+// Enlaces de los correos (scripts/email-templates.js): llegan con
+// #panel&token_hash=…&type=… y se verifican acá con verifyOtp, así funcionan
+// aunque se abran en otro navegador o dispositivo. Van en el hash para que el
+// token no llegue a ningún servidor; showPanel lo saca de la barra al iniciar.
+const hashParams = new URLSearchParams(location.hash.slice(1));
+const LINK_TYPES = ["signup", "invite", "magiclink", "recovery", "email_change", "email"];
+const TOKEN_HASH = LINK_TYPES.includes(hashParams.get("type")) ? hashParams.get("token_hash") : null;
+const LINK_TYPE = TOKEN_HASH ? hashParams.get("type") : null;
 const REDIRECT = NEXT || (IS_ADMIN ? "./" : "/index.html"); // el panel queda junto a login.html
 const THIS_PAGE = location.origin + location.pathname;
 if (IS_ADMIN) applyStoreLinks();
@@ -214,6 +222,11 @@ function friendly(error) {
   if (/Email not confirmed/i.test(m)) return "Tenés que confirmar tu correo antes de ingresar. Revisá tu casilla.";
   if (/already registered|already been registered/i.test(m)) return "Ya existe una cuenta con ese correo. Iniciá sesión.";
   if (/rate limit|too many/i.test(m)) return "Demasiados intentos. Esperá unos minutos y volvé a probar.";
+  if (/for security purposes|after \d+ seconds/i.test(m)) return "Por seguridad, esperá un minuto antes de pedir otro correo.";
+  if (/session missing|session_not_found|JWT expired/i.test(m)) return "El enlace para cambiar la contraseña venció. Pedí uno nuevo.";
+  if (/expired|invalid.*(token|link|otp)/i.test(m)) return "El enlace venció o ya se usó. Pedí uno nuevo.";
+  if (/different from the old password/i.test(m)) return "La contraseña nueva tiene que ser distinta de la anterior.";
+  if (/error sending/i.test(m)) return "No pudimos enviar el correo. Probá de nuevo en unos minutos.";
   if (/Password should be/i.test(m)) return "La contraseña no cumple los requisitos.";
   if (/provider is not enabled|Unsupported provider/i.test(m)) return "Google todavía no está configurado. Usá correo y contraseña.";
   if (/network|fetch/i.test(m)) return "No hay conexión con el servidor. Probá de nuevo.";
@@ -318,6 +331,7 @@ const recuperar = $('.auth-form[data-panel="recuperar"]');
 recuperar.addEventListener("submit", async (e) => {
   e.preventDefault();
   recuperar.classList.add("is-submitted");
+  hideAlert(recuperar);
   if (!validate(recuperar)) return;
   const btn = $(".auth-submit", recuperar);
   setLoading(btn, true);
@@ -376,14 +390,33 @@ if (phone) {
 
 // ---------- Inicio ----------
 const hash = location.hash.replace("#", "").split("&")[0];
-const recovering = /type=recovery/.test(location.hash) || hash === "nueva";
+const recovering = /type=recovery/.test(location.hash) || hash === "nueva" || LINK_TYPE === "recovery" || LINK_TYPE === "invite";
 showPanel(recovering ? "nueva" : ["registro", "login", "recuperar"].includes(hash) ? hash : body.dataset.start || "registro", false);
+
+// Enlace de un correo: recuperación/invitación -> se queda en "Nueva
+// contraseña" con la sesión ya iniciada; confirmación o ingreso -> entra.
+async function verifyLink() {
+  const { error } = await sb.auth.verifyOtp({ token_hash: TOKEN_HASH, type: LINK_TYPE });
+  if (error) {
+    const panel = recovering ? "recuperar" : "login";
+    showPanel(panel, false);
+    const form = $(`.auth-form[data-panel="${panel}"]`);
+    return showAlert(form, recovering ? "El enlace venció o ya se usó. Pedí uno nuevo." : "El enlace venció o ya se usó. Iniciá sesión o pedí uno nuevo.");
+  }
+  if (recovering) return;
+  const msg = await finish();
+  if (msg) {
+    showPanel("login", false);
+    showAlert(login, msg);
+  }
+}
+if (TOKEN_HASH) verifyLink();
 
 // Volviendo de Google (o ya con sesión): entra directo. Si es recuperación,
 // se queda en el panel de nueva contraseña.
 sb.auth.onAuthStateChange(async (event, session) => {
   if (event === "PASSWORD_RECOVERY") return showPanel("nueva", false);
-  if (!session || recovering) return;
+  if (!session || recovering || TOKEN_HASH) return;
   if (event === "SIGNED_IN" || event === "INITIAL_SESSION") {
     const msg = await finish();
     if (msg) {
