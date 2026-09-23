@@ -51,7 +51,9 @@ try {
     .filter((f) => f.endsWith(".sql"))
     .sort()
     .map((f) => path.join(ROOT, "supabase", "migrations", f));
-  for (const f of [path.join(HERE, "stubs.sql"), ...migrations, path.join(HERE, "helpers.sql"), path.join(HERE, "fixture.sql")]) {
+  // Las migraciones van dos veces: npm run db:push las reaplica todas en cada
+  // corrida, así que el resultado tiene que ser el mismo (idempotentes).
+  for (const f of [path.join(HERE, "stubs.sql"), ...migrations, ...migrations, path.join(HERE, "helpers.sql"), path.join(HERE, "fixture.sql")]) {
     must("base", fs.readFileSync(f, "utf8"), path.relative(ROOT, f));
   }
 
