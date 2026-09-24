@@ -18,4 +18,5 @@ for (const dir of ["assets", "dash", "tienda"]) {
     filter: (src) => !path.basename(src).startsWith("."),
   });
 }
+fs.copyFileSync(path.join(ROOT, "404.html"), path.join(OUT, "404.html"));
 console.log("[build] public/ listo (assets, dash, tienda)");
