@@ -34,11 +34,6 @@
   }
 }
 
-/* Espacio para que el banner no tape el final de la página (pagar, iniciar sesión) */
-body.has-cc-banner {
-  padding-bottom: calc(var(--cc-banner-h, 0px) + 1rem);
-}
-
 .cc-title {
   margin: 0 0 0.35rem;
   font-family: var(--font-display, "Inter", sans-serif);
