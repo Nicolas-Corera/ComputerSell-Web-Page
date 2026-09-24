@@ -16,7 +16,6 @@ const FONT = "Montserrat, 'Segoe UI', Helvetica, Arial, sans-serif";
 const esc = (s) =>
   String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 const nl2br = (s) => esc(s).replace(/\r?\n/g, "<br />");
-const ars = (n) => "$ " + Number(n || 0).toLocaleString("es-AR", { minimumFractionDigits: 0, maximumFractionDigits: 2 });
 
 function siteUrl(req) {
   const { SITE_URL } = env();
@@ -131,50 +130,20 @@ const templates = {
     };
   },
 
-  orderReceived(o, site) {
-    const transfer = o.payment_method === "transferencia";
-    const link = site ? `${site}/compra-detalle?id=${encodeURIComponent(o.id)}` : "";
+  notification(n, site) {
+    const hi = n.name ? `Hola ${esc(n.name)}, ` : "";
+    const body = n.body ? nl2br(n.body) : "Hay una novedad en tu cuenta.";
     return {
-      subject: `Recibimos tu pedido CS-${o.number}`,
+      subject: `${n.title} · ComputerSell`.slice(0, 150),
       html: layout({
-        preheader: transfer ? "Subí el comprobante de la transferencia para confirmarlo." : "Estamos procesando tu pedido.",
-        title: `Pedido CS-${o.number} recibido`,
-        intro: `Hola ${esc(o.name || "")}, ¡gracias por tu compra! ${
-          transfer
-            ? "Para confirmarlo, hacé la transferencia y subí el comprobante desde el detalle del pedido. La reserva del stock es por tiempo limitado."
-            : "Te avisamos por correo cada vez que cambie el estado."
-        }`,
-        rows: [
-          ["Pedido", `CS-${esc(o.number)}`],
-          ["Medio de pago", esc(transfer ? "Transferencia bancaria" : o.payment_method || "—")],
-          ["Total", `<strong>${esc(ars(o.total))}</strong>`],
-        ],
-        button: link ? { href: link, label: transfer ? "Subir comprobante" : "Ver mi pedido" } : null,
-        note: "Guardá este correo como constancia de tu pedido.",
+        preheader: n.body || n.title,
+        title: n.title,
+        intro: hi + body,
+        button: n.button,
+        note: n.audience === "admin" ? "Aviso automático del panel de ComputerSell." : "Te escribimos porque hay una novedad en tu pedido. También la ves en la campanita de la tienda.",
         site,
       }),
-      text: `Pedido CS-${o.number} recibido. Total: ${ars(o.total)}.${link ? "\n" + link : ""}`,
-    };
-  },
-
-  paymentApproved(o, site) {
-    const link = site ? `${site}/compra-detalle?id=${encodeURIComponent(o.id)}` : "";
-    return {
-      subject: `Pago aprobado · Pedido CS-${o.number}`,
-      html: layout({
-        preheader: "Tu pago fue acreditado.",
-        title: "¡Pago aprobado!",
-        intro: `Hola ${esc(o.name || "")}, tu pago del pedido <strong>CS-${esc(o.number)}</strong> fue acreditado. Ya estamos preparando tu envío y te avisamos cuando lo despachemos.`,
-        rows: [
-          ["Pedido", `CS-${esc(o.number)}`],
-          ["Total", `<strong>${esc(ars(o.total))}</strong>`],
-          ...(o.installments > 1 ? [["Cuotas", esc(o.installments)]] : []),
-        ],
-        button: link ? { href: link, label: "Ver mi pedido" } : null,
-        note: "Guardá este correo como constancia de pago.",
-        site,
-      }),
-      text: `Pago aprobado · Pedido CS-${o.number}. Total: ${ars(o.total)}.${link ? "\n" + link : ""}`,
+      text: `${n.title}\n\n${n.body || ""}${n.button ? "\n\n" + n.button.href : ""}`,
     };
   },
 };
@@ -205,7 +174,7 @@ async function sendMail({ to, subject, html, text, replyTo, idempotencyKey }) {
   return data;
 }
 
-// Nunca corta el flujo de una compra por un correo
+// Para correos secundarios: si falla solo queda en el log
 async function sendSafe(msg) {
   try {
     return await sendMail(msg);
@@ -213,14 +182,6 @@ async function sendSafe(msg) {
     console.warn("[mail] no enviado:", msg.subject, e.message);
     return null;
   }
-}
-
-async function sendOrderMail(kind, order, customer, req) {
-  const email = customer && customer.email;
-  if (!email || !order || !order.id) return null;
-  const o = { ...order, name: (customer.name || "").split(/\s+/)[0] };
-  const tpl = templates[kind](o, siteUrl(req));
-  return sendSafe({ to: email, ...tpl, idempotencyKey: `${kind}-${order.id}` });
 }
 
 // ---------- Límite de envíos ----------
@@ -259,4 +220,4 @@ function clientIp(req) {
   ).trim();
 }
 
-module.exports = { templates, sendMail, sendSafe, sendOrderMail, rateLimit, clientIp, siteUrl, MOTIVOS };
+module.exports = { templates, sendMail, sendSafe, rateLimit, clientIp, siteUrl, MOTIVOS };

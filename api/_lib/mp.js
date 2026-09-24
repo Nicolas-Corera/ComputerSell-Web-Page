@@ -35,6 +35,7 @@ function env() {
     RESEND_SENDER_NAME: out.RESEND_SENDER_NAME || "ComputerSell",
     CONTACT_TO: out.CONTACT_TO || (out.ADMIN_EMAILS || "").split(",")[0].trim(),
     CONTACT_DAILY_LIMIT: Number(out.CONTACT_DAILY_LIMIT) || 40,
+    NOTIFY_HOOK_SECRET: out.NOTIFY_HOOK_SECRET || "",
     SITE_URL: (out.SITE_URL || "").replace(/\/$/, ""),
   };
   return cached;

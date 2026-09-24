@@ -14,7 +14,6 @@
 // cuando la tarjeta rechazó, 4xx/5xx {error} en el resto.
 const { handler, HttpError, send, readJson, requireUser, rpc, sbFetch, mpFetch, rejectionMessage, summarizeOrder } = require("../_lib/mp");
 const { parseItems, parseCustomer, placeOrder } = require("../_lib/checkout");
-const { sendOrderMail } = require("../_lib/mail");
 
 const CARD_TYPES = { credito: "credit_card", debito: "debit_card" };
 
@@ -156,7 +155,6 @@ module.exports = handler(["POST"], async (req, res) => {
 
   if (mp.ok && info.status === "processed") {
     const applied = await apply(order.id, data.id, "processed", info.status_detail, snapshot);
-    await sendOrderMail("paymentApproved", { ...order, ...(applied || {}), installments }, customer, req);
     return send(res, 200, { result: "approved", order: applied, payment: publicPayment(snapshot) });
   }
 

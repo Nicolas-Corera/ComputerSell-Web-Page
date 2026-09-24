@@ -8,7 +8,6 @@
 // Respuestas: 200 {order}, 4xx/5xx {error}.
 const { handler, send, readJson, requireUser } = require("../_lib/mp");
 const { parseItems, parseCustomer, placeOrder } = require("../_lib/checkout");
-const { sendOrderMail } = require("../_lib/mail");
 
 module.exports = handler(["POST"], async (req, res) => {
   const { user, token } = await requireUser(req);
@@ -16,6 +15,5 @@ module.exports = handler(["POST"], async (req, res) => {
   const items = parseItems(body.items);
   const { customer } = parseCustomer(body, user);
   const { order } = await placeOrder({ user, token, method: "transferencia", items, installments: 1, customer });
-  await sendOrderMail("orderReceived", { ...order, payment_method: "transferencia" }, customer, req);
   send(res, 200, { order });
 });
