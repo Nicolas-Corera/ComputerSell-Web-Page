@@ -76,6 +76,6 @@ module.exports = handler(["POST"], async (req, res) => {
 
   const site = siteUrl(req);
   await sendMail({ to: CONTACT_TO, replyTo: c.email, ...templates.contactStore(c, site) });
-  await sendSafe({ to: c.email, ...templates.contactCustomer(c, site) });
+  await sendSafe({ to: c.email, replyTo: CONTACT_TO, ...templates.contactCustomer(c, site) });
   send(res, 200, { ok: true });
 });

@@ -41,8 +41,7 @@ module.exports = handler(["POST"], async (req, res) => {
       ? { href: `${site}/compra-detalle?id=${orderId}`, label: n.type === "pago" && /rechazado/i.test(n.title) ? "Subir comprobante" : "Ver mi pedido" }
       : { href: `${site}/perfil`, label: "Ir a mi cuenta" };
   } else if (n.audience === "admin" && ["venta", "pago"].includes(n.type)) {
-    to = env().CONTACT_TO;
-    if (!to) return send(res, 200, { ok: true, ignored: "sin CONTACT_TO" });
+    to = env().NOTIFY_ADMIN_TO;
     button = { href: site.replace(/^(https?:\/\/)(www\.)?/, "$1dash."), label: "Abrir el panel" };
   } else {
     return send(res, 200, { ok: true, ignored: n.type });
@@ -54,6 +53,7 @@ module.exports = handler(["POST"], async (req, res) => {
   ]);
   if (!allowed) return send(res, 200, { ok: true, ignored: "límite" });
 
-  await sendMail({ to, ...templates.notification({ ...n, name, button }, site), idempotencyKey: "notif-" + n.id });
+  const replyTo = n.audience === "user" ? env().CONTACT_TO : undefined;
+  await sendMail({ to, replyTo, ...templates.notification({ ...n, name, button }, site), idempotencyKey: "notif-" + n.id });
   send(res, 200, { ok: true });
 });
