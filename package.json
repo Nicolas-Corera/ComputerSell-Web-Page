@@ -16,6 +16,6 @@
     "test:js": "node --test \"tests/js/*.test.js\""
   },
   "engines": {
-    "node": ">=18"
+    "node": "24.x"
   }
 }
