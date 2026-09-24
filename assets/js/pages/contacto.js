@@ -1,48 +1,44 @@
+import { CATEGORIES } from "/assets/js/core/supabase.js";
+
 document.addEventListener("DOMContentLoaded", () => {
   const motivoSelect = document.getElementById("motivo");
   const extraField = document.getElementById("motivoExtraField");
 
   if (!motivoSelect || !extraField) return;
 
-  // Reemplazá esta lista por tu catálogo real de productos
-  const productos = [
-    "Computadoras",
-    "Notebooks",
-    "Placas de video",
-    "Procesadores",
-    "Memorias RAM",
-    "Almacenamiento",
-    "Motherboards",
-    "Fuentes",
-    "Gabinetes",
-    "Refrigeración",
-    "Teclados",
-    "Mouse",
-    "Auriculares",
-    "Monitores",
-    "Micrófonos",
-    "Webcams",
-    "Parlantes",
-    "Mousepads",
-  ];
-
-  function crearSelectProductos(idCampo, textoLabel) {
+  function crearSelect(idCampo, textoLabel, opciones, required) {
     const label = document.createElement("label");
     label.setAttribute("for", idCampo);
     label.textContent = textoLabel;
 
     const select = document.createElement("select");
     select.id = idCampo;
-    select.required = true;
+    select.required = required;
 
-    productos.forEach((p) => {
+    opciones.forEach(([value, text]) => {
       const opt = document.createElement("option");
-      opt.value = p;
-      opt.textContent = p;
+      opt.value = value;
+      opt.textContent = text;
       select.appendChild(opt);
     });
 
     return [label, select];
+  }
+
+  function crearSelectProductos(idCampo, textoLabel) {
+    const [label, select] = crearSelect(idCampo, textoLabel, [["", "Seleccionar…"], ...Object.entries(CATEGORIES).map(([k, v]) => [k, v.label])], true);
+    const subField = document.createElement("div");
+    subField.hidden = true;
+
+    select.addEventListener("change", () => {
+      const subs = (CATEGORIES[select.value] || { subs: [] }).subs;
+      subField.innerHTML = "";
+      subField.hidden = !subs.length;
+      if (!subs.length) return;
+      crearSelect("motivoSubcategoria", "Subcategoría", [["", "Sin subcategoría"], ...subs.map((s) => [s, s])], false).forEach((el) => subField.appendChild(el));
+    });
+
+    return [label, select, subField];
   }
 
   function crearInput(idCampo, textoLabel, placeholder) {
@@ -122,4 +118,59 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Por si el form carga con una opción distinta a la primera ya seleccionada
   renderExtraField(motivoSelect.value);
+
+  const form = document.getElementById("contactForm");
+  const status = document.getElementById("contactStatus");
+  const submit = document.getElementById("contactSubmit");
+  const openedAt = Date.now();
+  const val = (id) => (document.getElementById(id) || { value: "" }).value.trim();
+
+  function showStatus(text, ok) {
+    status.hidden = false;
+    status.textContent = text;
+    status.style.color = ok ? "" : "#dc2626";
+  }
+
+  function detalle() {
+    const cat = document.getElementById("motivoProducto");
+    if (cat && cat.value) {
+      const label = cat.options[cat.selectedIndex].textContent;
+      const sub = document.getElementById("motivoSubcategoria");
+      return sub ? `${label} · ${sub.value || "Sin subcategoría"}` : label;
+    }
+    return val("motivoPedido") || val("motivoOtro");
+  }
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    if (submit.disabled) return;
+    submit.disabled = true;
+    status.hidden = true;
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          nombre: val("nombre"),
+          apellido: val("apellido"),
+          email: val("email"),
+          telefono: val("telefono"),
+          motivo: motivoSelect.value,
+          detalle: detalle(),
+          mensaje: val("mensaje"),
+          website: val("website"),
+          t: openedAt,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || "No pudimos enviar tu consulta. Probá de nuevo.");
+      form.reset();
+      renderExtraField(motivoSelect.value);
+      showStatus("¡Gracias! Recibimos tu consulta y te respondemos a la brevedad. Te mandamos una confirmación por email.", true);
+    } catch (err) {
+      showStatus(err.message || "No pudimos enviar tu consulta. Probá de nuevo.", false);
+    } finally {
+      submit.disabled = false;
+    }
+  });
 });

@@ -30,6 +30,12 @@ function env() {
     SUPABASE_URL: (out.SUPABASE_URL || "").replace(/\/$/, ""),
     SUPABASE_ANON_KEY: out.SUPABASE_ANON_KEY || "",
     SUPABASE_SECRET_KEY: out.SUPABASE_SECRET_KEY || "",
+    RESEND: out.RESEND || out.RESEND_API_KEY || "",
+    RESEND_FROM: out.RESEND_FROM || "",
+    RESEND_SENDER_NAME: out.RESEND_SENDER_NAME || "ComputerSell",
+    CONTACT_TO: out.CONTACT_TO || (out.ADMIN_EMAILS || "").split(",")[0].trim(),
+    CONTACT_DAILY_LIMIT: Number(out.CONTACT_DAILY_LIMIT) || 40,
+    SITE_URL: (out.SITE_URL || "").replace(/\/$/, ""),
   };
   return cached;
 }

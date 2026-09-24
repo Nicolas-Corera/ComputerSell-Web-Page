@@ -162,13 +162,11 @@
                 </div>
               </a>
             </div>
-            <form
-              class="contactForm"
-              onsubmit="
-                event.preventDefault();
-                alert('¡Gracias! Te vamos a contactar a la brevedad.');
-              "
-            >
+            <form class="contactForm" id="contactForm">
+              <div aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden">
+                <label for="website">No completar</label>
+                <input id="website" name="website" type="text" tabindex="-1" autocomplete="off" />
+              </div>
               <h2>Envianos tu consulta</h2>
               <p>Completá el formulario y te contactamos a la brevedad.</p>
 
@@ -233,7 +231,8 @@
                 ></textarea>
               </div>
 
-              <button type="submit" class="btn btn-secondary">
+              <p class="form-note" id="contactStatus" role="status" aria-live="polite" hidden></p>
+              <button type="submit" class="btn btn-secondary" id="contactSubmit">
                 Enviar consulta
                 <svg class="ic-sm"><use href="#ic-arrow_forward" /></svg>
               </button>
