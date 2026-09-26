@@ -14,8 +14,8 @@
 // (place_order valida stock y precios en la base) y cobra con la API de Orders.
 // Transferencia: /api/orders/transfer crea la orden y desde acá se sube el
 // comprobante para que el panel lo revise.
-import { sb, requireAuth, getProfile, loading } from "../core/supabase.js";
-import { createCatalog } from "../core/catalog.js";
+import { sb, requireAuth, getProfile, loading, toCard } from "../core/supabase.js";
+import { refreshCart } from "../core/catalog.js";
 
 loading(async function () {
   const { formatPrice, escapeHtml, toast } = window.CS;
@@ -31,9 +31,9 @@ loading(async function () {
   const user = await requireAuth();
   if (!user) return;
   const profile = await getProfile();
-  const catalog = await createCatalog().ready; // precio/stock del carrito al día
+  const cartRows = (await refreshCart()).map(toCard); // precio/stock del carrito al día (solo esos productos)
   // Entrega, peso, envío gratis y cuotas sin interés de cada producto (panel)
-  const productInfo = (id) => catalog.cards().find((c) => c.id === id) || {};
+  const productInfo = (id) => cartRows.find((c) => c.id === id) || {};
 
   // Tiempo de entrega por producto (panel): el pedido llega con el más lento
   const DELIVERY = {

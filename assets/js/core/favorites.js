@@ -2,7 +2,8 @@
 // tiempo real entre pestañas/dispositivos. Sin sesión, el corazón lleva al login.
 // Expone window.FavoritesStore; marca los corazones y el badge del header.
 // Requiere utils.js (window.CS).
-import { sb, getUser, onAuth, subscribe, toCard, loading, PRODUCT_COLUMNS } from "./supabase.js";
+import { sb, getUser, onAuth, subscribe, toCard, loading } from "./supabase.js";
+import { CARD_COLUMNS } from "./catalog.js";
 
 const { productForButton, toast } = window.CS;
 const FAVORITES_URL = "/favoritos.html";
@@ -78,7 +79,7 @@ const FavoritesStore = {
   // Productos completos de los favoritos (para la página de favoritos)
   async getItems() {
     if (!ids.size) return [];
-    const { data } = await sb.from("products").select(PRODUCT_COLUMNS).in("id", Array.from(ids)).eq("status", "publicado");
+    const { data } = await sb.from("products").select(CARD_COLUMNS).in("id", Array.from(ids)).eq("status", "publicado");
     return (data || []).map(toCard);
   },
   onChange(fn) {

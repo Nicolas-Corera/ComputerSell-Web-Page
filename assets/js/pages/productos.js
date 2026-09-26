@@ -1,10 +1,11 @@
 // Página de productos: filtros, búsqueda, orden, paginación y contador.
-// Los productos vienen de la base (catálogo en tiempo real); los filtros
-// se aplican en memoria sobre esa lista.
-import { createCatalog } from "../core/catalog.js";
+// Filtrado, orden y paginación los resuelve la base (RPC search_products con
+// índices): se descarga solo la página visible (24 tarjetas). Los contadores
+// de cada filtro salen de catalog_facets (cacheados). Ver core/catalog.js.
+import { searchProducts, fetchFacets, onCatalogChange, applyChange, refreshCart } from "../core/catalog.js";
 import { toCard, slugify, loading } from "../core/supabase.js";
 
-const { formatPrice, escapeHtml, cardHtml, emptyHtml } = window.CS;
+const { formatPrice, escapeHtml, cardHtml, emptyHtml, toast } = window.CS;
 
 const aside = document.getElementById("filtersAside");
 const backdrop = document.getElementById("filtersBackdrop");
@@ -26,6 +27,7 @@ const brandOptions = document.getElementById("brandOptions");
 const pagination = document.getElementById("pagination");
 
 const PAGE_SIZE = 24;
+const SEARCH_DELAY = 300; // ms sin tipear antes de consultar
 
 // "Categoría" -> "categoria"
 const normalize = (s) =>
@@ -41,28 +43,14 @@ const AVAILABILITY = { "en stock": "stock", "con envio gratis": "shipping", "en 
 const AVAILABILITY_PARAM = { "en stock": "stock", "con envio gratis": "envio-gratis", "en oferta": "oferta" };
 const DEFAULT_SORT = "relevancia";
 
-let items = []; // productos precalculados para filtrar
+let rows = []; // productos de la página visible
+let total = 0; // resultados con los filtros actuales
+let facets = null; // contadores de catalog_facets
 let page = 1;
+let requestSeq = 0; // descarta respuestas viejas si el usuario sigue filtrando
 const priceRange = { min: null, max: null };
-// Marcas pedidas en la URL: se marcan cuando llega el catálogo (los checkboxes de marca son dinámicos)
+// Marcas pedidas en la URL: se marcan cuando llegan los contadores (los checkboxes de marca son dinámicos)
 let pendingBrands = new Set();
-
-function prepare(rows) {
-  items = rows.map((p, index) => ({
-    p,
-    card: toCard(p),
-    index,
-    name: normalize(p.title + " " + p.brand + " " + (p.tags || []).join(" ") + " " + p.sku),
-    price: p.price,
-    category: p.category,
-    type: slugify(p.subcategory),
-    brand: normalize(p.brand),
-    stock: p.stock > 0,
-    shipping: !!p.free_shipping,
-    sale: !!(p.on_sale && p.old_price > p.price),
-    created: new Date(p.created_at).getTime(),
-  }));
-}
 
 const checkboxes = () => Array.from(aside.querySelectorAll('input[type="checkbox"][data-filter-group]'));
 const subGroups = Array.from(aside.querySelectorAll(".filterGroup[data-parent]"));
@@ -85,17 +73,17 @@ backdrop && backdrop.addEventListener("click", closeAside);
 
 // ---------- Marcas (dinámicas según el catálogo) ----------
 function renderBrands() {
-  const checked = new Set(checkboxes().filter((i) => i.checked && normalize(i.dataset.filterGroup) === "marca").map((i) => i.dataset.filterLabel));
-  const brands = Array.from(new Set(items.map((i) => i.p.brand).filter(Boolean))).sort((a, b) => a.localeCompare(b, "es"));
-  brands.forEach((b) => pendingBrands.has(normalize(b)) && checked.add(b));
+  const checked = new Set(checkboxes().filter((i) => i.checked && normalize(i.dataset.filterGroup) === "marca").map((i) => normalize(i.dataset.filterLabel)));
+  pendingBrands.forEach((b) => checked.add(b));
   pendingBrands = new Set();
+  const brands = ((facets && facets.brands) || []).slice().sort((a, b) => a.name.localeCompare(b.name, "es"));
   brandOptions.innerHTML = brands
     .map(
       (b) => `
       <label class="checkOption">
-        <input type="checkbox" data-filter-group="Marca" data-filter-label="${escapeHtml(b)}" ${checked.has(b) ? "checked" : ""} />
+        <input type="checkbox" data-filter-group="Marca" data-filter-label="${escapeHtml(b.name)}" ${checked.has(normalize(b.name)) ? "checked" : ""} />
         <span class="checkbox"><svg><use href="#ic-check" /></svg></span>
-        <span>${escapeHtml(b)}</span>
+        <span>${escapeHtml(b.name)}</span>
         <span class="count"></span>
       </label>`,
     )
@@ -104,20 +92,21 @@ function renderBrands() {
 }
 
 // ---------- Contadores por opción ----------
-function matchesOption(item, input) {
+function optionCount(input) {
+  if (!facets) return "";
   const group = normalize(input.dataset.filterGroup);
   const label = normalize(input.dataset.filterLabel);
-  if (group === "categoria") return item.category === label;
-  if (SUBGROUPS.includes(group)) return item.category === group && item.type === slugify(label);
-  if (group === "marca") return item.brand === label;
-  if (group === "disponibilidad") return !!item[AVAILABILITY[label]];
-  return false;
+  if (group === "categoria") return (facets.categories || {})[label] || 0;
+  if (SUBGROUPS.includes(group)) return (facets.subcategories || {})[`${group}/${slugify(input.dataset.filterLabel)}`] || 0;
+  if (group === "marca") return ((facets.brands || []).find((b) => b.key === label) || {}).count || 0;
+  if (group === "disponibilidad") return facets[AVAILABILITY[label]] || 0;
+  return "";
 }
 
 function renderCounts() {
   checkboxes().forEach((input) => {
     const countEl = input.closest(".checkOption")?.querySelector(".count");
-    if (countEl) countEl.textContent = items.filter((c) => matchesOption(c, input)).length;
+    if (countEl) countEl.textContent = optionCount(input);
   });
 }
 
@@ -131,62 +120,97 @@ function readChecked() {
     const label = input.dataset.filterLabel;
     state[group].push(SUBGROUPS.includes(group) ? slugify(label) : normalize(label));
   });
+  // Marcas de la URL que todavía no tienen checkbox
+  pendingBrands.forEach((b) => !state.marca.includes(b) && state.marca.push(b));
   return state;
 }
 
-function passes(item, state, query) {
-  if (state.categoria.length && !state.categoria.includes(item.category)) return false;
-  const types = state[item.category];
-  if (types && types.length && !types.includes(item.type)) return false;
-  if (state.marca.length && !state.marca.includes(item.brand)) return false;
-  if (state.disponibilidad.some((label) => !item[AVAILABILITY[label]])) return false;
-  if (priceRange.min !== null && item.price < priceRange.min) return false;
-  if (priceRange.max !== null && item.price > priceRange.max) return false;
-  if (query && !item.name.includes(query)) return false;
-  return true;
-}
+const searchWords = () => normalize(searchInput ? searchInput.value : "").split(/\s+/).filter(Boolean);
 
-function sortItems(list) {
-  const mode = sortSelect ? sortSelect.value : "relevancia";
-  const sorted = list.slice();
-  if (mode === "menor-precio") sorted.sort((a, b) => a.price - b.price);
-  else if (mode === "mayor-precio") sorted.sort((a, b) => b.price - a.price);
-  else if (mode === "novedades") sorted.sort((a, b) => b.created - a.created);
-  else sorted.sort((a, b) => Number(b.stock) - Number(a.stock) || a.index - b.index);
-  return sorted;
-}
-
-function applyFilters() {
+function queryParams() {
   const state = readChecked();
-  const query = normalize(searchInput ? searchInput.value : "");
-  const visible = sortItems(items.filter((item) => passes(item, state, query)));
+  return {
+    words: searchWords(),
+    categories: state.categoria,
+    componentes: state.componentes,
+    perifericos: state.perifericos,
+    brands: state.marca,
+    inStock: state.disponibilidad.includes("en stock"),
+    freeShipping: state.disponibilidad.includes("con envio gratis"),
+    onSale: state.disponibilidad.includes("en oferta"),
+    min: priceRange.min,
+    max: priceRange.max,
+    sort: sortSelect ? sortSelect.value : DEFAULT_SORT,
+    limit: PAGE_SIZE,
+    offset: (page - 1) * PAGE_SIZE,
+  };
+}
 
-  const pages = Math.max(1, Math.ceil(visible.length / PAGE_SIZE));
-  if (page > pages) page = pages;
-  const slice = visible.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+// Pide la página actual a la base y la muestra
+async function applyFilters() {
+  const seq = ++requestSeq;
+  grid.setAttribute("aria-busy", "true");
+  let res;
+  try {
+    res = await searchProducts(queryParams());
+  } catch (e) {
+    console.error(e);
+    if (seq === requestSeq) {
+      grid.removeAttribute("aria-busy");
+      toast("No se pudieron cargar los productos. Probá de nuevo.", "bad");
+    }
+    return;
+  }
+  if (seq !== requestSeq) return; // llegó una búsqueda más nueva
 
-  grid.innerHTML = slice.map((it) => cardHtml(it.card)).join("");
+  const pages = Math.max(1, Math.ceil(res.total / PAGE_SIZE));
+  // Página fuera de rango (cambió el catálogo o vino de un link viejo): a la última
+  if (page > pages) {
+    page = pages;
+    writeUrl();
+    return applyFilters();
+  }
+  rows = res.items;
+  total = res.total;
+  renderGrid();
+}
+
+function renderGrid() {
+  grid.removeAttribute("aria-busy");
+  grid.innerHTML = rows.map((p) => cardHtml(toCard(p))).join("");
   if (window.syncFavorites) window.syncFavorites(grid);
 
   if (resultsCount) {
-    const n = visible.length;
-    resultsCount.innerHTML = `<strong>${n}</strong> ${n === 1 ? "producto encontrado" : "productos encontrados"}`;
+    resultsCount.innerHTML = `<strong>${total}</strong> ${total === 1 ? "producto encontrado" : "productos encontrados"}`;
   }
   // Sin resultados: catálogo vacío (mensaje simple) o filtros sin coincidencias (con "limpiar")
-  const catalogEmpty = items.length === 0;
-  emptyState.hidden = visible.length > 0 || catalogEmpty;
-  grid.hidden = visible.length === 0 && !catalogEmpty;
+  const catalogEmpty = facets ? facets.total === 0 : total === 0 && !hasFilters();
+  emptyState.hidden = total > 0 || catalogEmpty;
+  grid.hidden = total === 0 && !catalogEmpty;
   if (catalogEmpty) {
     grid.innerHTML = emptyHtml("Todavía no hay productos publicados", "Estamos cargando el catálogo. Volvé a pasar en un rato o escribinos para consultar disponibilidad.", { href: "/contacto.html", label: "Contactanos", icon: "ic-info" });
   }
-  renderPagination(pages);
+  renderPagination(Math.max(1, Math.ceil(total / PAGE_SIZE)));
 }
 
+function hasFilters() {
+  const p = queryParams();
+  return !!(p.words.length || p.categories.length || p.brands.length || p.inStock || p.freeShipping || p.onSale || p.min !== null || p.max !== null);
+}
+
+// 1 … 4 5 [6] 7 8 … 20 >
 function renderPagination(pages) {
   pagination.hidden = pages <= 1;
   if (pages <= 1) return (pagination.innerHTML = "");
+  const shown = new Set([1, pages]);
+  for (let i = page - 2; i <= page + 2; i++) if (i >= 1 && i <= pages) shown.add(i);
+  const list = Array.from(shown).sort((a, b) => a - b);
   let html = "";
-  for (let i = 1; i <= pages; i++) html += `<button type="button" class="${i === page ? "active" : ""}" data-page="${i}">${i}</button>`;
+  if (page > 1) html += `<button type="button" data-page="${page - 1}" aria-label="Anterior"><svg class="ic-sm" style="transform:scaleX(-1)"><use href="#ic-arrow_forward" /></svg></button>`;
+  list.forEach((n, i) => {
+    if (i > 0 && n - list[i - 1] > 1) html += `<span class="pagination-gap">…</span>`;
+    html += `<button type="button" class="${n === page ? "active" : ""}" data-page="${n}" ${n === page ? 'aria-current="page"' : ""}>${n}</button>`;
+  });
   if (page < pages) html += `<button type="button" data-page="${page + 1}" aria-label="Siguiente"><svg class="ic-sm"><use href="#ic-arrow_forward" /></svg></button>`;
   pagination.innerHTML = html;
 }
@@ -195,6 +219,7 @@ pagination.addEventListener("click", (e) => {
   if (!b) return;
   page = +b.dataset.page;
   applyFilters();
+  writeUrl();
   grid.scrollIntoView({ behavior: "smooth", block: "start" });
 });
 
@@ -267,7 +292,7 @@ function update() {
 // ---------- Filtros <-> URL ----------
 // Los filtros viajan en la URL (sin recargar) para poder compartir o volver a
 // la búsqueda: ?categoria=componentes&componentes=fuentes,gabinetes&marca=asus
-// &disponibilidad=oferta&min=10000&max=50000&q=rtx&orden=menor-precio
+// &disponibilidad=oferta&min=10000&max=50000&q=rtx&orden=menor-precio&pagina=2
 // Sin filtros la URL queda limpia (/productos.html).
 function writeUrl() {
   const state = readChecked();
@@ -277,11 +302,12 @@ function writeUrl() {
   if (query) params.set("q", query);
   setList("categoria", state.categoria);
   SUBGROUPS.forEach((group) => setList(group, state[group]));
-  setList("marca", [...state.marca, ...pendingBrands]);
+  setList("marca", state.marca);
   setList("disponibilidad", state.disponibilidad.map((label) => AVAILABILITY_PARAM[label]));
   if (priceRange.min !== null) params.set("min", priceRange.min);
   if (priceRange.max !== null) params.set("max", priceRange.max);
   if (sortSelect && sortSelect.value !== DEFAULT_SORT) params.set("orden", sortSelect.value);
+  if (page > 1) params.set("pagina", page);
 
   const qs = params.toString().replace(/%2C/g, ",");
   const url = window.location.pathname + (qs ? `?${qs}` : "") + window.location.hash;
@@ -326,14 +352,15 @@ function readUrl() {
   if (searchInput) searchInput.value = params.get("q") || "";
   const orden = params.get("orden");
   if (sortSelect && orden && Array.from(sortSelect.options).some((o) => o.value === orden)) sortSelect.value = orden;
+  page = Math.max(1, Math.floor(num("pagina") || 1));
 }
 
 // ---------- Precio ----------
 function readPriceInputs() {
   const min = priceMin && priceMin.value !== "" ? Number(priceMin.value) : null;
   const max = priceMax && priceMax.value !== "" ? Number(priceMax.value) : null;
-  priceRange.min = min !== null && !Number.isNaN(min) ? min : null;
-  priceRange.max = max !== null && !Number.isNaN(max) ? max : null;
+  priceRange.min = min !== null && !Number.isNaN(min) ? Math.round(min) : null;
+  priceRange.max = max !== null && !Number.isNaN(max) ? Math.round(max) : null;
 }
 function clearPrice() {
   priceRange.min = null;
@@ -370,30 +397,62 @@ emptyClearBtn && emptyClearBtn.addEventListener("click", clearAll);
 
 // ---------- Eventos ----------
 checkboxes().forEach((input) => input.addEventListener("change", update));
+// Búsqueda: se consulta cuando el usuario deja de tipear (no en cada tecla)
+let searchTimer = null;
+let lastWords = "";
 searchInput &&
   searchInput.addEventListener("input", () => {
-    page = 1;
-    applyFilters();
-    writeUrl();
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(() => {
+      const words = searchWords().join(" ");
+      // Si solo cambiaron espacios o mayúsculas no hace falta consultar
+      if (words !== lastWords) {
+        lastWords = words;
+        page = 1;
+        applyFilters();
+      }
+      writeUrl();
+    }, SEARCH_DELAY);
   });
 sortSelect &&
   sortSelect.addEventListener("change", () => {
+    page = 1;
     applyFilters();
     writeUrl();
   });
 
 // Filtros preseleccionados desde la URL (menú, links del sitio o una búsqueda compartida)
 readUrl();
+lastWords = searchWords().join(" ");
+syncSubGroups();
+renderTags();
 
 // ---------- Datos ----------
-const catalog = createCatalog();
-catalog.onChange((cat) => {
-  prepare(cat.all());
+async function loadFacets() {
+  facets = await fetchFacets();
   renderBrands();
   renderCounts();
-  syncSubGroups();
   renderTags();
-  applyFilters();
-  writeUrl();
+  // Catálogo vacío: mensaje de "todavía no hay productos" en vez de "sin coincidencias"
+  if (facets && facets.total === 0) renderGrid();
+}
+
+// Primera carga: contadores y la primera página en paralelo
+loading(Promise.all([loadFacets(), applyFilters()]).then(() => writeUrl()));
+refreshCart(); // precio/stock del carrito (solo esos productos)
+
+// En vivo: precio/stock de las tarjetas en pantalla sin volver a consultar.
+// Si se despublica una que se está viendo, o se vuelve de otra pestaña, se
+// pide de nuevo la página.
+onCatalogChange((change) => {
+  if (change.resync) {
+    loadFacets();
+    applyFilters();
+    return;
+  }
+  const next = applyChange(rows, change);
+  if (!next) return;
+  if (change.removed) return applyFilters();
+  rows = next;
+  renderGrid();
 });
-loading(catalog.ready);

@@ -211,12 +211,3 @@ export const PRODUCT_COLUMNS =
   "id,sku,title,brand,category,subcategory,description,tags,price,old_price,on_sale,stock,stock_min,status," +
   "warranty,warranty_unit,featured,installments,free_shipping,delivery,weight,weight_unit,dimensions,dimensions_unit," +
   "condition,images,specs,highlights,created_at,updated_at";
-
-export function fetchPublished(extra) {
-  let q = sb.from("products").select(PRODUCT_COLUMNS).eq("status", "publicado").order("created_at", { ascending: false });
-  if (extra) q = extra(q);
-  return q.then(({ data, error }) => {
-    if (error) console.error(error);
-    return data || [];
-  });
-}

@@ -1,7 +1,8 @@
 // Ficha de producto (detail.html?id=<uuid>): se carga desde la base y se
-// actualiza en tiempo real (precio, stock, imágenes). Galería, cantidad,
-// tabs y productos relacionados.
-import { sb, subscribe, toCard, fetchPublished, CATEGORIES, loading, PRODUCT_COLUMNS } from "../core/supabase.js";
+// actualiza en vivo (precio, stock, imágenes). Galería, cantidad, tabs y
+// productos relacionados (solo 4 tarjetas).
+import { sb, toCard, CATEGORIES, loading, PRODUCT_COLUMNS } from "../core/supabase.js";
+import { fetchCards, onCatalogChange, applyChange, refreshCart } from "../core/catalog.js";
 
 const { formatPrice, escapeHtml, cardHtml, register } = window.CS;
 const $ = (s) => document.querySelector(s);
@@ -120,27 +121,43 @@ function missing() {
   $("#crumbTitle").textContent = "Producto no encontrado";
 }
 
-async function loadRelated(p) {
-  const rows = await fetchPublished((q) => q.eq("category", p.category).neq("id", p.id).limit(4));
-  if (!rows.length) return;
-  $("#relatedSection").hidden = false;
-  $("#relatedGrid").innerHTML = rows.map((r) => cardHtml(toCard(r))).join("");
+let related = [];
+
+function renderRelated() {
+  if (!detail.hidden) $("#relatedSection").hidden = !related.length;
+  $("#relatedGrid").innerHTML = related.map((r) => cardHtml(toCard(r))).join("");
   if (window.syncFavorites) window.syncFavorites($("#relatedGrid"));
+}
+
+async function loadRelated(p) {
+  related = await fetchCards((q) => q.eq("category", p.category).neq("id", p.id).order("created_at", { ascending: false }).limit(4));
+  renderRelated();
+}
+
+// Ficha completa (descripción, specs...): solo este producto
+async function loadProduct() {
+  const { data } = await sb.from("products").select(PRODUCT_COLUMNS).eq("id", id).eq("status", "publicado").maybeSingle();
+  if (!data) return missing();
+  render(data);
+  return data;
 }
 
 // ---------- Carga ----------
 loading(async () => {
   if (!id) return missing();
-  const { data } = await sb.from("products").select(PRODUCT_COLUMNS).eq("id", id).eq("status", "publicado").maybeSingle();
-  if (!data) return missing();
-  render(data);
+  const data = await loadProduct();
+  if (!data) return;
   await loadRelated(data);
-  subscribe(
-    "products",
-    (ev) => {
-      if (ev.eventType === "DELETE" || (ev.new && ev.new.status !== "publicado")) return missing();
-      if (ev.new) render(ev.new);
-    },
-    `id=eq.${id}`,
-  );
+  refreshCart(); // precio/stock del carrito (solo esos productos)
+  // En vivo: el aviso trae los datos de la tarjeta; para la ficha se vuelve a
+  // leer solo este producto (descripción y specs no viajan en el aviso).
+  onCatalogChange((change) => {
+    if (change.resync) return loadProduct();
+    if (change.id === id) return change.removed ? missing() : loadProduct();
+    const next = applyChange(related, change);
+    if (next) {
+      related = next;
+      renderRelated();
+    }
+  });
 });

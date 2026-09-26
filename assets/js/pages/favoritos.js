@@ -1,6 +1,7 @@
 // Página de favoritos: requiere sesión. Grilla con las tarjetas de producto
 // guardadas en la cuenta; se actualiza en tiempo real (favoritos y productos).
-import { requireAuth, subscribe, loading } from "../core/supabase.js";
+import { requireAuth, loading } from "../core/supabase.js";
+import { onCatalogChange } from "../core/catalog.js";
 
 const { cardHtml } = window.CS;
 const grid = document.getElementById("favGrid");
@@ -28,9 +29,6 @@ loading(async () => {
 
   store.onChange(render);
   // Cambios de precio/stock de los productos guardados
-  subscribe("products", (p) => {
-    const pid = (p.new && p.new.id) || (p.old && p.old.id);
-    if (pid && store.has(pid)) render();
-  });
+  onCatalogChange((change) => (change.resync || store.has(change.id)) && render());
   await render();
 });

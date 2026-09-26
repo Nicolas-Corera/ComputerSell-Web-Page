@@ -25,6 +25,15 @@ test("[LOW] PRODUCT_COLUMNS no incluye cost ni created_by", () => {
   assert.ok(cols.includes("price") && cols.includes("stock"));
 });
 
+test("[LOW] CARD_COLUMNS (tarjetas) es un subconjunto de PRODUCT_COLUMNS", () => {
+  const all = read("assets/js/core/supabase.js").match(/export const PRODUCT_COLUMNS =([\s\S]*?);/)[1].replace(/["+\s]/g, "").split(",");
+  const m = read("assets/js/core/catalog.js").match(/export const CARD_COLUMNS =([\s\S]*?);/);
+  assert.ok(m, "no se encontró CARD_COLUMNS");
+  const cols = m[1].replace(/["+\s]/g, "").split(",");
+  for (const c of cols) assert.ok(all.includes(c), `${c} no es una columna pública`);
+  assert.ok(!cols.includes("description") && !cols.includes("specs"), "las tarjetas no deberían bajar descripción ni specs");
+});
+
 test("[LOW] la tienda no hace select('*') sobre products", () => {
   for (const f of walk("assets/js")) {
     assert.ok(!/from\(\s*["']products["']\s*\)\s*\.select\(\s*["']\*["']/.test(read(f)), `${f} pide select("*") de products`);

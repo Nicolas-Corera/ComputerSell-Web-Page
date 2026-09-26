@@ -1,7 +1,8 @@
 // Página de carrito: lista de ítems con cantidad, eliminar y resumen de compra.
 // Se alimenta de window.CartStore (cart.js) y se re-renderiza en cada cambio.
-// El catálogo en tiempo real mantiene precio y stock de cada ítem al día.
-import { createCatalog } from "../core/catalog.js";
+// Precio y stock de cada ítem se leen de la base (solo los del carrito) y
+// se mantienen al día en vivo.
+import { refreshCart, onCatalogChange } from "../core/catalog.js";
 import { loading } from "../core/supabase.js";
 
 (function () {
@@ -90,5 +91,6 @@ import { loading } from "../core/supabase.js";
 
   store.onChange(render);
   render();
-  loading(createCatalog().ready); // refresca precio/stock del carrito y quita lo no publicado
+  loading(refreshCart()); // refresca precio/stock del carrito y quita lo no publicado
+  onCatalogChange((change) => change.resync && refreshCart()); // los cambios sueltos los aplica catalog.js
 })();

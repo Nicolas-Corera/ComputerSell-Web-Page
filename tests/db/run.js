@@ -54,7 +54,9 @@ try {
   // Las migraciones van dos veces: npm run db:push las reaplica todas en cada
   // corrida, así que el resultado tiene que ser el mismo (idempotentes).
   for (const f of [path.join(HERE, "stubs.sql"), ...migrations, ...migrations, path.join(HERE, "helpers.sql"), path.join(HERE, "fixture.sql")]) {
-    must("base", fs.readFileSync(f, "utf8"), path.relative(ROOT, f));
+    // pg_net no existe en la imagen local: net.http_post está en stubs.sql
+    const sqlText = fs.readFileSync(f, "utf8").replace(/create extension if not exists pg_net\s*;/gi, "");
+    must("base", sqlText, path.relative(ROOT, f));
   }
 
   const filter = process.argv[2] || "";

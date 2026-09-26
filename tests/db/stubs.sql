@@ -62,6 +62,28 @@ end $$;
 grant usage on schema storage to anon, authenticated, service_role;
 grant all on storage.buckets, storage.objects to anon, authenticated, service_role;
 
+-- Esquema de extensiones de Supabase (unaccent, pg_trgm van acá)
+create schema if not exists extensions;
+grant usage on schema extensions to anon, authenticated, service_role;
+
+-- realtime.send (Broadcast desde la base): guarda los mensajes para poder verificarlos
+create schema if not exists realtime;
+create table if not exists realtime.sent (id bigserial primary key, payload jsonb, event text, topic text, private boolean);
+create or replace function realtime.send(payload jsonb, event text, topic text, private boolean default true)
+returns void language sql as $$
+  insert into realtime.sent(payload, event, topic, private) values (payload, event, topic, private)
+$$;
+
+-- pg_net (net.http_post) no viene en postgres:16-alpine: run.js saltea el
+-- "create extension pg_net" y esto registra los pedidos en vez de mandarlos
+create schema if not exists net;
+create table if not exists net.sent (id bigserial primary key, url text, body jsonb, headers jsonb);
+create or replace function net.http_post(url text, body jsonb default '{}'::jsonb, params jsonb default '{}'::jsonb,
+  headers jsonb default '{}'::jsonb, timeout_milliseconds integer default 5000)
+returns bigint language sql as $$
+  insert into net.sent(url, body, headers) values (url, body, headers) returning id
+$$;
+
 -- realtime publication
 do $$ begin
   if not exists (select 1 from pg_publication where pubname = 'supabase_realtime') then
