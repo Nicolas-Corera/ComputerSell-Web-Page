@@ -18,7 +18,8 @@
 }
 
 /* ===== lg: 992–1199px ===== */
-@media (max-width: 1279.98px) {
+/* Navbar: el listado se achica por escalones para no pisar el logo ni los íconos */
+@media (max-width: 1439.98px) {
   .listItems {
     gap: 1.25rem;
     font-size: 16px;
@@ -29,7 +30,7 @@
   }
 }
 
-@media (max-width: 1199.98px) {
+@media (max-width: 1299.98px) {
   /* El listado deja de estar centrado en absoluto: se acomoda entre logo e íconos */
   .listItems {
     position: static;
@@ -40,6 +41,17 @@
 
   .item {
     padding: 0.4rem 0.5rem;
+  }
+}
+
+@media (max-width: 1099.98px) {
+  .listItems {
+    gap: 0.25rem;
+    font-size: 14px;
+  }
+
+  .item {
+    padding: 0.4rem 0.45rem;
   }
 }
 

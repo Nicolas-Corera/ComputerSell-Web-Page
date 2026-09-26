@@ -59,6 +59,9 @@
 }
 
 html {
+  /* Reserva el lugar de la barra de scroll: al abrir un drawer (overflow: hidden)
+     la página no cambia de ancho, así no se recalcula todo el layout ni "salta" */
+  scrollbar-gutter: stable;
   scroll-behavior: smooth;
   scroll-padding-top: var(--header-h);
 }

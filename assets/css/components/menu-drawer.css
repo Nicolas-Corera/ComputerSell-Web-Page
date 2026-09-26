@@ -3,10 +3,11 @@
 .menuOverlay {
   position: fixed;
   inset: 0;
-  background: rgba(13, 15, 18, 0.6);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
+  /* Sin backdrop-filter: desenfocar toda la pantalla en cada frame de la
+     animación es lo que trababa la PC; un velo más oscuro cumple la misma función */
+  background: rgba(13, 15, 18, 0.72);
   opacity: 0;
+  will-change: opacity;
   visibility: hidden;
   transition:
     opacity 0.3s ease,
@@ -26,6 +27,10 @@
   border-right: 1px solid var(--line);
   color: var(--ink);
   font-family: var(--font-body);
+  /* Capa propia y aislada: la animación de entrada solo mueve la capa (GPU),
+     sin repintar ni recalcular el resto de la página */
+  will-change: transform;
+  contain: layout paint;
   transform: translateX(-100%);
   visibility: hidden;
   transition:
@@ -48,6 +53,11 @@ body.menu-open .menuDrawer {
 
 body.menu-open {
   overflow: hidden;
+}
+
+/* Con el drawer abierto se pausa el marquee de fondo (no se ve y obliga a repintar) */
+body.menu-open .marquee-content {
+  animation-play-state: paused;
 }
 
 .menuDrawer-head {
@@ -124,7 +134,10 @@ body.menu-open {
   text-align: left;
   font-family: var(--font-body);
   cursor: pointer;
-  transition: all 0.15s ease-in-out;
+  transition:
+    border-color 0.15s ease-in-out,
+    background-color 0.15s ease-in-out,
+    transform 0.15s ease-in-out;
 }
 
 .menuItem:hover {
@@ -203,6 +216,18 @@ body.menu-open {
   transform: rotate(180deg);
 }
 
+/* Ofertas: acceso destacado arriba de las categorías */
+.menuItem--offer {
+  text-decoration: none;
+  border-color: rgba(59, 130, 246, 0.45);
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.18), var(--bg-2) 70%);
+}
+
+.menuItem--offer .menuItem-icon {
+  background: var(--blue);
+  color: #fff;
+}
+
 .menuSub {
   list-style: none;
   margin: 6px 0 4px;
@@ -224,7 +249,10 @@ body.menu-open {
   font-family: var(--font-body);
   font-size: 14px;
   cursor: pointer;
-  transition: all 0.15s ease-in-out;
+  transition:
+    color 0.15s ease-in-out,
+    background-color 0.15s ease-in-out,
+    transform 0.15s ease-in-out;
 }
 
 .menuSub-item:hover {

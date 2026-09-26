@@ -42,11 +42,11 @@
 .listItems {
   position: absolute;
   left: 50%;
-  transform: translate(-50%);
+  transform: translate(-46%);
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 3rem;
+  gap: 2rem;
   font-size: 18px;
 }
 

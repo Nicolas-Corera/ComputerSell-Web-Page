@@ -2,9 +2,11 @@
 // Se abre desde el ítem "Productos" del navbar (#productsMenuBtn) como un
 // drawer que entra desde la izquierda. Cada categoría lleva a productos.html
 // con ese filtro aplicado (?categoria=...). Componentes y Periféricos despliegan
-// su lista de subcategorías (?categoria=...&tipo=...).
+// su lista de subcategorías (?categoria=componentes&componentes=fuentes).
+// "Ofertas" lleva a los productos en oferta (?disponibilidad=oferta).
 (function () {
   const PRODUCTS_URL = "/productos.html";
+  const OFFERS_URL = `${PRODUCTS_URL}?disponibilidad=oferta`;
 
   // Categorías: deben coincidir con los data-filter-label de productos.html
   const CATEGORIES = [
@@ -47,6 +49,8 @@
     '<svg class="menuItem-arrow" viewBox="0 -960 960 960"><path d="M647-440H160v-80h487L423-744l57-56 320 320-320 320-57-56 224-224Z"/></svg>';
   const ICON_EXPAND =
     '<svg class="menuItem-arrow" viewBox="0 -960 960 960"><path d="M480-344 240-584l56-56 184 184 184-184 56 56-240 240Z"/></svg>';
+  const ICON_OFFER =
+    '<svg viewBox="0 -960 960 960"><path d="M856-390 570-104q-12 12-27 18t-30 6q-15 0-30-6t-27-18L103-457q-11-11-17-25.5T80-513v-287q0-33 23.5-56.5T160-880h287q16 0 31 6.5t26 17.5l352 353q12 12 17.5 27t5.5 30q0 15-5.5 29.5T856-390ZM513-160l286-286-353-354H160v286l353 354ZM260-640q25 0 42.5-17.5T320-700q0-25-17.5-42.5T260-760q-25 0-42.5 17.5T200-700q0 25 17.5 42.5T260-640Zm220 160Z"/></svg>';
   const ICONS = {
     computadoras:
       '<svg viewBox="0 -960 960 960"><path d="M320-120v-80h80v-80H160q-33 0-56.5-23.5T80-360v-400q0-33 23.5-56.5T160-840h640q33 0 56.5 23.5T880-760v400q0 33-23.5 56.5T800-280H560v80h80v80H320ZM160-360h640v-400H160v400Zm0 0v-400 400Z"/></svg>',
@@ -82,6 +86,16 @@
       <button type="button" class="menuDrawer-close" aria-label="Cerrar menú">${ICON_CLOSE}</button>
     </div>
     <ul class="menuDrawer-list">
+      <li>
+        <a class="menuItem menuItem--offer" href="${OFFERS_URL}">
+          <span class="menuItem-icon">${ICON_OFFER}</span>
+          <span class="menuItem-body">
+            <strong>Ofertas</strong>
+            <small>Productos con precio rebajado</small>
+          </span>
+          ${ICON_ARROW}
+        </a>
+      </li>
       <li class="menuDrawer-label">Categorías</li>
       ${CATEGORIES.map((c) => {
         const subs = SUBCATEGORIES[c.slug];
@@ -200,7 +214,7 @@
   drawer.querySelectorAll(".menuSub-item").forEach((item) => {
     item.addEventListener("click", () => {
       const { slug, type } = item.dataset;
-      const query = type ? `?categoria=${slug}&tipo=${type}` : `?categoria=${slug}`;
+      const query = type ? `?categoria=${slug}&${slug}=${type}` : `?categoria=${slug}`;
       window.location.href = `${PRODUCTS_URL}${query}`;
     });
   });

@@ -37,10 +37,15 @@ const normalize = (s) =>
 
 const SUBGROUPS = ["componentes", "perifericos"];
 const AVAILABILITY = { "en stock": "stock", "con envio gratis": "shipping", "en oferta": "sale" };
+// Valor de cada opción de disponibilidad en la URL (?disponibilidad=oferta)
+const AVAILABILITY_PARAM = { "en stock": "stock", "con envio gratis": "envio-gratis", "en oferta": "oferta" };
+const DEFAULT_SORT = "relevancia";
 
 let items = []; // productos precalculados para filtrar
 let page = 1;
 const priceRange = { min: null, max: null };
+// Marcas pedidas en la URL: se marcan cuando llega el catálogo (los checkboxes de marca son dinámicos)
+let pendingBrands = new Set();
 
 function prepare(rows) {
   items = rows.map((p, index) => ({
@@ -82,6 +87,8 @@ backdrop && backdrop.addEventListener("click", closeAside);
 function renderBrands() {
   const checked = new Set(checkboxes().filter((i) => i.checked && normalize(i.dataset.filterGroup) === "marca").map((i) => i.dataset.filterLabel));
   const brands = Array.from(new Set(items.map((i) => i.p.brand).filter(Boolean))).sort((a, b) => a.localeCompare(b, "es"));
+  brands.forEach((b) => pendingBrands.has(normalize(b)) && checked.add(b));
+  pendingBrands = new Set();
   brandOptions.innerHTML = brands
     .map(
       (b) => `
@@ -254,6 +261,71 @@ function update() {
   syncSubGroups();
   renderTags();
   applyFilters();
+  writeUrl();
+}
+
+// ---------- Filtros <-> URL ----------
+// Los filtros viajan en la URL (sin recargar) para poder compartir o volver a
+// la búsqueda: ?categoria=componentes&componentes=fuentes,gabinetes&marca=asus
+// &disponibilidad=oferta&min=10000&max=50000&q=rtx&orden=menor-precio
+// Sin filtros la URL queda limpia (/productos.html).
+function writeUrl() {
+  const state = readChecked();
+  const params = new URLSearchParams();
+  const setList = (key, values) => values.length && params.set(key, values.join(","));
+  const query = searchInput ? searchInput.value.trim() : "";
+  if (query) params.set("q", query);
+  setList("categoria", state.categoria);
+  SUBGROUPS.forEach((group) => setList(group, state[group]));
+  setList("marca", [...state.marca, ...pendingBrands]);
+  setList("disponibilidad", state.disponibilidad.map((label) => AVAILABILITY_PARAM[label]));
+  if (priceRange.min !== null) params.set("min", priceRange.min);
+  if (priceRange.max !== null) params.set("max", priceRange.max);
+  if (sortSelect && sortSelect.value !== DEFAULT_SORT) params.set("orden", sortSelect.value);
+
+  const qs = params.toString().replace(/%2C/g, ",");
+  const url = window.location.pathname + (qs ? `?${qs}` : "") + window.location.hash;
+  if (url !== window.location.pathname + window.location.search + window.location.hash) {
+    history.replaceState(history.state, "", url);
+  }
+}
+
+function readUrl() {
+  const params = new URLSearchParams(window.location.search);
+  const list = (key) =>
+    (params.get(key) || "")
+      .split(",")
+      .map((v) => v.trim())
+      .filter(Boolean);
+  const categorias = list("categoria").map(normalize);
+  const tipos = Object.fromEntries(SUBGROUPS.map((group) => [group, list(group).map(slugify)]));
+  // Links viejos del menú: ?categoria=componentes&tipo=fuentes
+  const legacyTipos = list("tipo").map(slugify);
+  categorias.filter((c) => SUBGROUPS.includes(c)).forEach((c) => tipos[c].push(...legacyTipos));
+  const disponibilidad = list("disponibilidad");
+
+  checkboxes().forEach((input) => {
+    const group = normalize(input.dataset.filterGroup);
+    const label = input.dataset.filterLabel;
+    if (group === "categoria") input.checked = categorias.includes(normalize(label));
+    else if (SUBGROUPS.includes(group)) input.checked = tipos[group].includes(slugify(label));
+    else if (group === "disponibilidad") input.checked = disponibilidad.includes(AVAILABILITY_PARAM[normalize(label)]);
+  });
+  pendingBrands = new Set(list("marca").map(normalize));
+
+  const num = (key) => {
+    const raw = params.get(key);
+    const n = raw === null || raw === "" ? NaN : Number(raw);
+    return Number.isFinite(n) ? n : null;
+  };
+  priceRange.min = num("min");
+  priceRange.max = num("max");
+  if (priceMin) priceMin.value = priceRange.min ?? "";
+  if (priceMax) priceMax.value = priceRange.max ?? "";
+
+  if (searchInput) searchInput.value = params.get("q") || "";
+  const orden = params.get("orden");
+  if (sortSelect && orden && Array.from(sortSelect.options).some((o) => o.value === orden)) sortSelect.value = orden;
 }
 
 // ---------- Precio ----------
@@ -287,8 +359,10 @@ applyPriceBtn &&
 // ---------- Limpiar todo ----------
 function clearAll() {
   checkboxes().forEach((input) => (input.checked = false));
+  pendingBrands = new Set();
   clearPrice();
   if (searchInput) searchInput.value = "";
+  if (sortSelect) sortSelect.value = DEFAULT_SORT;
   update();
 }
 clearAllBtn.addEventListener("click", clearAll);
@@ -300,23 +374,16 @@ searchInput &&
   searchInput.addEventListener("input", () => {
     page = 1;
     applyFilters();
+    writeUrl();
   });
-sortSelect && sortSelect.addEventListener("change", applyFilters);
+sortSelect &&
+  sortSelect.addEventListener("change", () => {
+    applyFilters();
+    writeUrl();
+  });
 
-// Filtros preseleccionados desde la URL (menú de productos):
-// ?categoria=componentes&tipo=fuentes
-const params = new URLSearchParams(window.location.search);
-const categoria = normalize(params.get("categoria"));
-const tipo = slugify(params.get("tipo"));
-if (categoria) {
-  checkboxes().forEach((input) => {
-    const group = normalize(input.dataset.filterGroup);
-    const label = input.dataset.filterLabel;
-    if (group === "categoria" && normalize(label) === categoria) input.checked = true;
-    if (tipo && group === categoria && slugify(label) === tipo) input.checked = true;
-  });
-}
-if (params.get("q") && searchInput) searchInput.value = params.get("q");
+// Filtros preseleccionados desde la URL (menú, links del sitio o una búsqueda compartida)
+readUrl();
 
 // ---------- Datos ----------
 const catalog = createCatalog();
@@ -327,5 +394,6 @@ catalog.onChange((cat) => {
   syncSubGroups();
   renderTags();
   applyFilters();
+  writeUrl();
 });
 loading(catalog.ready);
