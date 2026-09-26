@@ -248,6 +248,9 @@
 .masonry-item.is-xtall img {
   object-position: center 35%;
 }
+.masonry-item.is-wide img {
+  object-position: center 30%;
+}
 
 .masonry-item:hover img {
   transform: scale(1.06);
