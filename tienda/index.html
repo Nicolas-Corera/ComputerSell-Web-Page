@@ -1,11 +1,91 @@
 <!doctype html>
-<html lang="es">
+<html lang="es_AR">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ComputerSell</title>
+
+    <title>ComputerSell | Inicio</title>
+
+    <meta
+      name="description"
+      content="Página web de compra de hardware, pc armadas, notebooks y más."
+    />
+
+    <meta name="keywords" content="ComputerSell, hardware, pc armadas" />
+
+    <!-- ===== AUTOR / ROBOTS ===== -->
+    <meta name="author" content="ComputerSell" />
+    <meta name="robots" content="index, follow" />
+    <meta name="googlebot" content="index, follow" />
+
+    <!-- ===== CANONICAL (evita contenido duplicado, CRÍTICO si replicás páginas) ===== -->
+    <link rel="canonical" href="https://computersell.com.ar" />
+
+    <!-- ===== IDIOMA / REGIÓN (si tenés versiones por país o idioma) ===== -->
+    <link rel="alternate" hreflang="es" href="https://computersell.com.ar" />
+    <link rel="alternate" hreflang="es-AR" href="https://computersell.com.a" />
+    <link
+      rel="alternate"
+      hreflang="x-default"
+      href="https://computersell.com.a"
+    />
+
+    <!-- ===== OPEN GRAPH (Facebook, WhatsApp, LinkedIn) ===== -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ComputerSell | Inicio" />
+    <meta
+      property="og:description"
+      content="Página web de compra de hardware, pc armadas, notebooks y más."
+    />
+    <meta property="og:image" content="/assets/images/isotipo.png" />
+    <meta property="og:image:alt" content="Logo de la marca" />
+    <meta property="og:url" content="https://computersell.com.ar" />
+    <meta property="og:site_name" content="ComputerSell" />
+    <meta property="og:locale" content="es_AR" />
+
+    <!-- ===== FAVICON ===== -->
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="32x32"
+      href="/assets/images/favicon-32x32.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="16x16"
+      href="/assets/images/favicon-16x16.png"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="180x180"
+      href="/assets/images/apple-touch-icon.png"
+    />
+
+    <!-- ===== THEME COLOR (barra del navegador en mobile) ===== -->
+    <meta name="theme-color" content="#3b82f6" />
+
+    <!-- ===== PRECONNECT / PRELOAD (rendimiento, Core Web Vitals) ===== -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+    <link
+      rel="shortcut icon"
+      href="/assets/images/isotipo.png"
+      type="image/x-icon"
+    />
+
+    <!-- ===== DATOS ESTRUCTURADOS (Schema.org - elegir el tipo que corresponda) ===== -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "LocalBusiness",
+        "name": "ComputerSell",
+        "description": "Página web de compra de hardware, pc armadas, notebooks y más.",
+        "url": "https://computersell.com.ar",
+        "image": "/assets/images/isotipo.png"
+      }
+    </script>
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap"
       rel="stylesheet"
@@ -91,13 +171,17 @@
           </li>
           <li
             class="item"
-            onclick="window.location.href = '/productos.html?categoria=computadoras'"
+            onclick="
+              window.location.href = '/productos.html?categoria=computadoras'
+            "
           >
             <span class="item-spn2">Computadoras</span>
           </li>
           <li
             class="item"
-            onclick="window.location.href = '/productos.html?categoria=notebooks'"
+            onclick="
+              window.location.href = '/productos.html?categoria=notebooks'
+            "
           >
             <span class="item-spn2">Notebooks</span>
           </li>
@@ -138,7 +222,10 @@
             </span>
           </div>
           <div class="listDestacados" id="homeFeatured">
-            <div class="cardSkeleton"></div><div class="cardSkeleton"></div><div class="cardSkeleton"></div><div class="cardSkeleton"></div>
+            <div class="cardSkeleton"></div>
+            <div class="cardSkeleton"></div>
+            <div class="cardSkeleton"></div>
+            <div class="cardSkeleton"></div>
           </div>
         </section>
         <div class="bannerSections">
@@ -468,7 +555,9 @@
             <ul>
               <li><a href="#">Preguntas frecuentes</a></li>
               <li><a href="/envios">Envíos</a></li>
-              <li><a href="/cambios-y-devoluciones">Cambios y devoluciones</a></li>
+              <li>
+                <a href="/cambios-y-devoluciones">Cambios y devoluciones</a>
+              </li>
               <li><a href="#">Garantía</a></li>
               <li><a href="#">Métodos de pago</a></li>
             </ul>
@@ -483,7 +572,9 @@
               <li><a href="/cookies">Política de cookies</a></li>
               <li><a href="/politica-de-venta">Política de venta</a></li>
               <li><a href="/envios">Envíos</a></li>
-              <li><a href="/cambios-y-devoluciones">Cambios y devoluciones</a></li>
+              <li>
+                <a href="/cambios-y-devoluciones">Cambios y devoluciones</a>
+              </li>
               <li><a href="/arrepentimiento">Arrepentimiento</a></li>
               <li><a href="/informacion-legal">Información legal</a></li>
             </ul>
@@ -495,11 +586,23 @@
             <ul class="footer-contact">
               <li>
                 <svg class="ic-sm"><use href="#ic-phone" /></svg>
-                <span>Tel:</span><a href="tel:+5491123589249" data-legal="telefono" data-legal-link="tel">+54 9 11 2358-9249</a>
+                <span>Tel:</span
+                ><a
+                  href="tel:+5491123589249"
+                  data-legal="telefono"
+                  data-legal-link="tel"
+                  >+54 9 11 2358-9249</a
+                >
               </li>
               <li>
                 <svg class="ic-sm"><use href="#ic-mail" /></svg>
-                <span>Email:</span><a href="mailto:contacto@computersell.com.ar" data-legal="emailContacto" data-legal-link="email">contacto@computersell.com.ar</a>
+                <span>Email:</span
+                ><a
+                  href="mailto:contacto@computersell.com.ar"
+                  data-legal="emailContacto"
+                  data-legal-link="email"
+                  >contacto@computersell.com.ar</a
+                >
               </li>
             </ul>
           </div>
@@ -507,7 +610,9 @@
 
         <!-- Botón de arrepentimiento (Disp. 954/2025) -->
         <div class="footer-legal">
-          <a class="btn-arrepentimiento" href="/arrepentimiento">Botón de arrepentimiento</a>
+          <a class="btn-arrepentimiento" href="/arrepentimiento"
+            >Botón de arrepentimiento</a
+          >
         </div>
 
         <div class="footer-bottom">
@@ -518,7 +623,9 @@
           <div class="footer-bottom-links">
             <a href="/terminos">Términos y condiciones</a>
             <a href="/privacidad">Privacidad</a>
-            <button type="button" class="cc-link" data-cookie-settings>Configurar cookies</button>
+            <button type="button" class="cc-link" data-cookie-settings>
+              Configurar cookies
+            </button>
           </div>
           <div class="footer-payments">Pago por transferencia bancaria</div>
         </div>
@@ -535,6 +642,9 @@
     <script type="module" src="/assets/js/core/favorites.js"></script>
     <script type="module" src="/assets/js/core/account.js"></script>
     <script type="module" src="/assets/js/pages/home.js"></script>
-    <script type="module" src="/assets/js/components/cookie-consent.js"></script>
+    <script
+      type="module"
+      src="/assets/js/components/cookie-consent.js"
+    ></script>
   </body>
 </html>
