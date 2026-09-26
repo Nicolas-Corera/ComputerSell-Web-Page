@@ -3,7 +3,12 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#3b82f6" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/images/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/assets/images/favicon-16x16.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/images/apple-touch-icon.png" />
     <title>Panel — ComputerSell</title>
+    <meta name="robots" content="noindex, nofollow" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -905,7 +910,7 @@
                     <label class="field">
                       <span>Dimensiones (largo × ancho × alto)</span>
                       <div class="input-unit">
-                        <input type="text" name="dimensions" id="pDims" placeholder="45 × 20 × 45" />
+                        <input type="text" name="dimensions" id="pDims" autocomplete="off" placeholder="45 20 45" title="Escribí los 3 números separados por espacio o x" />
                         <select name="dimensionsUnit" id="pDimsUnit" aria-label="Unidad de dimensiones">
                           <option value="mm">mm</option>
                           <option value="cm" selected>cm</option>

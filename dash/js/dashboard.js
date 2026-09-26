@@ -1654,6 +1654,44 @@ import {
     }
     [price, cost, oldPrice].forEach(moneyInput);
 
+    // --- Dimensiones: "45 20 45" o "45x20x45" -> "45 × 20 × 45" ---
+    // Espacio, x, *, / o - pasan al número siguiente (máximo 3). Una unidad al
+    // final ("45x20x45cm", al pegar o al salir del campo) se pasa al select.
+    const dims = $("#pDims");
+    const DIM_SEP = " × ";
+    function formatDims(raw, done) {
+      const unit = done && /(mm|cm|m)\s*$/i.exec(raw);
+      if (unit) {
+        $("#pDimsUnit").value = unit[1].toLowerCase();
+        raw = raw.slice(0, unit.index);
+      }
+      const nums = raw.split(/[^\d.,]+/);
+      const nextNum = nums.length > 1 && nums[nums.length - 1] === "";
+      // Un solo separador decimal por número
+      const parts = nums.filter(Boolean).slice(0, 3).map((n) => n.replace(/([.,])(.*)/, (_, s, rest) => s + rest.replace(/[.,]/g, "")));
+      return parts.join(DIM_SEP) + (!done && nextNum && parts.length && parts.length < 3 ? DIM_SEP : "");
+    }
+    // Un separador después del 3er número cierra el campo: lo que se siga
+    // escribiendo al final se ignora (si no, se pegaría al alto: 45 × 20 × 4599)
+    let dimsClosed = false;
+    dims.addEventListener("focus", () => (dimsClosed = false));
+    dims.addEventListener("beforeinput", (e) => {
+      if (e.inputType !== "insertText" || dims.selectionStart !== dims.value.length) return;
+      if (dims.value.split(DIM_SEP).length === 3 && /\d$/.test(dims.value) && /[^\d.,]/.test(e.data)) dimsClosed = true;
+      if (dimsClosed) e.preventDefault();
+    });
+    dims.addEventListener("input", (e) => {
+      // Editando en el medio no se toca (movería el cursor); se formatea al salir
+      if (dims.selectionStart !== dims.value.length) return;
+      let raw = dims.value;
+      if (e.inputType && e.inputType.startsWith("delete")) dimsClosed = false;
+      // Borrar sobre " × " lo borra entero, si no volvería a aparecer
+      // (si quedó entero es que se borró el número de después: se deja)
+      if (e.inputType && e.inputType.startsWith("delete") && !raw.endsWith(DIM_SEP)) raw = raw.replace(/[^\d.,]+$/, "");
+      dims.value = formatDims(raw, e.inputType === "insertFromPaste");
+    });
+    dims.addEventListener("change", () => (dims.value = formatDims(dims.value, true)));
+
     // Oferta: precio anterior <-> % descuento
     let syncing = false;
     oldPrice.addEventListener("input", () => {
@@ -1950,7 +1988,7 @@ import {
         freeShipping: freeShip.checked,
         delivery: $("#pDelivery").value,
         weight: $("#pWeight").value,
-        dimensions: $("#pDims").value.trim(),
+        dimensions: formatDims(dims.value, true),
         condition: $("#pCondition").value,
         images: images.map((i) => i.name),
         image: images[0] ? images[0].url : "",
