@@ -1,5 +1,5 @@
-// Inicio: "PCs Destacadas" (productos marcados como destacados) y el carrusel
-// de hardware (componentes). Se piden solo las tarjetas que se muestran
+// Inicio: "PCs Destacadas" (productos marcados como destacados) y hardware
+// (componentes); cada sección pasa a carrusel cuando tiene suficientes tarjetas. Se piden solo las tarjetas que se muestran
 // (8 + 12) y se actualizan en vivo (precio, stock).
 import { fetchCards, onCatalogChange, applyChange, refreshCart } from "../core/catalog.js";
 import { toCard, loading } from "../core/supabase.js";
@@ -31,8 +31,11 @@ function render() {
   hardwareEl.innerHTML = hardware.length
     ? hardware.map((p) => cardHtml(toCard(p))).join("")
     : emptyHtml("Sin productos de hardware por ahora", "Componentes y periféricos van a aparecer acá apenas los publiquemos.", { icon: "ic-info" });
-  hardwareEl.closest(".carouselWrap").classList.toggle("is-empty", !hardware.length);
-  if (hardware.length && typeof setupCarousel === "function") setupCarousel("carouselHardware");
+  // Grilla o carrusel según cuántas tarjetas hay (carousel.js)
+  if (typeof setupCarousel === "function") {
+    setupCarousel("homeFeatured");
+    setupCarousel("carouselHardware");
+  }
 
   if (window.syncFavorites) window.syncFavorites();
 }

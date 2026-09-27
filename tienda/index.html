@@ -240,11 +240,27 @@
               pesado.
             </span>
           </div>
-          <div class="listDestacados" id="homeFeatured">
-            <div class="cardSkeleton"></div>
-            <div class="cardSkeleton"></div>
-            <div class="cardSkeleton"></div>
-            <div class="cardSkeleton"></div>
+          <div class="carouselWrap">
+            <button
+              class="btn btn-third carousel-arrow carousel-arrow--prev"
+              onclick="scrollCarousel('homeFeatured', -1)"
+              aria-label="Anterior"
+            >
+              <svg class="ic-md rot180"><use href="#ic-arrow_forward" /></svg>
+            </button>
+            <button
+              class="btn btn-third carousel-arrow carousel-arrow--next"
+              onclick="scrollCarousel('homeFeatured', 1)"
+              aria-label="Siguiente"
+            >
+              <svg class="ic-md"><use href="#ic-arrow_forward" /></svg>
+            </button>
+            <div class="listDestacados" id="homeFeatured" data-carousel>
+              <div class="cardSkeleton"></div>
+              <div class="cardSkeleton"></div>
+              <div class="cardSkeleton"></div>
+              <div class="cardSkeleton"></div>
+            </div>
           </div>
         </section>
         <div class="bannerSections">
@@ -269,16 +285,18 @@
             <button
               class="btn btn-third carousel-arrow carousel-arrow--prev"
               onclick="scrollCarousel('carouselHardware', -1)"
+              aria-label="Anterior"
             >
               <svg class="ic-md rot180"><use href="#ic-arrow_forward" /></svg>
             </button>
             <button
               class="btn btn-third carousel-arrow carousel-arrow--next"
               onclick="scrollCarousel('carouselHardware', 1)"
+              aria-label="Siguiente"
             >
               <svg class="ic-md"><use href="#ic-arrow_forward" /></svg>
             </button>
-            <div class="listCarousel" id="carouselHardware">
+            <div class="listDestacados" id="carouselHardware" data-carousel>
               <div class="itemDestacado">
                 <div class="imageDestacado">
                   <img src="/assets/images/pc1.webp" alt="" />

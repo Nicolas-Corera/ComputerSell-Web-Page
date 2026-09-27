@@ -22,9 +22,24 @@
   right: -22px;
 }
 
+/* Sin carrusel (pocas tarjetas), en los extremos o en mobile (se desliza) no hay flecha */
+.carouselWrap:not(.is-carousel) .carousel-arrow,
+.carouselWrap .carousel-arrow.is-hidden {
+  display: none;
+}
+
+@media (max-width: 767.98px) {
+  .carouselWrap .carousel-arrow {
+    display: none;
+  }
+}
+
 .listCarousel {
   padding: 2rem 0;
   display: flex;
+  /* Pisa el centrado de .listDestacados (centrado, lo que desborda a la izquierda no se alcanza) */
+  justify-content: flex-start;
+  align-items: stretch;
   gap: 20px;
   overflow-x: auto;
   scroll-snap-type: x mandatory;
@@ -38,9 +53,11 @@
   display: none;
 }
 
+/* scroll-snap-stop: al deslizar rápido avanza de a una tarjeta */
 .listCarousel .itemDestacado {
   flex: 0 0 auto;
   scroll-snap-align: start;
+  scroll-snap-stop: always;
 }
 
 .carousel-dots {
