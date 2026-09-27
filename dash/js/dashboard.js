@@ -1694,13 +1694,16 @@ import {
 
     // Oferta: precio anterior <-> % descuento
     let syncing = false;
-    oldPrice.addEventListener("input", () => {
+    const syncDiscount = () => {
       if (syncing) return;
       syncing = true;
       const p = parsePrice(price.value), o = parsePrice(oldPrice.value);
       discount.value = o > p && p ? Math.round((1 - p / o) * 100) : "";
       syncing = false;
-    });
+    };
+    oldPrice.addEventListener("input", syncDiscount);
+    // Cambiar el precio mantiene el precio anterior y recalcula el %
+    price.addEventListener("input", () => oldPrice.value && syncDiscount());
     discount.addEventListener("input", () => {
       if (syncing) return;
       syncing = true;
@@ -1711,11 +1714,20 @@ import {
 
     // Margen
     const updateMargin = () => {
-      const p = parsePrice(price.value), c = parsePrice(cost.value);
+      const p = parsePrice(price.value), c = parsePrice(cost.value), o = parsePrice(oldPrice.value);
+      const fmt = (v) => `${Math.round(((v - c) / v) * 100)}% (${v - c < 0 ? "-" : ""}$${formatPrice(Math.abs(v - c))})`;
       // Costo vacío o 0 = sin costo (margen del 100%)
-      $("#pMargin").textContent = p ? `Margen: ${Math.round(((p - c) / p) * 100)}% ($${formatPrice(p - c)})${c ? "" : " · sin costo"}` : "Margen: —";
+      const noCost = c ? "" : " · sin costo";
+      const loss = c > p ? " · a pérdida" : "";
+      // En oferta se cobra "Precio"; el precio anterior muestra el margen sin la oferta
+      $("#pMargin").innerHTML = !p
+        ? "Margen: —"
+        : sale.checked && o > p
+          ? `Margen en oferta: ${fmt(p)}${loss}${noCost}<br>Sin oferta ($${formatPrice(o)}): ${fmt(o)}`
+          : `Margen: ${fmt(p)}${loss}${noCost}`;
     };
-    [price, cost].forEach((el) => el.addEventListener("input", updateMargin));
+    [price, cost, oldPrice, discount].forEach((el) => el.addEventListener("input", updateMargin));
+    sale.addEventListener("change", updateMargin);
 
     // --- Tags ---
     function renderTags() {
@@ -1928,8 +1940,13 @@ import {
       const p = parsePrice(price.value), o = parsePrice(oldPrice.value);
       $("#pvPrice").textContent = formatPrice(p);
       const pvOld = $("#pvOld");
-      pvOld.hidden = !(sale.checked && o > p);
+      const onSale = sale.checked && o > p && p > 0;
+      pvOld.hidden = !onSale;
       pvOld.textContent = "$" + formatPrice(o);
+      // Mismo cálculo que la tarjeta de la tienda (utils.js)
+      const pvBadge = $("#pvBadge");
+      pvBadge.hidden = !onSale;
+      pvBadge.textContent = onSale ? `${Math.round((1 - p / o) * 100)}% OFF` : "";
       const pvC = $("#pvCuotas");
       pvC.hidden = true; // cuotas sin interés ocultas: solo se paga por transferencia
       pvC.textContent = `${cuotasN.value} cuotas sin interés`;
