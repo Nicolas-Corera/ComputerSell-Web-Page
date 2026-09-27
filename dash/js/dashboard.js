@@ -2060,25 +2060,32 @@ import {
     const editBanner = document.createElement("div");
     editBanner.className = "card";
     editBanner.style.cssText = "display:none;align-items:center;gap:12px;flex-direction:row;padding:14px 18px;border-color:var(--blue)";
-    editBanner.innerHTML = `<svg style="width:18px;height:18px;fill:var(--blue)"><use href="#ic-edit" /></svg><span style="flex:1;font-size:13.5px">Editando <strong id="editingTitle"></strong>. Los cambios se publican al guardar.</span><button class="btn btn-ghost is-sm" type="button" id="editCancel">Cancelar edición</button>`;
+    editBanner.innerHTML = `<svg style="width:18px;height:18px;fill:var(--blue)"><use href="" /></svg><span style="flex:1;font-size:13.5px" id="editingText"></span><button class="btn btn-ghost is-sm" type="button" id="editCancel"></button>`;
     form.querySelector(".upload-form").prepend(editBanner);
     $("#editCancel").addEventListener("click", () => resetForm());
 
-    function setEditing(p) {
-      editingId = p ? p.id : null;
+    // p = producto de referencia; copy = "publicar similar" (alta nueva a partir de p)
+    function setEditing(p, copy) {
+      editingId = p && !copy ? p.id : null;
       editBanner.style.display = p ? "flex" : "none";
-      if (p) $("#editingTitle").textContent = p.name;
-      $("#publishBtn").innerHTML = `<svg><use href="#ic-cloud_upload" /></svg>${p ? "Guardar cambios" : "Publicar"}`;
+      if (p) {
+        editBanner.querySelector("use").setAttribute("href", copy ? "#ic-content_copy" : "#ic-edit");
+        $("#editingText").innerHTML = copy
+          ? `Nuevo producto basado en <strong>${escapeHtml(p.name)}</strong>. Cargá las imágenes y revisá el SKU antes de publicar.`
+          : `Editando <strong>${escapeHtml(p.name)}</strong>. Los cambios se publican al guardar.`;
+        $("#editCancel").textContent = copy ? "Descartar" : "Cancelar edición";
+      }
+      $("#publishBtn").innerHTML = `<svg><use href="#ic-cloud_upload" /></svg>${editingId ? "Guardar cambios" : "Publicar"}`;
     }
 
-    // Carga un producto existente en el formulario
-    function loadIntoForm(p) {
+    // Carga un producto existente en el formulario (copy: sin imágenes ni SKU, se guarda como alta)
+    function loadIntoForm(p, copy) {
       const r = p.raw;
       resetForm(true);
-      setEditing(p);
+      setEditing(p, copy);
       title.value = r.title;
       brand.value = r.brand;
-      sku.value = r.sku;
+      sku.value = copy ? "" : r.sku;
       cat.value = r.category;
       cat.dispatchEvent(new Event("change"));
       sub.value = r.subcategory || "";
@@ -2105,7 +2112,7 @@ import {
       $("#pWeight").value = r.weight || "";
       $("#pDims").value = r.dimensions;
       $("#pCondition").value = r.condition;
-      images = (r.images || []).map((url) => ({ url, name: url.split("/").pop(), existing: true }));
+      images = copy ? [] : (r.images || []).map((url) => ({ url, name: url.split("/").pop(), existing: true }));
       renderImages();
       specRows.innerHTML = "";
       (r.specs || []).forEach((s) => addSpec(s.k, s.v));
@@ -2119,33 +2126,67 @@ import {
       $("#pDescCount").textContent = `${desc.value.length} / 2000`;
       form.scrollIntoView({ behavior: "smooth", block: "start" });
     }
-    RENDERERS._editProduct = (id) => {
+    RENDERERS._editProduct = (id, copy) => {
       const p = PRODUCTS.find((x) => x.id === id);
-      if (p) loadIntoForm(p);
+      if (p) loadIntoForm(p, copy);
     };
+
+    // Se muestran 5; "Ver más" deja ver todas en una caja scrolleable del alto de esas 5
+    const UPLOADED_VISIBLE = 5;
+    const uploadedList = $("#uploadedList");
+    const uploadedMore = document.createElement("button");
+    uploadedMore.type = "button";
+    uploadedMore.className = "btn btn-ghost is-sm uploaded-more";
+    uploadedList.after(uploadedMore);
+    let uploadedExpanded = false;
+
+    // Alto hasta el final del 5º ítem (se mide, porque en mobile los ítems pueden ocupar 2 líneas)
+    function fitUploaded() {
+      const fifth = uploadedList.children[UPLOADED_VISIBLE - 1];
+      if (!uploadedExpanded || !fifth) return;
+      const h = fifth.getBoundingClientRect().bottom - uploadedList.getBoundingClientRect().top + uploadedList.scrollTop;
+      uploadedList.style.maxHeight = `${Math.ceil(h)}px`;
+    }
+    function setUploadedExpanded(on) {
+      // Con la vista oculta no se puede medir: queda cerrada
+      uploadedExpanded = on && !!uploadedList.offsetParent;
+      uploadedList.classList.toggle("is-expanded", uploadedExpanded);
+      if (uploadedExpanded) fitUploaded();
+      else {
+        uploadedList.style.maxHeight = "";
+        uploadedList.scrollTop = 0;
+      }
+      uploadedMore.textContent = uploadedExpanded ? "Ver menos" : `Ver más (${PRODUCTS.length - UPLOADED_VISIBLE})`;
+    }
+    uploadedMore.addEventListener("click", () => setUploadedExpanded(!uploadedExpanded));
+    window.addEventListener("resize", fitUploaded);
 
     function renderUploaded() {
       const list = PRODUCTS;
       $("#uploadedHint").textContent = list.length ? `${list.length} producto${list.length === 1 ? "" : "s"}` : "";
-      $("#uploadedList").innerHTML = list.length
+      uploadedList.innerHTML = list.length
         ? list
-            .slice(0, 40)
             .map(
               (p) => `
             <div class="list-item">
-              <span class="thumb">${p.img ? `<img src="${escapeHtml(p.img)}" alt="" />` : '<svg><use href="#ic-image" /></svg>'}</span>
+              <span class="thumb">${p.img ? `<img src="${escapeHtml(p.img)}" alt="" loading="lazy" />` : '<svg><use href="#ic-image" /></svg>'}</span>
               <div class="body"><strong>${escapeHtml(p.name)}</strong><small>${escapeHtml(p.sku)} · ${CATEGORIES[p.cat] ? CATEGORIES[p.cat].label : "—"} · stock ${p.stock} · ${fmtRelative(p.createdAt)}</small></div>
               <span class="badge ${p.status === "publicado" ? "is-ok" : p.status === "borrador" ? "is-warn" : "is-muted"}">${p.status}</span>
               <span class="val is-money">${formatPrice(p.price)}</span>
+              <button class="iconBtn is-sm" type="button" data-copy-product="${p.id}" title="Publicar similar"><svg><use href="#ic-content_copy" /></svg></button>
               <button class="iconBtn is-sm" type="button" data-edit-product="${p.id}" title="Editar"><svg><use href="#ic-edit" /></svg></button>
               <button class="iconBtn is-sm is-danger" type="button" data-del-product="${p.id}" title="Eliminar"><svg><use href="#ic-delete" /></svg></button>
             </div>`,
             )
             .join("")
         : `<p style="color:var(--ink-soft);font-size:13.5px;margin:0">Todavía no cargaste productos desde el panel.</p>`;
+      uploadedMore.hidden = list.length <= UPLOADED_VISIBLE;
+      setUploadedExpanded(uploadedExpanded && !uploadedMore.hidden);
     }
     RENDERERS._redrawUploaded = renderUploaded;
-    $("#uploadedList").addEventListener("click", async (e) => {
+    uploadedList.addEventListener("click", async (e) => {
+      const cp = e.target.closest("[data-copy-product]");
+      if (cp) return RENDERERS._editProduct(cp.dataset.copyProduct, true);
       const ed = e.target.closest("[data-edit-product]");
       if (ed) return RENDERERS._editProduct(ed.dataset.editProduct);
       const b = e.target.closest("[data-del-product]");

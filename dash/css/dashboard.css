@@ -1616,9 +1616,7 @@ button.btn-text {
   position: fixed;
   inset: 0;
   z-index: 200;
-  background: rgba(13, 15, 18, 0.6);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
+  background: rgba(13, 15, 18, 0.45);
   opacity: 0;
   visibility: hidden;
   transition:
@@ -1777,9 +1775,7 @@ button.btn-text {
   position: fixed;
   inset: 0;
   z-index: 300;
-  background: rgba(13, 15, 18, 0.7);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+  background: rgba(13, 15, 18, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -3094,6 +3090,27 @@ body.is-sorting * {
   background: #fff;
 }
 
+/* Cerrada: 5 ítems. Abierta: todos, en una caja del alto de 5 (lo fija el JS) */
+.uploaded-list:not(.is-expanded) .list-item:nth-child(n + 6) {
+  display: none;
+}
+
+.uploaded-list:not(.is-expanded) .list-item:nth-child(5) {
+  border-bottom: none;
+}
+
+.uploaded-list.is-expanded {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  margin-right: -8px;
+  padding-right: 8px;
+}
+
+.uploaded-more {
+  align-self: center;
+  margin-top: 4px;
+}
+
 /* ===== Perfil ===== */
 
 .profile-hero {
@@ -3657,9 +3674,7 @@ body.is-sorting * {
     position: fixed;
     inset: 0;
     z-index: 59;
-    background: rgba(13, 15, 18, 0.6);
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
+    background: rgba(13, 15, 18, 0.45);
     opacity: 0;
     visibility: hidden;
     transition:
@@ -3761,6 +3776,20 @@ body.is-sorting * {
 
   .toolbar .searchBox {
     max-width: none;
+  }
+
+  /* Últimas cargas: foto + título arriba; estado, precio y acciones abajo */
+  .uploaded-list .list-item {
+    flex-wrap: wrap;
+    gap: 10px 8px;
+  }
+
+  .uploaded-list .list-item .body {
+    flex-basis: calc(100% - 52px);
+  }
+
+  .uploaded-list .list-item .val {
+    margin-right: auto;
   }
 }
 
