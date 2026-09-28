@@ -166,7 +166,7 @@
 @media (min-width: 992px) {
   .masonry {
     grid-template-columns: repeat(3, 1fr);
-    grid-auto-rows: clamp(96px, 11.5vw, 138px);
+    grid-auto-rows: clamp(96px, 11.5vw, 155px);
   }
 }
 
@@ -248,9 +248,7 @@
 .masonry-item.is-xtall img {
   object-position: center 35%;
 }
-.masonry-item.is-wide img {
-  object-position: center 30%;
-}
+
 
 .masonry-item:hover img {
   transform: scale(1.06);
