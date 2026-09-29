@@ -1,6 +1,6 @@
 // Página de productos: filtros, búsqueda, orden, paginación y contador.
 // Filtrado, orden y paginación los resuelve la base (RPC search_products con
-// índices): se descarga solo la página visible (24 tarjetas). Los contadores
+// índices): se descarga solo la página visible (12 tarjetas). Los contadores
 // de cada filtro salen de catalog_facets (cacheados). Ver core/catalog.js.
 import { searchProducts, fetchFacets, onCatalogChange, applyChange, refreshCart } from "../core/catalog.js";
 import { toCard, slugify, loading } from "../core/supabase.js";
@@ -26,7 +26,7 @@ const applyPriceBtn = document.getElementById("applyPrice");
 const brandOptions = document.getElementById("brandOptions");
 const pagination = document.getElementById("pagination");
 
-const PAGE_SIZE = 24;
+const PAGE_SIZE = 12;
 const SEARCH_DELAY = 300; // ms sin tipear antes de consultar
 
 // "Categoría" -> "categoria"
