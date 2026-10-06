@@ -23,7 +23,7 @@ export const LEGAL = {
   emailContacto: SELLER.email,
   emailPrivacidad:"privacidad@computersell.com.ar",
   telefono: SELLER.phone,
-  whatsapp: "+54 9 11 2358-9249",
+  whatsapp: "+54 9 11 4094-2695",
   // Disp. 954/2025 art. 6: atención mínima de 8 h diarias de lunes a viernes
   // (o el horario comercial) por teléfono, email o sitio web.
   horarioAtencion: "Lunes a viernes de 09:00 a 19:00 hs. Sábados de 10:00 a 14:00 hs.",

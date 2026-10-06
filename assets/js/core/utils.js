@@ -133,7 +133,34 @@ window.CS = (function () {
     toastEl._t = setTimeout(() => toastEl.classList.remove("is-visible"), 2600);
   }
 
+  // Teléfono a 10 dígitos -> "11 2345-6789" (descarta +54, el 9 y el 0 inicial)
+  function formatPhone(value) {
+    let d = String(value || "").replace(/\D/g, "");
+    if (d.length > 10 && d.startsWith("54")) d = d.slice(2);
+    if (d.length > 10 && d.startsWith("9")) d = d.slice(1);
+    if (d.startsWith("0")) d = d.slice(1);
+    d = d.slice(0, 10);
+    if (d.length <= 2) return d;
+    if (d.length <= 6) return `${d.slice(0, 2)} ${d.slice(2)}`;
+    return `${d.slice(0, 2)} ${d.slice(2, 6)}-${d.slice(6)}`;
+  }
+
+  // DNI de 7/8 dígitos -> "30.123.456"
+  function formatDni(value) {
+    const d = String(value || "").replace(/\D/g, "").slice(0, 8);
+    return d.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  }
+
+  // Formatea mientras se escribe todo <input data-format="phone|dni">
+  const FORMATS = { phone: formatPhone, dni: formatDni };
+  document.addEventListener("input", (e) => {
+    const fn = FORMATS[e.target.dataset && e.target.dataset.format];
+    if (fn) e.target.value = fn(e.target.value);
+  });
+
   return {
+    formatPhone,
+    formatDni,
     parsePrice,
     formatPrice,
     escapeHtml,

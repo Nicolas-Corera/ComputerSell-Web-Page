@@ -36,7 +36,7 @@ loading(async () => {
       nombre: p.first_name,
       apellido: p.last_name,
       email: p.email,
-      telefono: p.phone,
+      telefono: CS.formatPhone(p.phone),
       calle: a.calle,
       numero: a.numero,
       piso: a.piso,

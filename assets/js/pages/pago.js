@@ -53,9 +53,10 @@ loading(async function () {
   if (profile) {
     const addr = profile.address || {};
     const fill = { nombre: profile.first_name, apellido: profile.last_name, email: profile.email, telefono: profile.phone, dni: addr.dni, calle: addr.calle, numero: addr.numero, piso: addr.piso, cp: addr.cp, ciudad: addr.ciudad, provincia: addr.provincia };
+    const formats = { phone: CS.formatPhone, dni: CS.formatDni };
     Object.entries(fill).forEach(([k, v]) => {
       const el = form.elements[k];
-      if (el && !el.value && v) el.value = v;
+      if (el && !el.value && v) el.value = formats[el.dataset.format] ? formats[el.dataset.format](v) : v;
     });
   }
   const countEl = document.getElementById("payCount");
@@ -250,31 +251,6 @@ loading(async function () {
       input.value = titleCase(input.value);
       if (caret !== null) input.setSelectionRange(caret, caret);
     });
-  });
-
-  // ---------- Teléfono y DNI ----------
-  const inPhone = document.getElementById("telefono");
-  const inDni = document.getElementById("dni");
-
-  // 10 dígitos -> "11 2345-6789"
-  function formatPhone(value) {
-    const d = value.replace(/\D/g, "").slice(0, 10);
-    if (d.length <= 2) return d;
-    if (d.length <= 6) return `${d.slice(0, 2)} ${d.slice(2)}`;
-    return `${d.slice(0, 2)} ${d.slice(2, 6)}-${d.slice(6)}`;
-  }
-
-  // 7/8 dígitos -> "30.123.456"
-  function formatDni(value) {
-    const d = value.replace(/\D/g, "").slice(0, 8);
-    return d.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-  }
-
-  inPhone.addEventListener("input", () => {
-    inPhone.value = formatPhone(inPhone.value);
-  });
-  inDni.addEventListener("input", () => {
-    inDni.value = formatDni(inDni.value);
   });
 
   // ---------- Tabs de medio de pago ----------

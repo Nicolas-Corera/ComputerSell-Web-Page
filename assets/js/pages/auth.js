@@ -376,18 +376,6 @@ $$(".auth-google").forEach((b) =>
   }),
 );
 
-// Formato de teléfono (solo en tienda): "11 2345-6789"
-const phone = $('input[name="telefono"]');
-if (phone) {
-  phone.addEventListener("input", () => {
-    const d = phone.value.replace(/\D/g, "").slice(0, 10);
-    let out = d.slice(0, 2);
-    if (d.length > 2) out += " " + d.slice(2, 6);
-    if (d.length > 6) out += "-" + d.slice(6);
-    phone.value = out;
-  });
-}
-
 // ---------- Inicio ----------
 const hash = location.hash.replace("#", "").split("&")[0];
 const recovering = /type=recovery/.test(location.hash) || hash === "nueva" || LINK_TYPE === "recovery" || LINK_TYPE === "invite";
