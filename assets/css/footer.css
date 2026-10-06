@@ -185,6 +185,23 @@
   text-transform: uppercase;
 }
 
+.footer-credit {
+  padding-top: 1.25rem;
+  text-align: center;
+  color: var(--ink-soft);
+  font-size: 12px;
+}
+
+.footer-credit a {
+  color: var(--ink);
+  font-weight: 600;
+  transition: opacity 0.2s ease;
+}
+
+.footer-credit a:hover {
+  opacity: 0.75;
+}
+
 @media (max-width: 991.98px) {
   .footer-top {
     grid-template-columns: 1fr 1fr;
