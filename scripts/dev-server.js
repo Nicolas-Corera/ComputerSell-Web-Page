@@ -76,6 +76,7 @@ http
     }
     if (url.startsWith("/api/")) return runApi(url, req, res);
     const app = /^dash./i.test(req.headers.host || "") ? "dash" : "tienda";
+    if (app === "tienda" && url === "/sitemap.xml") return runApi("/api/sitemap", req, res);
     // Primero la carpeta de la app, después la raíz (assets compartidos).
     // URLs limpias: /productos -> productos.html (igual que cleanUrls en Vercel)
     const found = [app, ""].flatMap((dir) => {

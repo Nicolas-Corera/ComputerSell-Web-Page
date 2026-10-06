@@ -25,6 +25,10 @@
       "destination": "/dash/:path*"
     },
     {
+      "source": "/sitemap.xml",
+      "destination": "/api/sitemap"
+    },
+    {
       "source": "/",
       "destination": "/tienda"
     },

@@ -86,7 +86,7 @@ function structuredData() {
     "@id": origin + "/#organizacion",
     name: LEGAL.nombreFantasia,
     url: origin,
-    logo: origin + "/assets/images/isotipo.png",
+    logo: origin + "/assets/images/isotipo-dark.png",
     email: ok(LEGAL.emailContacto) ? LEGAL.emailContacto : undefined,
     telephone: ok(LEGAL.telefono) ? LEGAL.telefono : undefined,
   });
