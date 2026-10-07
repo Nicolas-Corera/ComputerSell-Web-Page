@@ -18,9 +18,15 @@ const INK = "#1a1d21";
 const SOFT = "#5b6068";
 const FONT = "Montserrat, 'Segoe UI', Helvetica, Arial, sans-serif";
 
-// Enlace a la página de acceso con el token para verifyOtp
-const link = (type) =>
-  `{{ if eq .RedirectTo .SiteURL }}{{ .SiteURL }}/acceso#login{{ else }}{{ .RedirectTo }}{{ end }}&token_hash={{ .TokenHash }}&type=${type}`;
+// Enlace a la página de acceso con el token para verifyOtp.
+// El token va dentro de cada rama del if: después del {{ end }} el motor de
+// plantillas de Supabase (Go html/template) no sabe si está antes o después
+// del "#" y falla con "{{.TokenHash}} appears in an ambiguous context within
+// a URL" (no se manda el correo y el alta responde 500).
+const link = (type) => {
+  const token = `&token_hash={{ .TokenHash }}&type=${type}`;
+  return `{{ if eq .RedirectTo .SiteURL }}{{ .SiteURL }}/acceso#login${token}{{ else }}{{ .RedirectTo }}${token}{{ end }}`;
+};
 
 function layout({ preheader, title, intro, button, note }) {
   const cta = button
