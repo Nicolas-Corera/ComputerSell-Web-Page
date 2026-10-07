@@ -35,6 +35,12 @@ create or replace function auth.role() returns text language sql stable as $$
     (nullif(current_setting('request.jwt.claims', true), '')::jsonb ->> 'role')
   ), '')::text
 $$;
+create table if not exists auth.mfa_factors (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references auth.users(id) on delete cascade,
+  factor_type text default 'totp',
+  status text default 'unverified'
+);
 create or replace function auth.jwt() returns jsonb language sql stable as $$
   select coalesce(nullif(current_setting('request.jwt.claims', true), ''), '{}')::jsonb
 $$;

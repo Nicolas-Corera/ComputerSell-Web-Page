@@ -109,23 +109,8 @@
                   <input type="tel" name="telefono" data-format="phone" inputmode="numeric" autocomplete="tel" placeholder="11 2345-6789" pattern="[0-9]{2} [0-9]{4}-[0-9]{4}" data-pattern-msg="Usá el formato 11 2345-6789" />
                   <span class="field-error"></span>
                 </label>
-                <label class="field is-full">
-                  <span>Contraseña</span>
-                  <div class="pwField">
-                    <input type="password" name="password" id="regPass" data-pw data-rules="pwRules" autocomplete="new-password" placeholder="••••••••••" required />
-                    <button class="pwToggle" type="button" aria-label="Mostrar contraseña">
-                      <svg><use href="#ic-visibility" /></svg>
-                    </button>
-                  </div>
-                  <span class="field-error"></span>
-                </label>
-                <ul class="pwRules is-full" id="pwRules">
-                  <li data-rule="length"><svg><use href="#ic-check" /></svg> Mínimo 8 caracteres</li>
-                  <li data-rule="case"><svg><use href="#ic-check" /></svg> Mayúsculas y minúsculas</li>
-                  <li data-rule="number"><svg><use href="#ic-check" /></svg> Al menos un número</li>
-                  <li data-rule="symbol"><svg><use href="#ic-check" /></svg> Un símbolo (!@#$%…)</li>
-                </ul>
               </div>
+              <p class="auth-note">Te mandamos un correo para confirmarlo. Al tocar el enlace elegís tu contraseña.</p>
               <label class="checkOption">
                 <input type="checkbox" name="terminos" required />
                 <span class="checkbox"><svg><use href="#ic-check" /></svg></span>

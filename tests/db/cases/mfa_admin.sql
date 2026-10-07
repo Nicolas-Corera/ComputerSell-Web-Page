@@ -1,19 +1,33 @@
--- [HIGH] Panel sin segundo factor: con solo la contraseña de un admin se
--- podía administrar todo. Migración 0026: is_admin() exige sesión aal2.
--- Regresión: el admin con solo contraseña (aal1) no ve ni cambia nada de
--- admin; con 2FA (aal2) sí; los clientes no se ven afectados.
+-- [HIGH] 2FA del panel (0026, opcional desde 0027): un admin que activó la
+-- verificación en dos pasos no es admin con solo la contraseña (aal1); uno que
+-- no la activó entra con la contraseña; los clientes no se ven afectados.
 
--- Admin con solo contraseña
+-- Admin sin 2FA activada: entra con la contraseña
 select sandbox.as_user('dddddddd-dddd-4ddd-8ddd-dddddddddddd', 'aal1');
-select test.ok(not public.is_admin(), 'un admin sin 2FA no es admin para la base');
-select test.fails(format($$select public.set_order_status(%L, 'pagado', '')$$, test.fx('order_a')), 'Solo administradores', 'sin 2FA no puede cambiar pedidos');
-select test.ok((select count(*) from public.admin_products()) = 0, 'sin 2FA no ve el costo de los productos');
-select test.ok((select count(*) from public.orders) = 0, 'sin 2FA no ve los pedidos de los clientes');
+select test.ok(public.is_admin(), 'un admin sin 2FA activada es admin con la contraseña');
 
--- Admin con 2FA verificado
+-- Activa la 2FA (factor verificado)
+select sandbox.as_operator();
+insert into auth.mfa_factors (user_id, status) values ('dddddddd-dddd-4ddd-8ddd-dddddddddddd', 'verified');
+
+-- Con 2FA activada y solo la contraseña: nada de admin
+select sandbox.as_user('dddddddd-dddd-4ddd-8ddd-dddddddddddd', 'aal1');
+select test.ok(not public.is_admin(), 'con 2FA activada, la contraseña sola no alcanza');
+select test.fails(format($$select public.set_order_status(%L, 'pagado', '')$$, test.fx('order_a')), 'Solo administradores', 'sin el código no puede cambiar pedidos');
+select test.ok((select count(*) from public.admin_products()) = 0, 'sin el código no ve el costo de los productos');
+select test.ok((select count(*) from public.orders) = 0, 'sin el código no ve los pedidos de los clientes');
+
+-- Con el código (aal2)
 select sandbox.as_user('dddddddd-dddd-4ddd-8ddd-dddddddddddd', 'aal2');
-select test.ok(public.is_admin(), 'con 2FA es admin');
-select test.ok((select count(*) from public.orders) >= 1, 'con 2FA ve los pedidos');
+select test.ok(public.is_admin(), 'con el código es admin');
+select test.ok((select count(*) from public.orders) >= 1, 'con el código ve los pedidos');
+
+-- Un factor sin verificar (alta a medias) no cambia nada
+select sandbox.as_operator();
+delete from auth.mfa_factors where user_id = 'dddddddd-dddd-4ddd-8ddd-dddddddddddd';
+insert into auth.mfa_factors (user_id, status) values ('dddddddd-dddd-4ddd-8ddd-dddddddddddd', 'unverified');
+select sandbox.as_user('dddddddd-dddd-4ddd-8ddd-dddddddddddd', 'aal1');
+select test.ok(public.is_admin(), 'un alta de 2FA a medias no bloquea al admin');
 
 -- Un cliente con aal2 sigue siendo cliente
 select sandbox.as_user('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'aal2');

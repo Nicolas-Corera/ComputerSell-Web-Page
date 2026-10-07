@@ -181,7 +181,7 @@ const TEMPLATES = {
     content: layout({
       preheader: "Tu cuenta ahora pide un código además de la contraseña.",
       title: "Verificación en dos pasos activada",
-      intro: "En tu cuenta <strong>{{ .Email }}</strong> se activó la verificación en dos pasos. Para entrar al panel vas a necesitar el código de tu app de autenticación.",
+      intro: "En tu cuenta <strong>{{ .Email }}</strong> se activó la verificación en dos pasos. Desde ahora, para entrar al panel vas a necesitar el código de tu app de autenticación.",
       note: SECURITY_NOTE,
     }),
   },
@@ -190,7 +190,7 @@ const TEMPLATES = {
     content: layout({
       preheader: "Tu cuenta ya no pide el código de la app.",
       title: "Verificación en dos pasos desactivada",
-      intro: "En tu cuenta <strong>{{ .Email }}</strong> se quitó la verificación en dos pasos. La próxima vez que entres al panel vas a tener que configurarla de nuevo.",
+      intro: "En tu cuenta <strong>{{ .Email }}</strong> se quitó la verificación en dos pasos. Ahora se entra al panel solo con la contraseña; podés volver a activarla la próxima vez que inicies sesión.",
       note: SECURITY_NOTE,
     }),
   },

@@ -32,10 +32,10 @@ export async function requireAdmin() {
     location.replace("login.html#login");
     return null;
   }
-  // Sin el segundo factor la base no lo reconoce como admin (is_admin() exige
-  // aal2): el login muestra el paso del código
+  // Con la 2FA activada y sin el código en esta sesión la base no lo reconoce
+  // como admin (migración 0027): el login muestra el paso del código
   const { data: aal } = await sb.auth.mfa.getAuthenticatorAssuranceLevel();
-  if (!aal || aal.currentLevel !== "aal2") {
+  if (aal && aal.nextLevel === "aal2" && aal.currentLevel !== "aal2") {
     location.replace("login.html#login");
     return null;
   }

@@ -139,33 +139,8 @@
                   <input type="email" name="email" autocomplete="email" placeholder="nombre@computersell.com.ar" required />
                   <span class="field-error"></span>
                 </label>
-                <label class="field">
-                  <span>Contraseña</span>
-                  <div class="pwField">
-                    <input type="password" name="password" id="regPass" data-pw data-rules="pwRules" autocomplete="new-password" placeholder="••••••••••" required />
-                    <button class="pwToggle" type="button" aria-label="Mostrar contraseña">
-                      <svg><use href="#ic-visibility" /></svg>
-                    </button>
-                  </div>
-                  <span class="field-error"></span>
-                </label>
-                <label class="field">
-                  <span>Repetir contraseña</span>
-                  <div class="pwField">
-                    <input type="password" name="password2" data-pw data-confirm="regPass" autocomplete="new-password" placeholder="••••••••••" required />
-                    <button class="pwToggle" type="button" aria-label="Mostrar contraseña">
-                      <svg><use href="#ic-visibility" /></svg>
-                    </button>
-                  </div>
-                  <span class="field-error"></span>
-                </label>
-                <ul class="pwRules is-full" id="pwRules">
-                  <li data-rule="length"><svg><use href="#ic-check" /></svg> Mínimo 8 caracteres</li>
-                  <li data-rule="case"><svg><use href="#ic-check" /></svg> Mayúsculas y minúsculas</li>
-                  <li data-rule="number"><svg><use href="#ic-check" /></svg> Al menos un número</li>
-                  <li data-rule="symbol"><svg><use href="#ic-check" /></svg> Un símbolo (!@#$%…)</li>
-                </ul>
               </div>
+              <p class="auth-note">Te mandamos un correo para confirmarlo. Al tocar el enlace elegís tu contraseña.</p>
               <label class="checkOption">
                 <input type="checkbox" name="terminos" required />
                 <span class="checkbox"><svg><use href="#ic-check" /></svg></span>
@@ -261,7 +236,7 @@
                 <span class="field-error"></span>
               </label>
               <button class="btn btn-secondary auth-submit" type="submit">Activar y entrar</button>
-              <button class="auth-link auth-mfa-cancel" type="button">Cancelar y salir</button>
+              <button class="auth-link auth-mfa-skip" type="button">Ahora no, entrar sin activarla</button>
             </form>
 
             <!-- Verificación en dos pasos: código -->
@@ -283,6 +258,18 @@
         </div>
       </main>
     </div>
+
+    <!-- Oferta de verificación en dos pasos (opcional) al iniciar sesión -->
+    <dialog class="auth-dialog" id="mfaOffer" aria-labelledby="mfaOfferTitle">
+      <span class="auth-dialog-icon"><svg><use href="#ic-verified" /></svg></span>
+      <h2 id="mfaOfferTitle">¿Activás la verificación en dos pasos?</h2>
+      <p>Además de la contraseña, para entrar al panel te va a pedir un código de 6 dígitos de una app en tu celular (Google Authenticator, Microsoft Authenticator o Authy). Si alguien consigue tu contraseña, sin tu celular no puede entrar.</p>
+      <p class="auth-dialog-soft">Es opcional y se configura en un minuto.</p>
+      <div class="auth-dialog-actions">
+        <button class="btn btn-third" type="button" id="mfaOfferNo">Ahora no</button>
+        <button class="btn btn-secondary" type="button" id="mfaOfferYes">Sí, activarla</button>
+      </div>
+    </dialog>
 
     <script src="/assets/js/core/env.js"></script>
     <script src="/assets/js/core/utils.js"></script>

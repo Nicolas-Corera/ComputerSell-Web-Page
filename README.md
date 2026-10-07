@@ -159,8 +159,9 @@ la orden nace pendiente), `mp_apply_payment`
 
 ## Seguridad
 
-- **Panel con verificación en dos pasos (2FA) obligatoria.** La base no reconoce como admin una sesión sin el segundo factor (`is_admin()` exige `aal2`), así que con solo la contraseña de un admin no se ve ni se cambia nada. La primera vez el login del panel muestra un QR para Google Authenticator / Microsoft Authenticator / Authy; después pide el código de 6 dígitos. Si un admin pierde el celular: `npm run mfa:reset -- correo@ejemplo.com` y al entrar lo configura de nuevo.
+- **Verificación en dos pasos (2FA) opcional para el panel.** Al iniciar sesión, a quien no la tiene un modal le ofrece activarla (QR para Google Authenticator / Microsoft Authenticator / Authy); "Ahora no" entra igual. Quien la activó queda protegido de verdad: sin el código la base no lo reconoce como admin (`is_admin()` exige `aal2` si tiene un factor verificado), así que una contraseña robada no alcanza. Si un admin pierde el celular: `npm run mfa:reset -- correo@ejemplo.com` (vuelve a entrar con la contraseña).
 - **Admins solo con correo confirmado**: un correo de `ADMIN_EMAILS` pasa a admin recién al confirmarlo (con Google llega confirmado).
+- **Registro sin contraseña**: la cuenta se crea solo con el correo (`signInWithOtp`); al tocar el enlace del mail se elige la contraseña. Si el correo ya tenía cuenta, el mail es un enlace para entrar (la respuesta es la misma, no revela qué correos existen).
 - **Confirmar el correo borra la contraseña guardada** y la página pide elegirla: evita que alguien que se registró antes con un correo ajeno se quede con la cuenta cuando el dueño la confirma. Una cuenta sin contraseña se detecta al navegar y se manda a elegirla.
 - **Contraseñas**: el servidor exige 8+ caracteres con mayúscula, minúscula y número (`npm run auth:configure`); el formulario además pide un símbolo y rechaza contraseñas filtradas (HaveIBeenPwned por k-anonimato: solo viajan 5 caracteres del hash). "Cambiar contraseña" (perfil) manda un enlace al correo, no se cambia con la sesión abierta.
 - **Panel**: se cierra la sesión tras 30 minutos sin actividad.

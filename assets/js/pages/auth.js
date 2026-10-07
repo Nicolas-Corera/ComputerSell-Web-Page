@@ -205,10 +205,14 @@ function setLoading(btn, v) {
   btn.disabled = v;
 }
 
-function showAlert(form, text) {
+// ok = mensaje de éxito (verde, con tilde) en lugar de error
+function showAlert(form, text, ok) {
   const alert = $(".auth-alert", form);
   if (!alert) return;
   $("span", alert).textContent = text;
+  alert.classList.toggle("is-ok", !!ok);
+  const use = $("svg use", alert);
+  if (use) use.setAttribute("href", ok ? "#ic-check" : "#ic-error");
   alert.classList.add("is-visible");
 }
 
@@ -244,7 +248,9 @@ async function finish() {
   // migración 0025): primero la elige
   const sec = await accountSecurity();
   if (sec && sec.provider === "email" && !sec.has_password) {
-    COPY.nueva = ["Elegí tu contraseña", "Tu cuenta todavía no tiene contraseña. Elegila para poder entrar desde cualquier dispositivo."];
+    COPY.nueva = TOKEN_HASH
+      ? ["Último paso: tu contraseña", "Confirmaste tu correo. Elegí la contraseña con la que vas a entrar a tu cuenta."]
+      : ["Elegí tu contraseña", "Tu cuenta todavía no tiene contraseña. Elegila para poder entrar desde cualquier dispositivo."];
     showPanel("nueva", false);
     return null;
   }
@@ -254,8 +260,8 @@ async function finish() {
       await signOut();
       return "Ese correo no está habilitado para el panel de control.";
     }
-    // 2FA obligatorio: la base no reconoce como admin una sesión sin el
-    // segundo factor (is_admin() exige aal2, migración 0026)
+    // 2FA: si la activó, pide el código (sin él la base no lo reconoce como
+    // admin, migración 0027); si no, se la ofrece (opcional)
     if (await startMfa()) return null;
   }
   window.location.href = REDIRECT;
@@ -267,37 +273,67 @@ async function accountSecurity() {
   return error ? null : data;
 }
 
-// ---------- Verificación en dos pasos (solo panel) ----------
+// ---------- Verificación en dos pasos (solo panel, opcional) ----------
 let mfaFactorId = null;
 
-// Muestra el paso de 2FA que falte: alta (QR) o código. false = ya está en aal2.
+// Muestra el paso de 2FA que corresponda. false = no hay nada que hacer (entra).
+//  - Ya verificó el código en esta sesión (aal2): entra.
+//  - Tiene la 2FA activada: pide el código (obligatorio: la activó él).
+//  - No la tiene: modal que la ofrece; "Ahora no" entra igual.
 async function startMfa() {
   const { data: aal } = await sb.auth.mfa.getAuthenticatorAssuranceLevel();
   if (aal && aal.currentLevel === "aal2") return false;
   const { data: factors } = await sb.auth.mfa.listFactors();
-  const all = (factors && factors.all) || [];
-  const verified = all.find((f) => f.factor_type === "totp" && f.status === "verified");
+  const verified = ((factors && factors.all) || []).find((f) => f.factor_type === "totp" && f.status === "verified");
   if (verified) {
     mfaFactorId = verified.id;
     showPanel("mfa", false);
     return true;
   }
-  // Altas que quedaron a medias: se descartan para empezar de cero
-  for (const f of all.filter((f) => f.factor_type === "totp" && f.status !== "verified")) {
-    await sb.auth.mfa.unenroll({ factorId: f.id });
-  }
+  const offer = $("#mfaOffer");
+  if (!offer) return false;
+  offer.showModal();
+  return true;
+}
+
+// Alta: QR + clave para cargar a mano. Si falla, entra sin 2FA (es opcional).
+async function enrollMfa() {
+  await discardPendingFactors();
   const { data, error } = await sb.auth.mfa.enroll({ factorType: "totp", friendlyName: "ComputerSell " + new Date().toISOString().slice(0, 16) });
   if (error) {
-    await signOut();
-    showPanel("login", false);
-    showAlert(login, "No pudimos iniciar la verificación en dos pasos. Probá de nuevo.");
-    return true;
+    window.location.href = REDIRECT;
+    return;
   }
   mfaFactorId = data.id;
   $("#mfaQr").src = data.totp.qr_code;
   $("#mfaSecret").textContent = data.totp.secret;
   showPanel("mfa-alta", false);
-  return true;
+}
+
+// Altas que quedaron a medias (sin verificar): se descartan
+async function discardPendingFactors() {
+  const { data } = await sb.auth.mfa.listFactors();
+  for (const f of ((data && data.all) || []).filter((f) => f.factor_type === "totp" && f.status !== "verified")) {
+    await sb.auth.mfa.unenroll({ factorId: f.id });
+  }
+}
+
+const mfaOffer = $("#mfaOffer");
+if (mfaOffer) {
+  $("#mfaOfferYes").addEventListener("click", () => {
+    mfaOffer.close();
+    enrollMfa();
+  });
+  const skip = () => {
+    mfaOffer.close();
+    window.location.href = REDIRECT;
+  };
+  $("#mfaOfferNo").addEventListener("click", skip);
+  // Escape cierra el modal: cuenta como "Ahora no"
+  mfaOffer.addEventListener("cancel", (e) => {
+    e.preventDefault();
+    skip();
+  });
 }
 
 $$('.auth-form[data-panel^="mfa"]').forEach((form) => {
@@ -318,11 +354,26 @@ $$('.auth-form[data-panel^="mfa"]').forEach((form) => {
     }
     window.location.href = REDIRECT;
   });
-  $(".auth-mfa-cancel", form).addEventListener("click", async () => {
+});
+
+// Alta: "Ahora no" descarta el QR a medias y entra sin 2FA
+const mfaSkip = $(".auth-mfa-skip");
+if (mfaSkip) {
+  mfaSkip.addEventListener("click", async () => {
+    mfaSkip.disabled = true;
+    await discardPendingFactors();
+    window.location.href = REDIRECT;
+  });
+}
+
+// Código (2FA activada): sin el código no entra; puede salir
+const mfaCancel = $(".auth-mfa-cancel");
+if (mfaCancel) {
+  mfaCancel.addEventListener("click", async () => {
     await signOut();
     showPanel("login", false);
   });
-});
+}
 
 // ¿La contraseña apareció en filtraciones? (HaveIBeenPwned, k-anonimato: solo
 // viajan los 5 primeros caracteres del SHA-1, nunca la contraseña). Si el
@@ -354,47 +405,42 @@ registro.addEventListener("submit", async (e) => {
   const btn = $(".auth-submit", registro);
   setLoading(btn, true);
   const email = $('input[type="email"]', registro).value.trim().toLowerCase();
-  const password = $("#regPass", registro).value;
   const nombre = ($('input[name="nombre"]', registro) || {}).value || "";
   const apellido = ($('input[name="apellido"]', registro) || {}).value || "";
   const phone = ($('input[name="telefono"]', registro) || {}).value || "";
   const marketing = ($('input[name="ofertas"]', registro) || { checked: false }).checked;
 
   try {
-    if (await isPwned(password)) throw new Error("pwned");
+    // Sin contraseña: se crea solo con el correo. Supabase manda el mail de
+    // confirmación (correo nuevo) o un enlace para entrar (correo que ya tiene
+    // cuenta), así que la respuesta no revela si el correo existía. Al tocar
+    // el enlace, verifyLink() pide elegir la contraseña (la base borra la
+    // temporal que pone Supabase, migración 0025).
     // El panel no pregunta antes si el correo está en la allowlist (eso
     // revelaba los correos de admin): la base lo promueve al confirmar el
     // correo y finish() rechaza al iniciar sesión a quien no es admin.
     const first_name = IS_ADMIN ? nombre.trim().split(/\s+/)[0] : nombre.trim();
     const last_name = IS_ADMIN ? nombre.trim().split(/\s+/).slice(1).join(" ") : apellido.trim();
-    const { data, error } = await sb.auth.signUp({
+    const { error } = await sb.auth.signInWithOtp({
       email,
-      password,
       options: {
+        shouldCreateUser: true,
         data: { first_name, last_name, full_name: `${first_name} ${last_name}`.trim(), phone: phone.trim(), marketing },
         emailRedirectTo: THIS_PAGE + "#login",
       },
     });
     if (error) throw error;
-    if (data.session) {
-      const msg = await finish();
-      if (msg) showAlert(registro, msg);
-    } else {
-      // Confirmación por correo habilitada. Si el correo ya tenía cuenta,
-      // Supabase responde igual (para no revelar qué correos están
-      // registrados) pero no crea otra cuenta, no cambia la contraseña ni
-      // manda nada: el mensaje lo aclara sin decir cuál de los dos casos es.
-      showPanel("login");
-      const login = $('.auth-form[data-panel="login"]');
-      setTimeout(
-        () =>
-          showAlert(
-            login,
-            `Si ${email} no tenía cuenta, te enviamos un correo para confirmarla. Si ya tenías cuenta (en la tienda o en el panel es la misma), no te va a llegar nada: iniciá sesión con tu contraseña de siempre o tocá "¿Olvidaste tu contraseña?".`,
-          ),
-        350,
-      );
-    }
+    showPanel("login");
+    const login = $('.auth-form[data-panel="login"]');
+    setTimeout(
+      () =>
+        showAlert(
+          login,
+          `Te enviamos un correo a ${email}. Tocá el enlace para confirmarlo y elegir tu contraseña. Si ya tenías cuenta (en la tienda o en el panel es la misma), el enlace te hace entrar directo. Si no lo ves, revisá spam.`,
+          true,
+        ),
+      350,
+    );
   } catch (err) {
     showAlert(registro, friendly(err));
   } finally {
@@ -490,11 +536,9 @@ const recovering = /type=recovery/.test(location.hash) || hash === "nueva" || LI
 showPanel(recovering ? "nueva" : ["registro", "login", "recuperar"].includes(hash) ? hash : body.dataset.start || "registro", false);
 
 // Enlace de un correo: recuperación/invitación -> se queda en "Nueva
-// contraseña" con la sesión ya iniciada. Confirmación de cuenta -> también:
-// al confirmar, la base borra la contraseña guardada (migración 0025), porque
-// pudo haberla elegido otra persona que se registró antes con este correo;
-// quien abrió el mail es el dueño y elige la contraseña acá.
-const CONFIRM_TYPES = ["signup", "email"];
+// contraseña" con la sesión ya iniciada. Confirmación de cuenta o enlace para
+// entrar -> finish(): si la cuenta no tiene contraseña (recién confirmada: la
+// base borra la temporal, migración 0025) pide elegirla; si ya tiene, entra.
 async function verifyLink() {
   const { error } = await sb.auth.verifyOtp({ token_hash: TOKEN_HASH, type: LINK_TYPE });
   if (error) {
@@ -504,10 +548,6 @@ async function verifyLink() {
     return showAlert(form, recovering ? "El enlace venció o ya se usó. Pedí uno nuevo." : "El enlace venció o ya se usó. Iniciá sesión o pedí uno nuevo.");
   }
   if (recovering) return;
-  if (CONFIRM_TYPES.includes(LINK_TYPE)) {
-    COPY.nueva = ["Último paso: tu contraseña", "Confirmaste tu correo. Por seguridad, escribí la contraseña de tu cuenta (puede ser la misma que elegiste al registrarte)."];
-    return showPanel("nueva", false);
-  }
   const msg = await finish();
   if (msg) {
     showPanel("login", false);

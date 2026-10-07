@@ -1,6 +1,6 @@
 // Restablece la verificación en dos pasos (2FA) de una cuenta: borra sus
-// factores para que el próximo ingreso al panel pida configurarla de nuevo
-// (QR). Para cuando un admin pierde o cambia el celular.
+// factores, así vuelve a entrar al panel con la contraseña y el login le
+// ofrece activarla de nuevo (QR). Para cuando un admin pierde o cambia el celular.
 // Uso: npm run mfa:reset -- correo@ejemplo.com
 const { readEnv, sql } = require("./lib");
 
@@ -17,7 +17,7 @@ const { readEnv, sql } = require("./lib");
   );
   const r = rows[0] || {};
   if (!Number(r.cuentas)) throw new Error("No hay ninguna cuenta con " + email);
-  console.log(`[mfa] ${email}: ${r.factores} factor(es) borrado(s). Al entrar al panel va a configurar la verificación de nuevo.`);
+  console.log(`[mfa] ${email}: ${r.factores} factor(es) borrado(s). Entra con la contraseña y puede volver a activarla.`);
 })().catch((e) => {
   console.error(e.message);
   process.exit(1);
