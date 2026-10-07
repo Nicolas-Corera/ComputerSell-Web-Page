@@ -60,6 +60,18 @@ export async function getProfile(force) {
   return data;
 }
 
+// Datos privados de quien vende (nombre completo, DNI/CUIT, cuenta bancaria):
+// no están en archivos públicos, los da el RPC seller_private() solo con sesión.
+// { owner, doc, bank: { holder, cbu, alias, cuil } } · {} sin sesión o si falla.
+let sellerPrivate = null;
+export async function getSellerPrivate() {
+  if (sellerPrivate) return sellerPrivate;
+  const { data, error } = await sb.rpc("seller_private");
+  if (error || !data) return {};
+  sellerPrivate = data;
+  return data;
+}
+
 export function fullName(p) {
   if (!p) return "";
   return `${p.first_name || ""} ${p.last_name || ""}`.trim() || p.email || "";

@@ -11,12 +11,13 @@ select test.ok((select email from public.profiles where id = 'aaaaaaaa-aaaa-4aaa
 
 -- admins:sync (operador, sin JWT) con ADMIN_EMAILS = nuevo-admin@... : el admin anterior se degrada
 select sandbox.as_operator();
-insert into auth.users(id, email) values ('eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee', 'nuevo-admin@example.test');
+insert into auth.users(id, email, email_confirmed_at) values ('eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee', 'nuevo-admin@example.test', now());
 select test.ok(auth.uid() is null and not public.is_admin(), 'la sesión del operador no tiene JWT');
 insert into public.admin_allowlist (email) values ('nuevo-admin@example.test') on conflict (email) do nothing;
 delete from public.admin_allowlist where email not in ('nuevo-admin@example.test');
 update public.profiles set role = 'customer' where role = 'admin' and lower(email) not in ('nuevo-admin@example.test');
-update public.profiles set role = 'admin' where lower(email) in ('nuevo-admin@example.test');
+update public.profiles p set role = 'admin' from auth.users u
+  where u.id = p.id and u.email_confirmed_at is not null and lower(p.email) in ('nuevo-admin@example.test');
 select test.ok((select role from public.profiles where id = 'dddddddd-dddd-4ddd-8ddd-dddddddddddd') = 'customer', 'admins:sync degrada al admin quitado');
 select test.ok((select role from public.profiles where id = 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee') = 'admin', 'admins:sync promueve al admin nuevo');
 

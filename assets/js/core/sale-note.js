@@ -1,10 +1,11 @@
 // Nota de venta / nota de crédito: documento propio (no es factura fiscal).
 // Lo usan el panel (vista previa + imprimir) y el detalle de pedido del cliente.
-// Los datos del vendedor están en assets/js/config/seller.js (SELLER), que
-// también usan las páginas legales. La imagen de la firma no va en
-// el repo: se sube al bucket privado "docs" con `npm run firma` y se lee con
-// una URL firmada (solo usuarios con sesión).
-import { sb } from "./supabase.js";
+// Los datos públicos del vendedor están en assets/js/config/seller.js (SELLER),
+// que también usan las páginas legales. Nombre completo y DNI/CUIT no son
+// públicos: salen de seller_private() (solo con sesión). La imagen de la firma
+// no va en el repo: se sube al bucket privado "docs" con `npm run firma` y se
+// lee con una URL firmada (solo usuarios con sesión).
+import { sb, getSellerPrivate } from "./supabase.js";
 import { SELLER } from "../config/seller.js";
 
 export { SELLER };
@@ -53,9 +54,12 @@ export const NOTE_STYLE = `
 @media print{.saleNote{padding:0;border-radius:0;max-width:none}}
 `;
 
-// URL firmada de la firma (1 h). Se cachea; si no está subida, no se muestra.
+// URL firmada de la firma (1 h) y datos privados del vendedor. Se cachean; si
+// la firma no está subida, no se muestra.
 let signatureUrl = null;
+let seller = {};
 export async function loadSignature() {
+  seller = await getSellerPrivate();
   if (signatureUrl !== null) return signatureUrl;
   try {
     const { data } = await sb.storage.from("docs").createSignedUrl("firma.png", 3600);
@@ -67,7 +71,7 @@ export async function loadSignature() {
 }
 
 // inv: { number, type ('NV'), total, issued_at } · order: fila de orders con order_items
-// Llamar antes a loadSignature() para que aparezca la firma.
+// Llamar antes a loadSignature() para que aparezcan la firma y los datos del vendedor.
 export function saleNoteHtml(inv, order) {
   const o = order || {};
   const c = o.customer || {};
@@ -85,7 +89,7 @@ export function saleNoteHtml(inv, order) {
   const payment = (PAYMENT[o.payment_method || o.payment] || o.payment_method || o.payment || "") + card;
   const installments = o.installments > 1 ? ` · ${o.installments} cuotas` : "";
   const number = o.number || (o.id && String(o.id).replace(/^CS-/, "")) || "";
-  const sellerName = SELLER.owner || SELLER.name;
+  const sellerName = seller.owner || SELLER.name;
 
   return `
   <style>${NOTE_STYLE}</style>
@@ -110,7 +114,7 @@ export function saleNoteHtml(inv, order) {
       <div class="sn-box">
         <small>Vendedor</small>
         <strong>${esc(sellerName)}</strong><br />
-        ${SELLER.doc ? esc(SELLER.doc) : '<span style="color:#999">DNI / CUIT sin cargar</span>'}<br />
+        ${seller.doc ? esc(seller.doc) : '<span style="color:#999">DNI / CUIT sin cargar</span>'}<br />
         ${SELLER.phone ? esc(SELLER.phone) : '<span style="color:#999">DNI / CUIT sin cargar</span>'}
       </div>
       <div class="sn-box">

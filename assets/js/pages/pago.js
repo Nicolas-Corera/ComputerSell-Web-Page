@@ -14,7 +14,7 @@
 // (place_order valida stock y precios en la base) y cobra con la API de Orders.
 // Transferencia: /api/orders/transfer crea la orden y desde acá se sube el
 // comprobante para que el panel lo revise.
-import { sb, requireAuth, getProfile, loading, toCard } from "../core/supabase.js";
+import { sb, requireAuth, getProfile, getSellerPrivate, loading, toCard } from "../core/supabase.js";
 import { refreshCart } from "../core/catalog.js";
 
 loading(async function () {
@@ -31,6 +31,13 @@ loading(async function () {
   const user = await requireAuth();
   if (!user) return;
   const profile = await getProfile();
+
+  // Cuenta para la transferencia: no está en el HTML público, se pide con sesión
+  const bank = (await getSellerPrivate()).bank || {};
+  document.querySelectorAll("#bankData [data-bank]").forEach((dd) => {
+    dd.textContent = bank[dd.dataset.bank] || "—";
+  });
+  if (!bank.cbu && !bank.alias) toast("No pudimos cargar los datos de la cuenta. Recargá la página o escribinos por WhatsApp.", "bad");
   const cartRows = (await refreshCart()).map(toCard); // precio/stock del carrito al día (solo esos productos)
   // Entrega, peso, envío gratis y cuotas sin interés de cada producto (panel)
   const productInfo = (id) => cartRows.find((c) => c.id === id) || {};

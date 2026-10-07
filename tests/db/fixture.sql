@@ -3,10 +3,10 @@
 -- producto publicado con stock 5 y un pedido por transferencia pendiente de A
 -- creado con el RPC real. El id del pedido queda en test.fx.
 insert into public.admin_allowlist(email) values ('admin@example.test') on conflict do nothing;
-insert into auth.users(id, email, raw_user_meta_data) values
-  ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'customer-a@example.test', '{"first_name":"Ana","last_name":"A"}'),
-  ('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', 'customer-b@example.test', '{"first_name":"Beto","last_name":"B"}'),
-  ('dddddddd-dddd-4ddd-8ddd-dddddddddddd', 'admin@example.test', '{"first_name":"Admin","last_name":"Root"}')
+insert into auth.users(id, email, raw_user_meta_data, email_confirmed_at) values
+  ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'customer-a@example.test', '{"first_name":"Ana","last_name":"A"}', now()),
+  ('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', 'customer-b@example.test', '{"first_name":"Beto","last_name":"B"}', now()),
+  ('dddddddd-dddd-4ddd-8ddd-dddddddddddd', 'admin@example.test', '{"first_name":"Admin","last_name":"Root"}', now())
 on conflict do nothing;
 
 insert into public.products(id, sku, title, category, price, cost, stock, status, installments, created_by)

@@ -246,12 +246,6 @@ async function finish() {
   return null;
 }
 
-// ¿El correo está habilitado para ser admin? (RPC: la tabla admin_allowlist no es pública)
-async function isAllowedAdmin(email) {
-  const { data } = await sb.rpc("is_admin_email", { p_email: email });
-  return data === true;
-}
-
 // Crear cuenta
 const registro = $('.auth-form[data-panel="registro"]');
 registro.addEventListener("submit", async (e) => {
@@ -273,9 +267,9 @@ registro.addEventListener("submit", async (e) => {
   const marketing = ($('input[name="ofertas"]', registro) || { checked: false }).checked;
 
   try {
-    if (IS_ADMIN && !(await isAllowedAdmin(email))) {
-      throw new Error("Ese correo no está habilitado para crear una cuenta de administrador.");
-    }
+    // El panel no pregunta antes si el correo está en la allowlist (eso
+    // revelaba los correos de admin): la base lo promueve al confirmar el
+    // correo y finish() rechaza al iniciar sesión a quien no es admin.
     const first_name = IS_ADMIN ? nombre.trim().split(/\s+/)[0] : nombre.trim();
     const last_name = IS_ADMIN ? nombre.trim().split(/\s+/).slice(1).join(" ") : apellido.trim();
     const { data, error } = await sb.auth.signUp({

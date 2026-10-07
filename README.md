@@ -41,7 +41,7 @@ tarjeta se puede probar sin subir a Vercel (con las tarjetas de prueba de Mercad
 El servidor local reproduce el ruteo por dominio de Vercel: `localhost` sirve `tienda/` y `dash.localhost` sirve `dash/`
 (los navegadores resuelven `*.localhost` solos, no hay que tocar el archivo hosts).
 
-Comandos sueltos: `npm run db:push`, `npm run admins:sync`, `npm run auth:configure`, `npm run env`, `npm run firma`.
+Comandos sueltos: `npm run db:push`, `npm run admins:sync`, `npm run seller:sync`, `npm run auth:configure`, `npm run env`, `npm run firma`.
 
 ## Variables (.env)
 
@@ -50,6 +50,7 @@ Comandos sueltos: `npm run db:push`, `npm run admins:sync`, `npm run auth:config
 | `SUPABASE` | access token de la Management API (solo scripts) |
 | `SUPABASE_URL`, `SUPABASE_ANON_KEY` | públicos, van al navegador vía `assets/js/core/env.js` |
 | `ADMIN_EMAILS` | correos que pueden crear cuenta en el panel (`npm run admins:sync`); no se publican en `env.js` |
+| `SELLER_OWNER`, `SELLER_DOC`, `BANK_*` | datos privados del vendedor y cuenta para transferencias (`npm run seller:sync`); el sitio los lee con `seller_private()` solo con sesión |
 | `SITE_URL`, `EXTRA_REDIRECT_URLS` | URLs permitidas para el login (`npm run auth:configure`) |
 | `MAILER_AUTOCONFIRM` | `true` = sin verificación de correo (desarrollo) |
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | login con Google |
@@ -132,7 +133,7 @@ Configuración en Mercado Pago (Tus integraciones → aplicación):
 
 ## Nota de venta
 
-Datos del vendedor en `assets/js/core/sale-note.js` (`SELLER`). La imagen de la firma (`assets/images/firma.png`) está ignorada por git: se sube al bucket privado `docs` con `npm run firma` y la nota la lee con URL firmada (solo usuarios con sesión).
+Datos públicos del vendedor en `assets/js/config/seller.js` (`SELLER`); nombre completo, DNI/CUIT y la cuenta para transferencias no van en archivos públicos: se cargan desde el `.env` con `npm run seller:sync` y se leen con el RPC `seller_private()` (solo con sesión). La imagen de la firma (`assets/images/firma.png`) está ignorada por git: se sube al bucket privado `docs` con `npm run firma` y la nota la lee con URL firmada (solo usuarios con sesión).
 
 ## Google
 

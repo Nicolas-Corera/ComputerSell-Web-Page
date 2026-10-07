@@ -15,6 +15,12 @@ const { ROOT } = require("./lib");
 
 execFileSync(process.execPath, [path.join(__dirname, "build-env.js")], { stdio: "inherit" });
 
+// Headers de seguridad de vercel.json (los mismos que en producción)
+const VERCEL_JSON = path.join(ROOT, "vercel.json");
+const SECURITY_HEADERS = Object.fromEntries(
+  ((fs.existsSync(VERCEL_JSON) && JSON.parse(fs.readFileSync(VERCEL_JSON, "utf8")).headers) || []).flatMap((h) => h.headers.map((x) => [x.key, x.value])),
+);
+
 const PORT = +(process.env.PORT || 3000);
 const HOST = process.env.DEV_HOST || "127.0.0.1";
 // Carpetas de la raíz que se pueden servir (igual que en Vercel)
@@ -96,6 +102,7 @@ http
       return res.end("404 · " + url);
     }
     res.writeHead(200, {
+      ...SECURITY_HEADERS,
       "Content-Type": MIME[path.extname(file).toLowerCase()] || "application/octet-stream",
       "Cache-Control": "no-store",
     });

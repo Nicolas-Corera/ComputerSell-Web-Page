@@ -9,8 +9,9 @@
     "env": "node scripts/build-env.js",
     "db:push": "node scripts/db-push.js",
     "admins:sync": "node scripts/sync-admins.js",
+    "seller:sync": "node scripts/sync-seller.js",
     "auth:configure": "node scripts/configure-auth.js",
-    "setup": "npm run db:push && npm run admins:sync && npm run auth:configure && npm run env",
+    "setup": "npm run db:push && npm run admins:sync && npm run seller:sync && npm run auth:configure && npm run env",
     "firma": "node scripts/upload-signature.js",
     "test:db": "node tests/db/run.js",
     "test:js": "node --test \"tests/js/*.test.js\""

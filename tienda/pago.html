@@ -402,15 +402,16 @@
                     Transferí el total a la siguiente cuenta. El pedido se
                     confirma cuando se acredita el pago (hasta 48 hs hábiles).
                   </p>
-                  <dl>
+                  <!-- Los datos de la cuenta no van en el HTML (es público): los completa pago.js con seller_private() -->
+                  <dl id="bankData">
                     <dt>Titular</dt>
-                    <dd>Nicolás Matías Corera</dd>
+                    <dd data-bank="holder">—</dd>
                     <dt>CBU</dt>
-                    <dd>0000003100015810344354</dd>
+                    <dd data-bank="cbu">—</dd>
                     <dt>Alias</dt>
-                    <dd>computersell.mp</dd>
+                    <dd data-bank="alias">—</dd>
                     <dt>CUIL</dt>
-                    <dd>20-46584292-0</dd>
+                    <dd data-bank="cuil">—</dd>
                   </dl>
                 </div>
 

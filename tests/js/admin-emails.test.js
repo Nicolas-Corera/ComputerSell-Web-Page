@@ -26,8 +26,8 @@ test("[LOW] env.js no incluye ADMIN_EMAILS", () => {
   }
 });
 
-test("[LOW] el alta del panel consulta is_admin_email en vez de leer admin_allowlist", () => {
+test("[LOW] el alta del panel no consulta la allowlist (ni la tabla ni is_admin_email)", () => {
   const src = fs.readFileSync(path.join(ROOT, "assets/js/pages/auth.js"), "utf8");
   assert.ok(!/from\(\s*["']admin_allowlist["']\s*\)/.test(src), "auth.js sigue leyendo la tabla admin_allowlist");
-  assert.match(src, /rpc\(\s*["']is_admin_email["']/);
+  assert.ok(!/is_admin_email/.test(src), "auth.js sigue preguntando si un correo es admin (revela los correos de admin)");
 });
