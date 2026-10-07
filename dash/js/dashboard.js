@@ -826,12 +826,12 @@ import {
     ORDERS.filter(isPaid).forEach((o) =>
       o.items.forEach((it) => (byCat[it.product.cat] = (byCat[it.product.cat] || 0) + it.price * it.qty)),
     );
-    const catColors = ["#3b82f6", "#ea580c", "#059669", "#9333ea"];
+    const catColors = ["#3b82f6", "#ea580c", "#059669", "#9333ea", "#db2777", "#0891b2"];
     hbars(
       $("#categoryBars"),
       Object.entries(byCat)
         .sort((a, b) => b[1] - a[1])
-        .map(([k, v], i) => ({ label: (CATEGORIES[k] || { label: "Otros" }).label, value: v, color: catColors[i % 4] })),
+        .map(([k, v], i) => ({ label: (CATEGORIES[k] || { label: "Otros" }).label, value: v, color: catColors[i % catColors.length] })),
       { format: (v) => "$" + fmtCompact(v) },
     );
 
@@ -842,7 +842,7 @@ import {
       $("#paymentBars"),
       Object.entries(byPay)
         .sort((a, b) => b[1] - a[1])
-        .map(([k, v], i) => ({ label: PAYMENTS[k].label, value: v, color: catColors[i % 4] })),
+        .map(([k, v], i) => ({ label: PAYMENTS[k].label, value: v, color: catColors[i % catColors.length] })),
       { format: (v) => v },
     );
 
@@ -1602,6 +1602,8 @@ import {
   const SPEC_PRESETS = {
     computadoras: ["Procesador", "Placa de video", "Memoria RAM", "Almacenamiento", "Motherboard", "Fuente", "Gabinete", "Sistema operativo"],
     notebooks: ["Procesador", "Placa de video", "Memoria RAM", "Almacenamiento", "Pantalla", "Batería", "Sistema operativo", "Peso"],
+    tablets: ["Procesador", "Memoria RAM", "Almacenamiento", "Pantalla", "Cámara", "Batería", "Conectividad", "Sistema operativo"],
+    celulares: ["Procesador", "Memoria RAM", "Almacenamiento", "Pantalla", "Cámara principal", "Cámara frontal", "Batería", "Sistema operativo"],
     componentes: ["Modelo", "Socket / Interfaz", "Frecuencia", "Capacidad", "Consumo", "Garantía"],
     perifericos: ["Modelo", "Conexión", "Compatibilidad", "Iluminación", "Cable", "Garantía"],
   };
@@ -2015,7 +2017,7 @@ import {
     }
 
     function autoSku() {
-      const c = { computadoras: "PC", notebooks: "NB", componentes: "CO", perifericos: "PE" }[cat.value] || "XX";
+      const c = { computadoras: "PC", notebooks: "NB", tablets: "TB", celulares: "CE", componentes: "CO", perifericos: "PE" }[cat.value] || "XX";
       const t = title.value.replace(/[^a-z0-9]/gi, "").slice(0, 6).toUpperCase() || "PROD";
       return `${c}-${t}-${String(Date.now()).slice(-4)}`;
     }

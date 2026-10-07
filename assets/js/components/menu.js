@@ -12,6 +12,8 @@
   const CATEGORIES = [
     { slug: "computadoras", label: "Computadoras", hint: "PCs armadas para gaming, diseño y oficina" },
     { slug: "notebooks", label: "Notebooks", hint: "Portátiles para trabajo y juego" },
+    { slug: "tablets", label: "Tablets", hint: "Para estudiar, trabajar y ver contenido" },
+    { slug: "celulares", label: "Celulares", hint: "Smartphones de todas las gamas" },
     { slug: "componentes", label: "Componentes", hint: "Placas de video, memorias, discos" },
     { slug: "perifericos", label: "Periféricos", hint: "Teclados, mouse y más" },
   ];
@@ -56,6 +58,10 @@
       '<svg viewBox="0 -960 960 960"><path d="M320-120v-80h80v-80H160q-33 0-56.5-23.5T80-360v-400q0-33 23.5-56.5T160-840h640q33 0 56.5 23.5T880-760v400q0 33-23.5 56.5T800-280H560v80h80v80H320ZM160-360h640v-400H160v400Zm0 0v-400 400Z"/></svg>',
     notebooks:
       '<svg viewBox="0 -960 960 960"><path d="M80-160v-80h80v-440q0-33 23.5-56.5T240-760h600v80H240v440h640v80H80Zm520-240v-320h200v320H600Z"/></svg>',
+    tablets:
+      '<svg viewBox="0 -960 960 960"><path d="M200-80q-33 0-56.5-23.5T120-160v-640q0-33 23.5-56.5T200-880h560q33 0 56.5 23.5T840-800v640q0 33-23.5 56.5T760-80H200Zm0-160h560v-560H200v560Zm240 100h80v-40h-80v40Z"/></svg>',
+    celulares:
+      '<svg viewBox="0 -960 960 960"><path d="M320-40q-33 0-56.5-23.5T240-120v-720q0-33 23.5-56.5T320-920h320q33 0 56.5 23.5T720-840v720q0 33-23.5 56.5T640-40H320Zm-40-160h400v-640H280v640Zm160 80h80v-40h-80v40Z"/></svg>',
     componentes:
       '<svg viewBox="0 -960 960 960"><path d="M360-360v-240h240v240H360Zm80-80h80v-80h-80v80Zm-80 320v-80h-80q-33 0-56.5-23.5T200-280v-80h-80v-80h80v-80h-80v-80h80v-80q0-33 23.5-56.5T280-760h80v-80h80v80h80v-80h80v80h80q33 0 56.5 23.5T760-680v80h80v80h-80v80h80v80h-80v80q0 33-23.5 56.5T680-200h-80v80h-80v-80h-80v80h-80Zm320-160v-400H280v400h400Z"/></svg>',
     perifericos:

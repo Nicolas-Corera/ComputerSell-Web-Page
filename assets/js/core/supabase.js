@@ -174,6 +174,8 @@ export function publicUrl(bucket, path) {
 export const CATEGORIES = {
   computadoras: { label: "Computadoras", subs: [] },
   notebooks: { label: "Notebooks", subs: [] },
+  tablets: { label: "Tablets", subs: [] },
+  celulares: { label: "Celulares", subs: [] },
   componentes: {
     label: "Componentes",
     subs: ["Placas de video", "Procesadores", "Memorias RAM", "Almacenamiento", "Motherboards", "Fuentes", "Gabinetes", "Refrigeración", "Otros"],
