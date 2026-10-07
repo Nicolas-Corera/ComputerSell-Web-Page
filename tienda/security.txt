@@ -1,0 +1,7 @@
+# Política de reporte de vulnerabilidades de ComputerSell (RFC 9116).
+# Si encontraste un problema de seguridad, escribinos sin hacerlo público:
+# respondemos y lo corregimos lo antes posible.
+Contact: mailto:contacto@computersell.com.ar
+Expires: 2027-10-07T00:00:00.000Z
+Preferred-Languages: es, en
+Canonical: https://computersell.com.ar/.well-known/security.txt

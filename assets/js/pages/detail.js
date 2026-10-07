@@ -41,6 +41,16 @@ window.switchTab = function (btn, panelId) {
   document.getElementById(panelId).classList.add("is-active");
 };
 
+// Miniaturas de la galería (se renderizan después): data-main-src
+document.addEventListener("click", (e) => {
+  const thumb = e.target.closest("[data-main-src]");
+  if (thumb) window.setMainImage(thumb, thumb.dataset.mainSrc);
+});
+
+// Pestañas y cantidad: declarados con data-* en detail.html (sin onclick inline)
+document.querySelectorAll("[data-tab-panel]").forEach((b) => b.addEventListener("click", () => window.switchTab(b, b.dataset.tabPanel)));
+document.querySelectorAll("[data-qty-delta]").forEach((b) => b.addEventListener("click", () => window.changeQty(Number(b.dataset.qtyDelta))));
+
 // ---------- Render ----------
 function render(p) {
   product = p;
@@ -62,7 +72,7 @@ function render(p) {
   $("#galleryThumbs").innerHTML = imgs
     .map(
       (src, i) =>
-        `<div class="thumb ${src === main.getAttribute("src") || (!main.getAttribute("src") && i === 0) ? "is-active" : ""}" onclick="setMainImage(this, '${escapeHtml(src)}')"><img src="${escapeHtml(src)}" alt="Imagen ${i + 1}" /></div>`,
+        `<div class="thumb ${src === main.getAttribute("src") || (!main.getAttribute("src") && i === 0) ? "is-active" : ""}" data-main-src="${escapeHtml(src)}"><img src="${escapeHtml(src)}" alt="Imagen ${i + 1}" /></div>`,
     )
     .join("");
   const badge = $("#discountBadge");

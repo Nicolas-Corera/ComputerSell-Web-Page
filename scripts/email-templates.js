@@ -76,6 +76,7 @@ function layout({ preheader, title, intro, button, note }) {
 }
 
 const IGNORE = "Si no fuiste vos, ignorá este correo: tu cuenta sigue igual.";
+const SECURITY_NOTE = `Si fuiste vos, no tenés que hacer nada. Si no, entrá a <a href="{{ .SiteURL }}/acceso#recuperar" style="color:${BLUE}">{{ .SiteURL }}/acceso</a>, pedí una contraseña nueva y escribinos.`;
 
 // Clave = sufijo de mailer_subjects_* / mailer_templates_*_content en la Management API
 const TEMPLATES = {
@@ -144,10 +145,59 @@ const TEMPLATES = {
       preheader: "La contraseña de tu cuenta se cambió.",
       title: "Tu contraseña se cambió",
       intro: "La contraseña de <strong>{{ .Email }}</strong> se cambió recién.",
-      note: `Si fuiste vos, no tenés que hacer nada. Si no, entrá a <a href="{{ .SiteURL }}/acceso#recuperar" style="color:${BLUE}">{{ .SiteURL }}/acceso</a>, pedí una contraseña nueva y escribinos.`,
+      note: SECURITY_NOTE,
+    }),
+  },
+  // Avisos de seguridad (variables según internal/mailer/templatemailer de Supabase Auth)
+  email_changed_notification: {
+    subject: "Cambió el correo de tu cuenta de ComputerSell",
+    content: layout({
+      preheader: "El correo de tu cuenta se cambió.",
+      title: "Cambió el correo de tu cuenta",
+      intro: "El correo de tu cuenta pasó de <strong>{{ .OldEmail }}</strong> a <strong>{{ .Email }}</strong>.",
+      note: SECURITY_NOTE,
+    }),
+  },
+  identity_linked_notification: {
+    subject: "Se vinculó un nuevo inicio de sesión a tu cuenta de ComputerSell",
+    content: layout({
+      preheader: "Ahora también podés entrar con otro método.",
+      title: "Nuevo método para entrar",
+      intro: "A tu cuenta <strong>{{ .Email }}</strong> se le vinculó el inicio de sesión con <strong>{{ .Provider }}</strong>. Desde ahora también podés entrar con ese método.",
+      note: SECURITY_NOTE,
+    }),
+  },
+  identity_unlinked_notification: {
+    subject: "Se quitó un método para entrar a tu cuenta de ComputerSell",
+    content: layout({
+      preheader: "Se quitó un método de inicio de sesión de tu cuenta.",
+      title: "Se quitó un método para entrar",
+      intro: "Se quitó el inicio de sesión con <strong>{{ .Provider }}</strong> de tu cuenta <strong>{{ .Email }}</strong>.",
+      note: SECURITY_NOTE,
+    }),
+  },
+  mfa_factor_enrolled_notification: {
+    subject: "Activaste la verificación en dos pasos en ComputerSell",
+    content: layout({
+      preheader: "Tu cuenta ahora pide un código además de la contraseña.",
+      title: "Verificación en dos pasos activada",
+      intro: "En tu cuenta <strong>{{ .Email }}</strong> se activó la verificación en dos pasos. Para entrar al panel vas a necesitar el código de tu app de autenticación.",
+      note: SECURITY_NOTE,
+    }),
+  },
+  mfa_factor_unenrolled_notification: {
+    subject: "Se desactivó la verificación en dos pasos en ComputerSell",
+    content: layout({
+      preheader: "Tu cuenta ya no pide el código de la app.",
+      title: "Verificación en dos pasos desactivada",
+      intro: "En tu cuenta <strong>{{ .Email }}</strong> se quitó la verificación en dos pasos. La próxima vez que entres al panel vas a tener que configurarla de nuevo.",
+      note: SECURITY_NOTE,
     }),
   },
 };
+
+// Avisos que se mandan al dueño de la cuenta (mailer_notifications_*_enabled)
+const NOTIFICATIONS = ["password_changed", "email_changed", "identity_linked", "identity_unlinked", "mfa_factor_enrolled", "mfa_factor_unenrolled"];
 
 // Campos para PATCH /projects/{ref}/config/auth
 function authTemplateConfig() {
@@ -156,7 +206,8 @@ function authTemplateConfig() {
     body[`mailer_subjects_${key}`] = t.subject;
     body[`mailer_templates_${key}_content`] = t.content;
   }
+  for (const n of NOTIFICATIONS) body[`mailer_notifications_${n}_enabled`] = true;
   return body;
 }
 
-module.exports = { TEMPLATES, authTemplateConfig };
+module.exports = { TEMPLATES, NOTIFICATIONS, authTemplateConfig };

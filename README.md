@@ -41,7 +41,7 @@ tarjeta se puede probar sin subir a Vercel (con las tarjetas de prueba de Mercad
 El servidor local reproduce el ruteo por dominio de Vercel: `localhost` sirve `tienda/` y `dash.localhost` sirve `dash/`
 (los navegadores resuelven `*.localhost` solos, no hay que tocar el archivo hosts).
 
-Comandos sueltos: `npm run db:push`, `npm run admins:sync`, `npm run seller:sync`, `npm run auth:configure`, `npm run env`, `npm run firma`.
+Comandos sueltos: `npm run db:push`, `npm run admins:sync`, `npm run seller:sync`, `npm run mfa:reset`, `npm run auth:configure`, `npm run env`, `npm run firma`.
 
 ## Variables (.env)
 
@@ -52,7 +52,7 @@ Comandos sueltos: `npm run db:push`, `npm run admins:sync`, `npm run seller:sync
 | `ADMIN_EMAILS` | correos que pueden crear cuenta en el panel (`npm run admins:sync`); no se publican en `env.js` |
 | `SELLER_OWNER`, `SELLER_DOC`, `BANK_*` | datos privados del vendedor y cuenta para transferencias (`npm run seller:sync`); el sitio los lee con `seller_private()` solo con sesión |
 | `SITE_URL`, `EXTRA_REDIRECT_URLS` | URLs permitidas para el login (`npm run auth:configure`) |
-| `MAILER_AUTOCONFIRM` | `true` = sin verificación de correo (desarrollo) |
+| `MAILER_AUTOCONFIRM` | `true` = sin verificación de correo (solo desarrollo sin SMTP; inseguro). Por defecto se exige confirmar |
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | login con Google |
 | `SUPABASE_SECRET_KEY` | scripts (`npm run firma`) y `api/mp/*` (confirma/cancela órdenes), nunca va al navegador |
 | `PUBLIC_KEY` | Mercado Pago, pública: va al navegador vía `env.js` (SDK) |
@@ -156,6 +156,21 @@ la orden nace pendiente), `mp_apply_payment`
 (solo service role: aplica el resultado de Mercado Pago),
 `set_order_status` (admin; al cancelar devuelve stock y borra la nota de venta: un pedido cancelado no tiene comprobante), `review_receipt` (admin),
 `mark_notifications_read`. Todo protegido con RLS.
+
+## Seguridad
+
+- **Panel con verificación en dos pasos (2FA) obligatoria.** La base no reconoce como admin una sesión sin el segundo factor (`is_admin()` exige `aal2`), así que con solo la contraseña de un admin no se ve ni se cambia nada. La primera vez el login del panel muestra un QR para Google Authenticator / Microsoft Authenticator / Authy; después pide el código de 6 dígitos. Si un admin pierde el celular: `npm run mfa:reset -- correo@ejemplo.com` y al entrar lo configura de nuevo.
+- **Admins solo con correo confirmado**: un correo de `ADMIN_EMAILS` pasa a admin recién al confirmarlo (con Google llega confirmado).
+- **Confirmar el correo borra la contraseña guardada** y la página pide elegirla: evita que alguien que se registró antes con un correo ajeno se quede con la cuenta cuando el dueño la confirma. Una cuenta sin contraseña se detecta al navegar y se manda a elegirla.
+- **Contraseñas**: el servidor exige 8+ caracteres con mayúscula, minúscula y número (`npm run auth:configure`); el formulario además pide un símbolo y rechaza contraseñas filtradas (HaveIBeenPwned por k-anonimato: solo viajan 5 caracteres del hash). "Cambiar contraseña" (perfil) manda un enlace al correo, no se cambia con la sesión abierta.
+- **Panel**: se cierra la sesión tras 30 minutos sin actividad.
+- **Avisos por correo** al dueño de la cuenta: contraseña cambiada, correo cambiado, inicio de sesión vinculado/desvinculado, 2FA activada/desactivada.
+- **Content Security Policy** (`vercel.json`): el navegador solo ejecuta scripts del propio sitio y de cdn.jsdelivr.net. **No escribas JavaScript dentro del HTML** (`onclick="..."`, `<script>` sin `src`, `javascript:`): no funciona. Para clicks usá `data-href="/ruta"` (lo maneja `utils.js`) o un listener en el JS de la página. Un dominio externo nuevo (imágenes, APIs, scripts) hay que sumarlo a la directiva que corresponda. Los tests (`npm run test:js`) lo controlan.
+- **Librerías externas con versión exacta** (y `integrity` en los `<script src>`): una versión flotante cargaría código nuevo sin revisarlo.
+- **Stock**: máximo 2 pedidos por transferencia pendientes por cliente (evita que una cuenta reserve todo el catálogo sin pagar).
+- **API**: un error interno (500) no le muestra el detalle al navegador; queda en los logs de Vercel.
+- **Reportes de vulnerabilidades**: `/.well-known/security.txt` (renovar `Expires` cada año; el test avisa).
+- Lo que **no** se puede automatizar y conviene tener: 2FA en GitHub, Vercel, Supabase, Resend y Google Cloud; y CAPTCHA (Cloudflare Turnstile) en registro/login si aparecen bots.
 
 ## Vercel (un solo proyecto, un solo repo)
 

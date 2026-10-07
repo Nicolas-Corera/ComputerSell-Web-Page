@@ -92,6 +92,9 @@ function handler(methods, fn) {
     } catch (e) {
       const status = e instanceof HttpError ? e.status : 500;
       if (status >= 500) console.error("[mp]", e);
+      // Un 500 (inesperado o de configuración) no le muestra el detalle interno
+      // al navegador: queda en el log. Los demás son mensajes para el usuario.
+      if (status === 500) return send(res, 500, { error: "Ocurrió un error. Probá de nuevo en unos minutos." });
       send(res, status, { error: e.message || "Error interno", ...(e.extra || {}) });
     }
   };

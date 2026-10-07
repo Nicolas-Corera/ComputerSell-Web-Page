@@ -46,6 +46,8 @@ const COPY = {
   login: [body.dataset.titleLogin, body.dataset.subLogin],
   recuperar: ["Recuperar contraseña", "Ingresá tu correo y te enviamos un enlace para crear una contraseña nueva."],
   nueva: ["Nueva contraseña", "Elegí una contraseña nueva para tu cuenta."],
+  "mfa-alta": ["Activá la verificación en dos pasos", "Para entrar al panel, además de la contraseña, hace falta un código de tu celular. Se configura una sola vez."],
+  mfa: ["Verificación en dos pasos", "Abrí tu app de autenticación y escribí el código de 6 dígitos."],
 };
 
 const ORDER = forms.map((f) => f.dataset.panel);
@@ -80,7 +82,7 @@ function showPanel(name, animate) {
   next.classList.add("is-active");
 
   switchBtns.forEach((b) => b.classList.toggle("is-active", b.dataset.panel === name));
-  $(".auth-switch").hidden = name === "recuperar" || name === "nueva";
+  $(".auth-switch").hidden = !["login", "registro"].includes(name);
   if (COPY[name]) {
     title.textContent = COPY[name][0];
     subtitle.textContent = COPY[name][1];
@@ -223,6 +225,8 @@ function friendly(error) {
   if (/already registered|already been registered/i.test(m)) return "Ya existe una cuenta con ese correo. Iniciá sesión.";
   if (/rate limit|too many/i.test(m)) return "Demasiados intentos. Esperá unos minutos y volvé a probar.";
   if (/for security purposes|after \d+ seconds/i.test(m)) return "Por seguridad, esperá un minuto antes de pedir otro correo.";
+  if (/TOTP|mfa_verification|challenge/i.test(m)) return "El código no es correcto o ya cambió. Escribí el que muestra la app ahora.";
+  if (/weak|pwned|easy to guess/i.test(m)) return "Esa contraseña es muy fácil de adivinar o apareció en filtraciones. Elegí otra.";
   if (/session missing|session_not_found|JWT expired/i.test(m)) return "El enlace para cambiar la contraseña venció. Pedí uno nuevo.";
   if (/expired|invalid.*(token|link|otp)/i.test(m)) return "El enlace venció o ya se usó. Pedí uno nuevo.";
   if (/different from the old password/i.test(m)) return "La contraseña nueva tiene que ser distinta de la anterior.";
@@ -233,17 +237,107 @@ function friendly(error) {
   return m || "Ocurrió un error. Probá de nuevo.";
 }
 
-// Con sesión válida, ¿puede entrar acá? (el panel exige rol admin)
+// Con sesión válida, ¿puede entrar acá? (el panel exige rol admin y 2FA).
+// Devuelve un mensaje de error, o null si redirigió o mostró otro paso.
 async function finish() {
+  // Cuenta sin contraseña (confirmó el correo y cerró antes de elegirla,
+  // migración 0025): primero la elige
+  const sec = await accountSecurity();
+  if (sec && sec.provider === "email" && !sec.has_password) {
+    COPY.nueva = ["Elegí tu contraseña", "Tu cuenta todavía no tiene contraseña. Elegila para poder entrar desde cualquier dispositivo."];
+    showPanel("nueva", false);
+    return null;
+  }
   if (IS_ADMIN) {
     const profile = await getProfile(true);
     if (!profile || profile.role !== "admin") {
       await signOut();
       return "Ese correo no está habilitado para el panel de control.";
     }
+    // 2FA obligatorio: la base no reconoce como admin una sesión sin el
+    // segundo factor (is_admin() exige aal2, migración 0026)
+    if (await startMfa()) return null;
   }
   window.location.href = REDIRECT;
   return null;
+}
+
+async function accountSecurity() {
+  const { data, error } = await sb.rpc("account_security");
+  return error ? null : data;
+}
+
+// ---------- Verificación en dos pasos (solo panel) ----------
+let mfaFactorId = null;
+
+// Muestra el paso de 2FA que falte: alta (QR) o código. false = ya está en aal2.
+async function startMfa() {
+  const { data: aal } = await sb.auth.mfa.getAuthenticatorAssuranceLevel();
+  if (aal && aal.currentLevel === "aal2") return false;
+  const { data: factors } = await sb.auth.mfa.listFactors();
+  const all = (factors && factors.all) || [];
+  const verified = all.find((f) => f.factor_type === "totp" && f.status === "verified");
+  if (verified) {
+    mfaFactorId = verified.id;
+    showPanel("mfa", false);
+    return true;
+  }
+  // Altas que quedaron a medias: se descartan para empezar de cero
+  for (const f of all.filter((f) => f.factor_type === "totp" && f.status !== "verified")) {
+    await sb.auth.mfa.unenroll({ factorId: f.id });
+  }
+  const { data, error } = await sb.auth.mfa.enroll({ factorType: "totp", friendlyName: "ComputerSell " + new Date().toISOString().slice(0, 16) });
+  if (error) {
+    await signOut();
+    showPanel("login", false);
+    showAlert(login, "No pudimos iniciar la verificación en dos pasos. Probá de nuevo.");
+    return true;
+  }
+  mfaFactorId = data.id;
+  $("#mfaQr").src = data.totp.qr_code;
+  $("#mfaSecret").textContent = data.totp.secret;
+  showPanel("mfa-alta", false);
+  return true;
+}
+
+$$('.auth-form[data-panel^="mfa"]').forEach((form) => {
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    hideAlert(form);
+    const input = $('input[name="code"]', form);
+    const code = input.value.replace(/\D/g, "");
+    if (code.length !== 6) return showAlert(form, "Escribí los 6 dígitos que muestra la app.");
+    const btn = $(".auth-submit", form);
+    setLoading(btn, true);
+    const { error } = await sb.auth.mfa.challengeAndVerify({ factorId: mfaFactorId, code });
+    setLoading(btn, false);
+    if (error) {
+      input.value = "";
+      input.focus();
+      return showAlert(form, friendly(error));
+    }
+    window.location.href = REDIRECT;
+  });
+  $(".auth-mfa-cancel", form).addEventListener("click", async () => {
+    await signOut();
+    showPanel("login", false);
+  });
+});
+
+// ¿La contraseña apareció en filtraciones? (HaveIBeenPwned, k-anonimato: solo
+// viajan los 5 primeros caracteres del SHA-1, nunca la contraseña). Si el
+// servicio no responde se deja pasar: no puede bloquear el alta.
+async function isPwned(password) {
+  try {
+    const buf = await crypto.subtle.digest("SHA-1", new TextEncoder().encode(password));
+    const hex = [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, "0")).join("").toUpperCase();
+    const res = await fetch("https://api.pwnedpasswords.com/range/" + hex.slice(0, 5), { headers: { "Add-Padding": "true" } });
+    if (!res.ok) return false;
+    const suffix = hex.slice(5);
+    return (await res.text()).split("\n").some((l) => l.startsWith(suffix + ":") && parseInt(l.split(":")[1], 10) > 0);
+  } catch (e) {
+    return false;
+  }
 }
 
 // Crear cuenta
@@ -267,6 +361,7 @@ registro.addEventListener("submit", async (e) => {
   const marketing = ($('input[name="ofertas"]', registro) || { checked: false }).checked;
 
   try {
+    if (await isPwned(password)) throw new Error("pwned");
     // El panel no pregunta antes si el correo está en la allowlist (eso
     // revelaba los correos de admin): la base lo promueve al confirmar el
     // correo y finish() rechaza al iniciar sesión a quien no es admin.
@@ -285,10 +380,20 @@ registro.addEventListener("submit", async (e) => {
       const msg = await finish();
       if (msg) showAlert(registro, msg);
     } else {
-      // Confirmación por correo habilitada
+      // Confirmación por correo habilitada. Si el correo ya tenía cuenta,
+      // Supabase responde igual (para no revelar qué correos están
+      // registrados) pero no crea otra cuenta, no cambia la contraseña ni
+      // manda nada: el mensaje lo aclara sin decir cuál de los dos casos es.
       showPanel("login");
       const login = $('.auth-form[data-panel="login"]');
-      setTimeout(() => showAlert(login, `Te enviamos un correo a ${email} para confirmar la cuenta. Después iniciá sesión.`), 350);
+      setTimeout(
+        () =>
+          showAlert(
+            login,
+            `Si ${email} no tenía cuenta, te enviamos un correo para confirmarla. Si ya tenías cuenta (en la tienda o en el panel es la misma), no te va a llegar nada: iniciá sesión con tu contraseña de siempre o tocá "¿Olvidaste tu contraseña?".`,
+          ),
+        350,
+      );
     }
   } catch (err) {
     showAlert(registro, friendly(err));
@@ -348,9 +453,18 @@ nueva.addEventListener("submit", async (e) => {
   if (!validate(nueva)) return;
   const btn = $(".auth-submit", nueva);
   setLoading(btn, true);
+  if (await isPwned($("#newPass").value)) {
+    setLoading(btn, false);
+    return showAlert(nueva, friendly(new Error("pwned")));
+  }
   const { error } = await sb.auth.updateUser({ password: $("#newPass").value });
+  if (error) {
+    setLoading(btn, false);
+    return showAlert(nueva, friendly(error));
+  }
+  // Cierra cualquier otra sesión abierta con la contraseña anterior
+  await sb.auth.signOut({ scope: "others" });
   setLoading(btn, false);
-  if (error) return showAlert(nueva, friendly(error));
   const msg = await finish();
   if (msg) showAlert(nueva, msg);
 });
@@ -376,7 +490,11 @@ const recovering = /type=recovery/.test(location.hash) || hash === "nueva" || LI
 showPanel(recovering ? "nueva" : ["registro", "login", "recuperar"].includes(hash) ? hash : body.dataset.start || "registro", false);
 
 // Enlace de un correo: recuperación/invitación -> se queda en "Nueva
-// contraseña" con la sesión ya iniciada; confirmación o ingreso -> entra.
+// contraseña" con la sesión ya iniciada. Confirmación de cuenta -> también:
+// al confirmar, la base borra la contraseña guardada (migración 0025), porque
+// pudo haberla elegido otra persona que se registró antes con este correo;
+// quien abrió el mail es el dueño y elige la contraseña acá.
+const CONFIRM_TYPES = ["signup", "email"];
 async function verifyLink() {
   const { error } = await sb.auth.verifyOtp({ token_hash: TOKEN_HASH, type: LINK_TYPE });
   if (error) {
@@ -386,6 +504,10 @@ async function verifyLink() {
     return showAlert(form, recovering ? "El enlace venció o ya se usó. Pedí uno nuevo." : "El enlace venció o ya se usó. Iniciá sesión o pedí uno nuevo.");
   }
   if (recovering) return;
+  if (CONFIRM_TYPES.includes(LINK_TYPE)) {
+    COPY.nueva = ["Último paso: tu contraseña", "Confirmaste tu correo. Por seguridad, escribí la contraseña de tu cuenta (puede ser la misma que elegiste al registrarte)."];
+    return showPanel("nueva", false);
+  }
   const msg = await finish();
   if (msg) {
     showPanel("login", false);
@@ -393,6 +515,7 @@ async function verifyLink() {
   }
 }
 if (TOKEN_HASH) verifyLink();
+if (IS_ADMIN && params.has("inactividad")) showAlert(login, "Cerramos tu sesión por 30 minutos de inactividad. Volvé a ingresar.");
 
 // Volviendo de Google (o ya con sesión): entra directo. Si es recuperación,
 // se queda en el panel de nueva contraseña.

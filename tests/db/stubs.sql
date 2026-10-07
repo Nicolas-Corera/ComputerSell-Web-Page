@@ -17,6 +17,9 @@ create table if not exists auth.users (
   id uuid primary key default gen_random_uuid(),
   email text,
   raw_user_meta_data jsonb default '{}'::jsonb,
+  raw_app_meta_data jsonb default '{}'::jsonb,
+  encrypted_password text,
+  confirmation_sent_at timestamptz,
   email_confirmed_at timestamptz,
   created_at timestamptz default now()
 );
@@ -32,8 +35,11 @@ create or replace function auth.role() returns text language sql stable as $$
     (nullif(current_setting('request.jwt.claims', true), '')::jsonb ->> 'role')
   ), '')::text
 $$;
+create or replace function auth.jwt() returns jsonb language sql stable as $$
+  select coalesce(nullif(current_setting('request.jwt.claims', true), ''), '{}')::jsonb
+$$;
 grant usage on schema auth to anon, authenticated, service_role;
-grant execute on function auth.uid(), auth.role() to anon, authenticated, service_role;
+grant execute on function auth.uid(), auth.role(), auth.jwt() to anon, authenticated, service_role;
 
 -- storage schema
 create schema if not exists storage;

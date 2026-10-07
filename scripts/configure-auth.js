@@ -19,12 +19,21 @@ const { authTemplateConfig } = require("./email-templates");
   const body = {
     site_url: site,
     uri_allow_list: redirects.join(","),
-    // Sin confirmación por correo mientras se desarrolla (el SMTP gratuito de
-    // Supabase permite muy pocos envíos por hora). Poner MAILER_AUTOCONFIRM=false
-    // en el .env cuando quieras exigir verificación de correo.
-    mailer_autoconfirm: env.MAILER_AUTOCONFIRM !== "false",
+    // Confirmación por correo obligatoria salvo MAILER_AUTOCONFIRM=true (solo
+    // para desarrollar sin SMTP). Sin confirmación cualquiera crea cuentas con
+    // correos ajenos.
+    mailer_autoconfirm: env.MAILER_AUTOCONFIRM === "true",
     // Los enlaces de los correos vencen a los 30 minutos (lo dicen las plantillas)
     mailer_otp_exp: 1800,
+    // Mismas reglas que el formulario (auth.js), pero del lado del servidor:
+    // 8+ caracteres con minúscula, mayúscula y número. El símbolo lo pide solo
+    // el formulario (Supabase reconoce una lista fija de símbolos y rechazaría
+    // por ejemplo la "ñ").
+    password_min_length: 8,
+    password_required_characters: "abcdefghijklmnopqrstuvwxyz:ABCDEFGHIJKLMNOPQRSTUVWXYZ:0123456789",
+    // Verificación en dos pasos con app (TOTP): obligatoria para el panel (is_admin() exige aal2)
+    mfa_totp_enroll_enabled: true,
+    mfa_totp_verify_enabled: true,
   };
 
   // SMTP propio con Resend. Sin esto Supabase solo manda correos a los miembros
@@ -40,7 +49,6 @@ const { authTemplateConfig } = require("./email-templates");
       smtp_admin_email: env.RESEND_FROM,
       smtp_sender_name: env.RESEND_SENDER_NAME || "ComputerSell",
       rate_limit_email_sent: 100,
-      mailer_notifications_password_changed_enabled: true,
     });
   } else {
     // En el plan gratis Supabase no deja cambiar las plantillas sin SMTP propio

@@ -165,7 +165,15 @@ export async function printSaleNote(inv, order) {
   if (!w) return false;
   w.document.write(`<!doctype html><html lang="es"><head><meta charset="utf-8" /><title>${esc(inv.number)}</title>
     <style>body{margin:0;padding:24px;background:#fff}@page{margin:16mm}</style></head>
-    <body>${saleNoteHtml(inv, order)}<script>window.onload=function(){setTimeout(function(){window.print()},400)}<\/script></body></html>`);
+    <body>${saleNoteHtml(inv, order)}</body></html>`);
   w.document.close();
+  // La impresión la dispara esta página: la ventana nueva hereda la Content
+  // Security Policy, que no permite <script> dentro del HTML
+  const print = () => setTimeout(() => {
+    w.focus();
+    w.print();
+  }, 400);
+  if (w.document.readyState === "complete") print();
+  else w.addEventListener("load", print, { once: true });
   return true;
 }

@@ -66,7 +66,7 @@
         </div>
       </div>
       <header class="navbar" id="navbar">
-        <div class="logo" onclick="window.location.href = '/'">
+        <div class="logo" data-href="/">
           <img src="/assets/images/isotipo.png" alt="" />
           <span>ComputerSell</span>
         </div>
@@ -76,21 +76,17 @@
           </li>
           <li
             class="item"
-            onclick="
-              window.location.href = '/productos.html?categoria=computadoras'
-            "
+            data-href="/productos.html?categoria=computadoras"
           >
             <span class="item-spn2">Computadoras</span>
           </li>
           <li
             class="item"
-            onclick="
-              window.location.href = '/productos.html?categoria=notebooks'
-            "
+            data-href="/productos.html?categoria=notebooks"
           >
             <span class="item-spn2">Notebooks</span>
           </li>
-          <li class="item" onclick="window.location.href = '/productos.html?disponibilidad=oferta'">
+          <li class="item" data-href="/productos.html?disponibilidad=oferta">
             <span class="item-spn2">Ofertas</span>
           </li>
           <li class="item"><span class="item-spn2">Nosotros</span></li>
@@ -164,7 +160,7 @@
 
             <div class="purchase-row">
               <div class="qty-selector">
-                <button type="button" onclick="changeQty(-1)">−</button>
+                <button type="button" data-qty-delta="-1">−</button>
                 <input
                   id="qtyInput"
                   type="text"
@@ -176,7 +172,7 @@
                 <button
                   type="button"
                   id="qtyPlus"
-                  onclick="changeQty(1)"
+                  data-qty-delta="1"
                   aria-label="Sumar uno"
                 >
                   +
@@ -228,13 +224,13 @@
           <div class="tab-nav">
             <button
               class="tab-btn is-active"
-              onclick="switchTab(this, 'descripcion')"
+              data-tab-panel="descripcion"
             >
               Descripción
             </button>
             <button
               class="tab-btn"
-              onclick="switchTab(this, 'especificaciones')"
+              data-tab-panel="especificaciones"
             >
               Especificaciones
             </button>

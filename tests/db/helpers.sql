@@ -1,5 +1,6 @@
 -- Helpers para los casos de prueba (se aplican después de las migraciones).
---   select sandbox.as_user('<uuid>');  -- rol authenticated + claim sub (como PostgREST)
+--   select sandbox.as_user('<uuid>');  -- rol authenticated + claim sub, sesión con 2FA (aal2)
+--   select sandbox.as_user('<uuid>', 'aal1');  -- igual pero solo con contraseña (sin 2FA)
 --   select sandbox.as_anon();          -- rol anon, sin claims
 --   select sandbox.as_service();       -- rol service_role (backend)
 --   select sandbox.as_operator();      -- superusuario sin JWT (Management API / scripts)
@@ -12,10 +13,12 @@ begin
   perform set_config('request.jwt.claim.sub', '', false);
   perform set_config('request.jwt.claim.role', '', false);
 end $$;
-create or replace function sandbox.as_user(u uuid) returns void language plpgsql as $$
+-- as_user: sesión con 2FA verificado (aal2), como un admin que ya pasó el
+-- segundo factor; para un cliente da igual. as_user(u, 'aal1'): solo contraseña.
+create or replace function sandbox.as_user(u uuid, aal text default 'aal2') returns void language plpgsql as $$
 begin
   execute 'reset role';
-  perform set_config('request.jwt.claims', json_build_object('sub', u::text, 'role', 'authenticated')::text, false);
+  perform set_config('request.jwt.claims', json_build_object('sub', u::text, 'role', 'authenticated', 'aal', aal)::text, false);
   perform set_config('request.jwt.claim.sub', u::text, false);
   perform set_config('request.jwt.claim.role', 'authenticated', false);
   execute 'set role authenticated';

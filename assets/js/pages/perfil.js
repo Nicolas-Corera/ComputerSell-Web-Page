@@ -117,6 +117,21 @@ loading(async () => {
     avatarInput.value = "";
   });
 
+  // Cambiar contraseña: por enlace al correo (no con la sesión abierta), así
+  // quien tenga acceso a una sesión ajena no puede cambiarla sin la casilla
+  $("#passwordBtn").addEventListener("click", async (e) => {
+    const b = e.currentTarget;
+    const email = (await getProfile()).email;
+    b.disabled = true;
+    const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: location.origin + "/acceso#nueva" });
+    b.disabled = false;
+    if (error) {
+      const wait = /for security purposes|after \d+ seconds|rate limit/i.test(error.message || "");
+      return window.CS.toast(wait ? "Ya te mandamos un enlace hace instantes. Esperá un minuto." : "No pudimos enviar el correo. Probá de nuevo.", "bad");
+    }
+    window.CS.toast(`Te enviamos un enlace a ${email} para cambiar la contraseña.`);
+  });
+
   $("#logoutBtn").addEventListener("click", async () => {
     await signOut();
     location.href = "/index.html";

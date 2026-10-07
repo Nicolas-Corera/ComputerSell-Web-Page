@@ -242,6 +242,43 @@
               </label>
               <button class="btn btn-secondary auth-submit" type="submit">Guardar contraseña</button>
             </form>
+
+            <!-- Verificación en dos pasos: alta (primera vez) -->
+            <form class="auth-form" data-panel="mfa-alta" novalidate>
+              <div class="auth-alert">
+                <svg><use href="#ic-error" /></svg>
+                <span></span>
+              </div>
+              <ol class="auth-steps">
+                <li>Instalá una app de autenticación en tu celular: Google Authenticator, Microsoft Authenticator o Authy.</li>
+                <li>En la app tocá <strong>+</strong> y escaneá este código QR.</li>
+              </ol>
+              <div class="mfa-qr"><img id="mfaQr" alt="Código QR para la app de autenticación" width="180" height="180" /></div>
+              <p class="auth-note">¿No podés escanearlo? Cargá esta clave a mano: <code id="mfaSecret"></code></p>
+              <label class="field">
+                <span>3. Escribí el código de 6 dígitos que muestra la app</span>
+                <input type="text" name="code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" placeholder="123456" required />
+                <span class="field-error"></span>
+              </label>
+              <button class="btn btn-secondary auth-submit" type="submit">Activar y entrar</button>
+              <button class="auth-link auth-mfa-cancel" type="button">Cancelar y salir</button>
+            </form>
+
+            <!-- Verificación en dos pasos: código -->
+            <form class="auth-form" data-panel="mfa" novalidate>
+              <div class="auth-alert">
+                <svg><use href="#ic-error" /></svg>
+                <span></span>
+              </div>
+              <label class="field">
+                <span>Código de 6 dígitos de tu app de autenticación</span>
+                <input type="text" name="code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" placeholder="123456" required />
+                <span class="field-error"></span>
+              </label>
+              <button class="btn btn-secondary auth-submit" type="submit">Verificar y entrar</button>
+              <p class="auth-note">¿Perdiste el celular? Pedile a otro administrador que te restablezca la verificación (<code>npm run mfa:reset</code>).</p>
+              <button class="auth-link auth-mfa-cancel" type="button">Cancelar y salir</button>
+            </form>
           </div>
         </div>
       </main>

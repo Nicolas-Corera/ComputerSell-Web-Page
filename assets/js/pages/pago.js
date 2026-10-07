@@ -25,7 +25,9 @@ loading(async function () {
   // Medios de pago y su recargo (assets/js/config/payment-rates.js)
   const PAYMENT = Pricing.PAYMENT;
   // Pago con tarjeta (Mercado Pago) desactivado: solo transferencia.
-  // Para reactivarlo: true acá, api/_mp -> api/mp y el SDK en pago.html.
+  // Para reactivarlo: true acá, api/_mp -> api/mp, el SDK en pago.html (con
+  // versión fija) y sumar https://sdk.mercadopago.com (script-src) y los
+  // dominios de Mercado Pago (connect-src, frame-src) a la CSP de vercel.json.
   const CARD_ENABLED = false;
 
   const user = await requireAuth();

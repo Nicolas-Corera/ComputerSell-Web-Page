@@ -26,7 +26,7 @@
       href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap"
       rel="stylesheet"
     />
-    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15/dist/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js" integrity="sha384-XmJ9SoHtVOHoQUcKvFAzVXwdkKo1Ie3bhmSoIAkcdsHGaIrVJIkmozyq0FJeb/Ly" crossorigin="anonymous"></script>
     <link rel="stylesheet" href="/assets/css/base.css" />
     <link rel="stylesheet" href="/assets/css/components/cookie-consent.css" />
     <link rel="stylesheet" href="/assets/css/loader.css" />
@@ -68,7 +68,7 @@
         </div>
       </div>
       <header class="navbar" id="navbar">
-        <div class="logo" onclick="window.location.href = '/'">
+        <div class="logo" data-href="/">
           <img src="/assets/images/isotipo.png" alt="" />
           <span>ComputerSell</span>
         </div>
@@ -78,21 +78,17 @@
           </li>
           <li
             class="item"
-            onclick="
-              window.location.href = '/productos.html?categoria=computadoras'
-            "
+            data-href="/productos.html?categoria=computadoras"
           >
             <span class="item-spn2">Computadoras</span>
           </li>
           <li
             class="item"
-            onclick="
-              window.location.href = '/productos.html?categoria=notebooks'
-            "
+            data-href="/productos.html?categoria=notebooks"
           >
             <span class="item-spn2">Notebooks</span>
           </li>
-          <li class="item" onclick="window.location.href = '/productos.html?disponibilidad=oferta'">
+          <li class="item" data-href="/productos.html?disponibilidad=oferta">
             <span class="item-spn2">Ofertas</span>
           </li>
           <li class="item"><span class="item-spn2">Nosotros</span></li>

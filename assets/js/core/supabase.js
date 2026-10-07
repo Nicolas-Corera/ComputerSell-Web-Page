@@ -1,7 +1,8 @@
 // Cliente de Supabase compartido por todo el sitio (tienda y panel).
 // Lee la configuración pública de window.CS_ENV (assets/js/core/env.js,
 // generado desde el .env con `npm run env`).
-import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+// Versión exacta: un "@2" flotante cargaría cualquier versión nueva sin revisarla
+import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/+esm";
 
 const ENV = window.CS_ENV || {};
 if (!ENV.SUPABASE_URL || !ENV.SUPABASE_ANON_KEY) {

@@ -1,6 +1,6 @@
 // Botón de cuenta del navbar (#accountBtn): sin sesión lleva al login; con
 // sesión muestra la foto (la de Google si entró con Google) y lleva al perfil.
-import { getProfile, onAuth, fullName, initials, loading } from "./supabase.js";
+import { sb, getProfile, onAuth, fullName, initials, loading } from "./supabase.js";
 
 const btn = document.getElementById("accountBtn");
 
@@ -40,10 +40,33 @@ function iconEl() {
   return svg;
 }
 
+// Cuenta con sesión pero sin contraseña (confirmó el correo y cerró antes de
+// elegirla, migración 0025): se la manda a elegirla. Una consulta por sesión.
+async function checkPassword(profile) {
+  if (!profile) return;
+  const key = "cs_pw_ok_" + profile.id;
+  try {
+    if (sessionStorage.getItem(key)) return;
+  } catch (e) {}
+  const { data } = await sb.rpc("account_security");
+  if (data && data.provider === "email" && !data.has_password) {
+    location.href = "/acceso.html?next=" + encodeURIComponent(location.pathname + location.search) + "#login";
+    return;
+  }
+  try {
+    sessionStorage.setItem(key, "1");
+  } catch (e) {}
+}
+
 if (btn) {
   btn.addEventListener("click", () => {
     location.href = btn.dataset.state === "in" ? "/perfil.html" : "/acceso.html#login";
   });
-  loading(getProfile().then(render));
+  loading(
+    getProfile().then((p) => {
+      render(p);
+      checkPassword(p);
+    }),
+  );
   onAuth(async (u) => render(u ? await getProfile(true) : null));
 }

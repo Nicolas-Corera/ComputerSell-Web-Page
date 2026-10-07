@@ -32,7 +32,15 @@ export async function requireAdmin() {
     location.replace("login.html#login");
     return null;
   }
+  // Sin el segundo factor la base no lo reconoce como admin (is_admin() exige
+  // aal2): el login muestra el paso del código
+  const { data: aal } = await sb.auth.mfa.getAuthenticatorAssuranceLevel();
+  if (!aal || aal.currentLevel !== "aal2") {
+    location.replace("login.html#login");
+    return null;
+  }
   watchSession(profile, "login.html#login");
+  idleLogout();
   USER = {
     id: profile.id,
     name: `${profile.first_name} ${profile.last_name}`.trim() || profile.email,
@@ -41,6 +49,32 @@ export async function requireAdmin() {
     profile,
   };
   return profile;
+}
+
+// Cierre de sesión por inactividad: si el panel queda abierto y sin uso
+// (computadora compartida, pestaña olvidada) se cierra la sesión. La actividad
+// en cualquier pestaña del panel cuenta (localStorage avisa a las demás).
+const IDLE_MS = 30 * 60 * 1000;
+const IDLE_KEY = "cs_admin_last_activity";
+function idleLogout() {
+  let last = Date.now();
+  const touch = () => {
+    const now = Date.now();
+    if (now - last < 15000) return; // no escribir en cada movimiento del mouse
+    last = now;
+    try {
+      localStorage.setItem(IDLE_KEY, String(now));
+    } catch (e) {}
+  };
+  ["pointerdown", "keydown", "wheel", "touchstart", "mousemove"].forEach((ev) => window.addEventListener(ev, touch, { passive: true }));
+  window.addEventListener("storage", (e) => {
+    if (e.key === IDLE_KEY && e.newValue) last = Math.max(last, Number(e.newValue) || 0);
+  });
+  setInterval(async () => {
+    if (Date.now() - last < IDLE_MS) return;
+    await signOut();
+    location.replace("login.html?inactividad=1#login");
+  }, 30000);
 }
 
 // ---------- Normalización ----------

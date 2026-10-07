@@ -23,20 +23,7 @@
     <link rel="stylesheet" href="/assets/css/components/page.css" />
     <link rel="stylesheet" href="/assets/css/components/product-card.css" />
     <link rel="stylesheet" href="/dash/css/dashboard.css" />
-    <script>
-      // Aplica el tema guardado antes del primer render para evitar el "flash"
-      (function () {
-        try {
-          var t = localStorage.getItem("cs_admin_theme") || "dark";
-          if (t === "system") {
-            t = window.matchMedia("(prefers-color-scheme: light)").matches
-              ? "light"
-              : "dark";
-          }
-          document.documentElement.dataset.theme = t;
-        } catch (e) {}
-      })();
-    </script>
+    <script src="/dash/js/theme-init.js"></script>
   </head>
 
   <body class="admin-body">

@@ -112,7 +112,7 @@
       href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap"
       rel="stylesheet"
     />
-    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15/dist/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js" integrity="sha384-XmJ9SoHtVOHoQUcKvFAzVXwdkKo1Ie3bhmSoIAkcdsHGaIrVJIkmozyq0FJeb/Ly" crossorigin="anonymous"></script>
     <link rel="stylesheet" href="/assets/css/base.css" />
     <link rel="stylesheet" href="/assets/css/components/cookie-consent.css" />
     <link rel="stylesheet" href="/assets/css/loader.css" />
@@ -163,7 +163,7 @@
             <div class="hero-actions">
               <button
                 class="btn-primary"
-                onclick="window.location.href = '/productos.html'"
+                data-href="/productos.html"
               >
                 Ver productos
                 <svg class="ic-sm"><use href="#ic-arrow_forward" /></svg>
@@ -183,7 +183,7 @@
         </div>
       </div>
       <header class="navbar" id="navbar">
-        <div class="logo" onclick="window.location.href = '/'">
+        <div class="logo" data-href="/">
           <img src="/assets/images/isotipo.png" alt="" />
           <span>ComputerSell</span>
         </div>
@@ -193,25 +193,19 @@
           </li>
           <li
             class="item"
-            onclick="
-              window.location.href = '/productos.html?categoria=computadoras'
-            "
+            data-href="/productos.html?categoria=computadoras"
           >
             <span class="item-spn2">Computadoras</span>
           </li>
           <li
             class="item"
-            onclick="
-              window.location.href = '/productos.html?categoria=notebooks'
-            "
+            data-href="/productos.html?categoria=notebooks"
           >
             <span class="item-spn2">Notebooks</span>
           </li>
           <li
             class="item"
-            onclick="
-              window.location.href = '/productos.html?disponibilidad=oferta'
-            "
+            data-href="/productos.html?disponibilidad=oferta"
           >
             <span class="item-spn2">Ofertas</span>
           </li>
@@ -254,14 +248,14 @@
           <div class="carouselWrap">
             <button
               class="btn btn-third carousel-arrow carousel-arrow--prev"
-              onclick="scrollCarousel('homeFeatured', -1)"
+              data-carousel-target="homeFeatured" data-carousel-dir="-1"
               aria-label="Anterior"
             >
               <svg class="ic-md rot180"><use href="#ic-arrow_forward" /></svg>
             </button>
             <button
               class="btn btn-third carousel-arrow carousel-arrow--next"
-              onclick="scrollCarousel('homeFeatured', 1)"
+              data-carousel-target="homeFeatured" data-carousel-dir="1"
               aria-label="Siguiente"
             >
               <svg class="ic-md"><use href="#ic-arrow_forward" /></svg>
@@ -295,14 +289,14 @@
           <div class="carouselWrap">
             <button
               class="btn btn-third carousel-arrow carousel-arrow--prev"
-              onclick="scrollCarousel('carouselHardware', -1)"
+              data-carousel-target="carouselHardware" data-carousel-dir="-1"
               aria-label="Anterior"
             >
               <svg class="ic-md rot180"><use href="#ic-arrow_forward" /></svg>
             </button>
             <button
               class="btn btn-third carousel-arrow carousel-arrow--next"
-              onclick="scrollCarousel('carouselHardware', 1)"
+              data-carousel-target="carouselHardware" data-carousel-dir="1"
               aria-label="Siguiente"
             >
               <svg class="ic-md"><use href="#ic-arrow_forward" /></svg>

@@ -1,6 +1,23 @@
 // Utilidades compartidas por la tienda y el panel.
 // Expone window.CS: formateo de precios, storage local, escape de HTML,
 // registro de productos renderizados y la tarjeta de producto.
+
+// Clicks declarados con data-* (no hay onclick="..." en el HTML: la Content
+// Security Policy no permite JavaScript dentro del HTML, ver vercel.json)
+//   data-href="/ruta"                              -> navega
+//   data-carousel-target="id" data-carousel-dir="±1" -> mueve el carrusel
+document.addEventListener("click", function (e) {
+  const link = e.target.closest("[data-href]");
+  if (link) {
+    window.location.href = link.dataset.href;
+    return;
+  }
+  const arrow = e.target.closest("[data-carousel-target]");
+  if (arrow && typeof window.scrollCarousel === "function") {
+    window.scrollCarousel(arrow.dataset.carouselTarget, Number(arrow.dataset.carouselDir) || 1);
+  }
+});
+
 window.CS = (function () {
   // "1.304.424" -> 1304424
   function parsePrice(text) {
@@ -92,7 +109,7 @@ window.CS = (function () {
           <button class="btn btn-secondary" type="button" ${out ? "disabled" : ""}>
             <span>${out ? "Sin stock" : "Seleccionar"}</span>
           </button>
-          <button class="btn btn-third" type="button" onclick="window.location.href = '/detail.html?id=${escapeHtml(p.id)}'" aria-label="Ver detalle">
+          <button class="btn btn-third" type="button" data-href="/detail.html?id=${escapeHtml(p.id)}" aria-label="Ver detalle">
             <svg class="ic-md"><use href="#ic-info" /></svg>
           </button>
           <button class="btn btn-third" type="button" aria-label="Favorito">
