@@ -433,3 +433,11 @@
 .form-sub a:hover {
   text-decoration: underline;
 }
+
+/* Avisos: notificaciones push de este dispositivo */
+.pushPref {
+  margin-bottom: 22px;
+}
+.pushPref:hover {
+  transform: none;
+}

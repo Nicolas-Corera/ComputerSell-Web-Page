@@ -2,6 +2,7 @@
 // avatars, o la de Google), y las pestañas Mis compras / Mis facturas /
 // Avisos, todas en tiempo real.
 import { sb, requireAuth, getProfile, signOut, subscribe, fullName, loading } from "../core/supabase.js";
+import { push } from "../core/notifications.js";
 
 const { formatPrice, escapeHtml, toast } = window.CS;
 const $ = (s) => document.querySelector(s);
@@ -148,8 +149,14 @@ loading(async () => {
       if (btn.dataset.tab === "avisos") markNotifsRead();
     });
   });
-  const hashTab = location.hash.replace("#", "");
-  if (["compras", "facturas", "avisos"].includes(hashTab)) document.querySelector(`.tab-btn[data-tab="${hashTab}"]`).click();
+  // #compras / #facturas / #avisos abre esa pestaña (también desde la burbuja
+  // del navbar estando ya en el perfil: ahí solo cambia el hash)
+  const openHashTab = () => {
+    const hashTab = location.hash.replace("#", "");
+    if (["compras", "facturas", "avisos"].includes(hashTab)) document.querySelector(`.tab-btn[data-tab="${hashTab}"]`).click();
+  };
+  openHashTab();
+  window.addEventListener("hashchange", openHashTab);
 
   // ---------- Mis compras ----------
   async function renderOrders() {
@@ -228,17 +235,63 @@ loading(async () => {
             <div class="title-row"><strong>${escapeHtml(n.title)}</strong></div>
             <div class="meta">${escapeHtml(n.body)} · ${fmtDate(n.created_at)}</div>
           </div>
-          ${n.target && n.target.order ? `<div class="list-card-right"><a class="icon-btn" href="/compra-detalle.html?id=${encodeURIComponent(n.target.order)}" aria-label="Ver pedido"><svg><use href="#ic-arrow_forward" /></svg></a></div>` : ""}
+          ${notifLink(n)}
         </div>`,
       )
       .join("");
     if (document.querySelector(".tab-btn[data-tab=avisos]").classList.contains("is-active")) markNotifsRead();
+  }
+  // Flecha del aviso: al pedido, o a una página de la tienda (compra pendiente -> /pago.html)
+  function notifLink(n) {
+    const t = n.target || {};
+    if (t.order) return `<div class="list-card-right"><a class="icon-btn" href="/compra-detalle.html?id=${encodeURIComponent(t.order)}" aria-label="Ver pedido"><svg><use href="#ic-arrow_forward" /></svg></a></div>`;
+    if (/^\/[a-z-]+\.html$/.test(String(t.url || ""))) return `<div class="list-card-right"><a class="icon-btn" href="${t.url}" aria-label="Ir"><svg><use href="#ic-arrow_forward" /></svg></a></div>`;
+    return "";
   }
   async function markNotifsRead() {
     const ids = notifs.filter((n) => !(n.read_by || []).includes(user.id)).map((n) => n.id);
     if (!ids.length) return;
     await sb.rpc("mark_notifications_read", { p_ids: ids });
   }
+
+  // ---------- Notificaciones push (este navegador) ----------
+  const pushBox = $("#pushPref");
+  const pushBtn = $("#pushPrefBtn");
+  const pushHint = $("#pushPrefHint");
+  async function renderPush() {
+    if (!push.configured) return; // sin clave VAPID en el sitio no se ofrecen
+    pushBox.hidden = false;
+    const perm = push.permission();
+    const on = await push.enabled();
+    pushBtn.hidden = perm === "unsupported" || perm === "denied";
+    pushBtn.textContent = on ? "Desactivar" : "Activar";
+    pushBtn.className = on ? "btn btn-third" : "btn btn-secondary";
+    pushHint.textContent =
+      perm === "unsupported"
+        ? "Este navegador no admite notificaciones. Los avisos te siguen llegando por correo y los ves acá."
+        : perm === "denied"
+          ? "Están bloqueadas para este sitio. Para recibirlas, permití las notificaciones desde la configuración del navegador (ícono del candado junto a la dirección)."
+          : on
+            ? "Activadas: te avisamos al instante cuando se confirme tu pago o cambie el estado de tus pedidos."
+            : "Te avisamos al instante cuando se confirme tu pago o cambie el estado de tus pedidos, aunque no tengas la página abierta. Los avisos también te llegan por correo.";
+  }
+  pushBtn.addEventListener("click", async () => {
+    pushBtn.disabled = true;
+    try {
+      if (await push.enabled()) {
+        await push.disable();
+        toast("Desactivaste las notificaciones en este dispositivo");
+      } else if (await push.enable()) {
+        toast("Listo: te vamos a avisar por notificación", "ok");
+      }
+    } catch (e) {
+      console.error("[push]", e);
+      toast("No pudimos cambiar las notificaciones. Probá de nuevo.", "bad");
+    }
+    pushBtn.disabled = false;
+    renderPush();
+  });
+  renderPush();
 
   // ---------- Inicio + realtime ----------
   fillForm(profile);

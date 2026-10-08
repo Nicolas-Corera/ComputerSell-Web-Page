@@ -163,7 +163,8 @@
 /* ===== Badges en el header (carrito y favoritos) ===== */
 /* .actIcon tiene overflow: hidden (animación del label) y recortaba el badge */
 #cartBtn,
-#favBtn {
+#favBtn,
+#accountBtn {
   overflow: visible;
 }
 

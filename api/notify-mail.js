@@ -2,14 +2,36 @@
 // con {id} de la notificación y la clave x-hook-secret (NOTIFY_HOOK_SECRET).
 // La notificación y el correo del cliente se leen acá con el service role:
 // del body solo se usa el id.
+// Los avisos del cliente salen por correo y, si aceptó notificaciones en algún
+// navegador (push_subscriptions, migración 0029), también como push.
 //
 // Respuestas: 200 {ok}, 4xx/5xx {error}.
 const crypto = require("crypto");
 const { env, handler, HttpError, send, readJson, header, sbFetch } = require("./_lib/mp");
 const { templates, sendMail, rateLimit, siteUrl } = require("./_lib/mail");
+const { sendPush, vapidConfig } = require("./_lib/push");
 
 const UUID_RE = /^[0-9a-f-]{36}$/i;
 const digest = (s) => crypto.createHash("sha256").update(String(s)).digest();
+
+// Push a todos los navegadores del cliente; borra los que se dieron de baja.
+// Nunca corta el correo: los errores solo se registran.
+async function pushToUser(n, orderId) {
+  if (!vapidConfig()) return;
+  try {
+    const subs = await sbFetch(`/rest/v1/push_subscriptions?user_id=eq.${n.user_id}&select=endpoint,p256dh,auth`, { secret: true });
+    if (!Array.isArray(subs) || !subs.length) return;
+    const url = orderId ? `/compra-detalle.html?id=${orderId}` : n.target && /^\/[a-z-]+\.html$/.test(String(n.target.url || "")) ? n.target.url : "/perfil.html#avisos";
+    const message = { title: n.title, body: n.body, url, tag: "notif-" + n.id };
+    const results = await Promise.all(subs.map((s) => sendPush(s, message)));
+    const gone = subs.filter((s, i) => results[i] === "gone");
+    await Promise.all(
+      gone.map((s) => sbFetch(`/rest/v1/push_subscriptions?endpoint=eq.${encodeURIComponent(s.endpoint)}`, { method: "DELETE", secret: true }).catch(() => {})),
+    );
+  } catch (e) {
+    console.error("[notify-push]", e.message);
+  }
+}
 
 function checkSecret(req) {
   const { NOTIFY_HOOK_SECRET } = env();
@@ -32,6 +54,7 @@ module.exports = handler(["POST"], async (req, res) => {
   let to, name, button;
 
   if (n.audience === "user") {
+    if (n.user_id) await pushToUser(n, orderId);
     const profiles = n.user_id ? await sbFetch(`/rest/v1/profiles?id=eq.${n.user_id}&select=email,first_name`, { secret: true }) : [];
     const p = Array.isArray(profiles) ? profiles[0] : null;
     if (!p || !p.email) return send(res, 200, { ok: true, ignored: "sin correo" });

@@ -593,6 +593,54 @@
   overflow-wrap: anywhere;
 }
 
+.transferBox dd[data-copy] {
+  justify-self: start;
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 4px;
+  transition:
+    color 0.2s ease,
+    text-decoration-color 0.2s ease;
+}
+
+.transferBox dd[data-copy]:hover,
+.transferBox dd[data-copy]:focus-visible {
+  color: #16a34a;
+  text-decoration-color: currentColor;
+  outline: none;
+}
+
+/* Botón de copiar: oculto en desktop */
+.copyBtn {
+  display: none;
+  vertical-align: middle;
+  margin-left: 6px;
+  padding: 2px;
+  border: 0;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.copyBtn svg {
+  width: 18px;
+  height: 18px;
+}
+
+.copyBtn:hover,
+.copyBtn:focus-visible {
+  color: #16a34a;
+}
+
+@media (max-width: 760px) {
+  .copyBtn {
+    display: inline-flex;
+  }
+}
+
 .transferBox .discountNote {
   font-size: 13px;
   font-weight: 600;
@@ -795,7 +843,7 @@
   font-weight: 600;
   color: var(--ink);
   display: -webkit-box;
-  -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }

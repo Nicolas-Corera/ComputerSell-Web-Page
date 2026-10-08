@@ -290,6 +290,16 @@
 
           <!-- Avisos -->
           <div class="tab-panel" id="panel-avisos">
+            <div class="list-card pushPref" id="pushPref" hidden>
+              <div class="list-card-icon"><svg class="ic-md"><use href="#ic-notifications" /></svg></div>
+              <div class="list-card-body">
+                <div class="title-row"><strong>Notificaciones en este dispositivo</strong></div>
+                <div class="meta" id="pushPrefHint"></div>
+              </div>
+              <div class="list-card-right">
+                <button class="btn btn-secondary" id="pushPrefBtn" type="button">Activar</button>
+              </div>
+            </div>
             <p class="form-sub" id="notifsEmpty" hidden>Sin avisos por ahora.</p>
             <div id="notifsList"></div>
           </div>

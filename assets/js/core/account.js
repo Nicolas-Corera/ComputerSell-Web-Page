@@ -1,13 +1,30 @@
 // Botón de cuenta del navbar (#accountBtn): sin sesión lleva al login; con
 // sesión muestra la foto (la de Google si entró con Google) y lleva al perfil.
-import { sb, getProfile, onAuth, fullName, initials, loading } from "./supabase.js";
+// Arriba de la foto va la burbuja con los avisos sin leer (notifications.js):
+// con avisos nuevos el botón lleva directo a Mi perfil > Avisos.
+import { sb, getProfile, getUser, onAuth, fullName, initials, loading } from "./supabase.js";
+import { startNotifications } from "./notifications.js";
 
 const btn = document.getElementById("accountBtn");
+
+// Ícono/foto + burbuja dentro de un mismo contenedor (la burbuja va pegada a la foto)
+const wrap = document.createElement("span");
+wrap.className = "cartIconWrap accountIconWrap";
+if (btn) {
+  const icon = btn.querySelector("svg");
+  if (icon) wrap.appendChild(icon);
+  const badge = document.createElement("span");
+  badge.className = "favBadge accountBadge";
+  badge.id = "accountBadge";
+  badge.addEventListener("animationend", () => badge.classList.remove("is-bump"));
+  wrap.appendChild(badge);
+  btn.prepend(wrap);
+}
 
 function render(profile) {
   if (!btn) return;
   const label = btn.querySelector(".actLabel");
-  const old = btn.querySelector(".accountAvatar, .accountInitials, svg");
+  const old = wrap.querySelector(".accountAvatar, .accountInitials, svg");
   if (!profile) {
     btn.dataset.state = "out";
     if (old && !old.matches("svg")) old.replaceWith(iconEl());
@@ -29,7 +46,7 @@ function render(profile) {
     el.textContent = initials(name);
   }
   if (old) old.replaceWith(el);
-  else btn.prepend(el);
+  else wrap.prepend(el);
   if (label) label.textContent = (profile.first_name || "MI CUENTA").toUpperCase();
 }
 
@@ -60,7 +77,8 @@ async function checkPassword(profile) {
 
 if (btn) {
   btn.addEventListener("click", () => {
-    location.href = btn.dataset.state === "in" ? "/perfil.html" : "/acceso.html#login";
+    if (btn.dataset.state !== "in") return (location.href = "/acceso.html#login");
+    location.href = btn.dataset.unread ? "/perfil.html#avisos" : "/perfil.html";
   });
   loading(
     getProfile().then((p) => {
@@ -68,5 +86,9 @@ if (btn) {
       checkPassword(p);
     }),
   );
-  onAuth(async (u) => render(u ? await getProfile(true) : null));
+  getUser().then(startNotifications);
+  onAuth(async (u) => {
+    render(u ? await getProfile(true) : null);
+    startNotifications(u);
+  });
 }

@@ -14,8 +14,16 @@
 // (place_order valida stock y precios en la base) y cobra con la API de Orders.
 // Transferencia: /api/orders/transfer crea la orden y desde acá se sube el
 // comprobante para que el panel lo revise.
-import { sb, requireAuth, getProfile, getSellerPrivate, loading, toCard } from "../core/supabase.js";
+import {
+  sb,
+  requireAuth,
+  getProfile,
+  getSellerPrivate,
+  loading,
+  toCard,
+} from "../core/supabase.js";
 import { refreshCart } from "../core/catalog.js";
+import { saveCheckoutDraft } from "../core/notifications.js";
 
 loading(async function () {
   const { formatPrice, escapeHtml, toast } = window.CS;
@@ -35,11 +43,57 @@ loading(async function () {
   const profile = await getProfile();
 
   // Cuenta para la transferencia: no está en el HTML público, se pide con sesión
+  const COPYABLE = new Set(["cbu", "alias"]);
+  const COPY_MSG = {
+    cbu: "CBU copiado",
+    alias: "Alias copiado",
+  };
+
   const bank = (await getSellerPrivate()).bank || {};
+
   document.querySelectorAll("#bankData [data-bank]").forEach((dd) => {
-    dd.textContent = bank[dd.dataset.bank] || "—";
+    const key = dd.dataset.bank;
+    const val = bank[key];
+    dd.textContent = val || "—";
+
+    if (val && COPYABLE.has(key)) {
+      dd.dataset.value = val;
+      dd.dataset.copy = "1";
+      dd.title = "Click para copiar";
+      dd.tabIndex = 0;
+
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "copyBtn";
+      btn.setAttribute("aria-label", "Copiar " + key.toUpperCase());
+      btn.innerHTML =
+        '<svg aria-hidden="true"><use href="#ic-content_copy" /></svg>';
+      dd.appendChild(btn);
+    }
   });
-  if (!bank.cbu && !bank.alias) toast("No pudimos cargar los datos de la cuenta. Recargá la página o escribinos por WhatsApp.", "bad");
+
+  if (!bank.cbu && !bank.alias)
+    toast(
+      "No pudimos cargar los datos de la cuenta. Recargá la página o escribinos por WhatsApp.",
+      "bad",
+    );
+
+  const bankEl = document.getElementById("bankData");
+
+  bankEl.addEventListener("click", async (e) => {
+    const dd = e.target.closest("dd[data-copy]");
+    if (!dd) return;
+    try {
+      await navigator.clipboard.writeText(dd.dataset.value);
+      toast(COPY_MSG[dd.dataset.bank] || "Copiado");
+    } catch {
+      toast("No se pudo copiar", "bad");
+    }
+  });
+  bankEl.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && e.target.matches("dd[data-copy]"))
+      e.target.click();
+  });
   const cartRows = (await refreshCart()).map(toCard); // precio/stock del carrito al día (solo esos productos)
   // Entrega, peso, envío gratis y cuotas sin interés de cada producto (panel)
   const productInfo = (id) => cartRows.find((c) => c.id === id) || {};
@@ -49,7 +103,10 @@ loading(async function () {
     "24-48hs": { rank: 0, label: "Llega en 24/48 hs hábiles" },
     "3-5": { rank: 1, label: "Llega en 3 a 5 días hábiles" },
     "7-10": { rank: 2, label: "Llega en 7 a 10 días hábiles" },
-    "a-pedido": { rank: 3, label: "A pedido: te contactamos para coordinar la entrega" },
+    "a-pedido": {
+      rank: 3,
+      label: "A pedido: te contactamos para coordinar la entrega",
+    },
   };
 
   // ---------- DOM ----------
@@ -61,11 +118,26 @@ loading(async function () {
   // Datos del perfil precargados (solo los campos vacíos)
   if (profile) {
     const addr = profile.address || {};
-    const fill = { nombre: profile.first_name, apellido: profile.last_name, email: profile.email, telefono: profile.phone, dni: addr.dni, calle: addr.calle, numero: addr.numero, piso: addr.piso, cp: addr.cp, ciudad: addr.ciudad, provincia: addr.provincia };
+    const fill = {
+      nombre: profile.first_name,
+      apellido: profile.last_name,
+      email: profile.email,
+      telefono: profile.phone,
+      dni: addr.dni,
+      calle: addr.calle,
+      numero: addr.numero,
+      piso: addr.piso,
+      cp: addr.cp,
+      ciudad: addr.ciudad,
+      provincia: addr.provincia,
+    };
     const formats = { phone: CS.formatPhone, dni: CS.formatDni };
     Object.entries(fill).forEach(([k, v]) => {
       const el = form.elements[k];
-      if (el && !el.value && v) el.value = formats[el.dataset.format] ? formats[el.dataset.format](v) : v;
+      if (el && !el.value && v)
+        el.value = formats[el.dataset.format]
+          ? formats[el.dataset.format](v)
+          : v;
     });
   }
   const countEl = document.getElementById("payCount");
@@ -114,7 +186,8 @@ loading(async function () {
     });
   }
 
-  const selectedInstallments = () => (state.method === "credito" ? parseInt(cuotasSelect.value, 10) || 1 : 1);
+  const selectedInstallments = () =>
+    state.method === "credito" ? parseInt(cuotasSelect.value, 10) || 1 : 1;
 
   // Tiempo de entrega del pedido: el más lento de los productos
   function deliveryInfo() {
@@ -130,7 +203,12 @@ loading(async function () {
   // ---------- Resumen ----------
   // {subtotal, shipping (null = falta provincia), cardSurcharge, base, installments, total...}
   function totals() {
-    return Pricing.quote({ items: pricingItems(), province: provinceSelect.value, method: state.method, installments: selectedInstallments() });
+    return Pricing.quote({
+      items: pricingItems(),
+      province: provinceSelect.value,
+      method: state.method,
+      installments: selectedInstallments(),
+    });
   }
 
   function bump(el) {
@@ -164,7 +242,11 @@ loading(async function () {
 
     // Envío: según provincia y peso (falta la provincia / gratis / monto)
     const noProvince = t.shipping === null;
-    const shippingText = noProvince ? "Elegí tu provincia" : t.shipping ? formatPrice(t.shipping) : "Gratis";
+    const shippingText = noProvince
+      ? "Elegí tu provincia"
+      : t.shipping
+        ? formatPrice(t.shipping)
+        : "Gratis";
     sumShipping.classList.toggle("is-none", noProvince || t.shipping === 0);
     sumShipping.textContent = shippingText;
     shippingHint.textContent = `Envío a domicilio · ${deliveryInfo().label} · ${noProvince ? "Elegí tu provincia para calcular el costo" : t.shipping ? "$" + shippingText : "Gratis"}`;
@@ -178,17 +260,29 @@ loading(async function () {
     bump(sumTotal);
 
     if (t.installments > 1) {
-      const plan = Pricing.installmentPlan(t.base, t.installments, t.freeInstallments);
+      const plan = Pricing.installmentPlan(
+        t.base,
+        t.installments,
+        t.freeInstallments,
+      );
       sumCuotas.hidden = false;
       sumCuotas.textContent = `${t.installments}x $${formatPrice(plan.each)}${plan.free ? " sin interés" : ""}`;
     } else {
       sumCuotas.hidden = true;
     }
 
-    if (!state.processing) payBtn.textContent = noProvince ? "Pagar" : `Pagar $${formatPrice(t.total)}`;
+    if (!state.processing)
+      payBtn.textContent = noProvince
+        ? "Pagar"
+        : `Pagar $${formatPrice(t.total)}`;
     updatePayButton();
     syncSummarySheet();
-    if (state.method === "credito" && state.bin && state.installmentsAmount !== t.base) refreshInstallments();
+    if (
+      state.method === "credito" &&
+      state.bin &&
+      state.installmentsAmount !== t.base
+    )
+      refreshInstallments();
   }
 
   // ---------- Resumen desplegable desde abajo (móvil/tablet) ----------
@@ -305,16 +399,25 @@ loading(async function () {
       // Solo transferencia: sin pestañas, el medio de pago va como texto
       const only = document.getElementById("payMethodOnly");
       const pay = PAYMENT.transferencia;
-      only.querySelector("small").textContent = pay.surcharge ? `+${Math.round(pay.surcharge * 100)}%` : "Sin recargo";
+      only.querySelector("small").textContent = pay.surcharge
+        ? `+${Math.round(pay.surcharge * 100)}%`
+        : "Sin recargo";
       only.hidden = false;
       document.querySelector(".payTabs").hidden = true;
       return;
     }
-    const maxCuotas = Math.max(...Pricing.installmentOptions(Pricing.freeInstallments(pricingItems())));
+    const maxCuotas = Math.max(
+      ...Pricing.installmentOptions(Pricing.freeInstallments(pricingItems())),
+    );
     tabs.forEach((tab) => {
       const pay = PAYMENT[tab.dataset.method];
-      const text = pay.surcharge ? `+${Math.round(pay.surcharge * 100)}%` : "Sin recargo";
-      tab.querySelector("small").textContent = tab.dataset.method === "credito" && maxCuotas > 1 ? `${text} · hasta ${maxCuotas} cuotas` : text;
+      const text = pay.surcharge
+        ? `+${Math.round(pay.surcharge * 100)}%`
+        : "Sin recargo";
+      tab.querySelector("small").textContent =
+        tab.dataset.method === "credito" && maxCuotas > 1
+          ? `${text} · hasta ${maxCuotas} cuotas`
+          : text;
     });
   }
 
@@ -356,12 +459,14 @@ loading(async function () {
   function renderNumber() {
     const pm = state.paymentMethod;
     const key = brandKey(pm ? pm.id : "");
-    brandEl.className = "cardPreview-brand" + (key ? ` is-visible brand-${key}` : "");
+    brandEl.className =
+      "cardPreview-brand" + (key ? ` is-visible brand-${key}` : "");
     brandEl.textContent = key === "other" ? pm.name : "";
     backBrandEl.textContent = pm ? pm.name.toUpperCase() : "";
 
     const setting = pm && pm.settings && pm.settings[0];
-    const length = (setting && setting.card_number && setting.card_number.length) || 16;
+    const length =
+      (setting && setting.card_number && setting.card_number.length) || 16;
     const template = length === 15 ? [4, 6, 5] : [4, 4, 4, 4];
     const digits = state.bin;
     const prev = numberEl.dataset.value || "";
@@ -392,7 +497,11 @@ loading(async function () {
     const clean = inName.value.replace(/[^a-zA-ZÀ-ÿ\s'.-]/g, "").slice(0, 26);
     inName.value = titleCase(clean);
     if (caret !== null) inName.setSelectionRange(caret, caret);
-    setAnimatedText(nameEl, inName.value.trim().toUpperCase(), "NOMBRE APELLIDO");
+    setAnimatedText(
+      nameEl,
+      inName.value.trim().toUpperCase(),
+      "NOMBRE APELLIDO",
+    );
   }
 
   // Vencimiento y CVV viven en iframes de MP: se muestran enmascarados cuando son válidos
@@ -401,9 +510,17 @@ loading(async function () {
   }
 
   function renderCvv() {
-    const setting = state.paymentMethod && state.paymentMethod.settings && state.paymentMethod.settings[0];
-    const len = (setting && setting.security_code && setting.security_code.length) || 3;
-    setAnimatedText(cvvEl, state.fields.cvv ? "•".repeat(len) : "", "•".repeat(len));
+    const setting =
+      state.paymentMethod &&
+      state.paymentMethod.settings &&
+      state.paymentMethod.settings[0];
+    const len =
+      (setting && setting.security_code && setting.security_code.length) || 3;
+    setAnimatedText(
+      cvvEl,
+      state.fields.cvv ? "•".repeat(len) : "",
+      "•".repeat(len),
+    );
   }
 
   inName.addEventListener("input", renderName);
@@ -436,7 +553,11 @@ loading(async function () {
     height: "46px",
     padding: "0",
   };
-  const FIELD_FONTS = [{ src: "https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" }];
+  const FIELD_FONTS = [
+    {
+      src: "https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap",
+    },
+  ];
 
   function mountSecureFields() {
     const defs = [
@@ -445,7 +566,12 @@ loading(async function () {
       ["cvv", "securityCode", "CVV"],
     ];
     defs.forEach(([key, type, placeholder]) => {
-      const opts = { placeholder, style: FIELD_STYLE, customFonts: FIELD_FONTS, ariaRequired: true };
+      const opts = {
+        placeholder,
+        style: FIELD_STYLE,
+        customFonts: FIELD_FONTS,
+        ariaRequired: true,
+      };
       if (type === "expirationDate") opts.mode = "short";
       if (type === "cardNumber") opts.enableLuhnValidation = true;
       const field = mp.fields.create(type, opts).mount(secureEls[key].id);
@@ -465,7 +591,10 @@ loading(async function () {
         const valid = !ev.errorMessages || ev.errorMessages.length === 0;
         state.fields[key] = valid;
         secureEls[key].classList.toggle("is-valid", valid);
-        secureEls[key].classList.toggle("is-invalid", !valid && form.classList.contains("is-submitted"));
+        secureEls[key].classList.toggle(
+          "is-invalid",
+          !valid && form.classList.contains("is-submitted"),
+        );
         if (key === "number") renderNumber();
         if (key === "expiry") renderExpiry();
         if (key === "cvv") renderCvv();
@@ -509,8 +638,18 @@ loading(async function () {
   // Si la tarjeta es de otro tipo que la pestaña elegida (crédito/débito) se avisa
   function checkCardType() {
     const pm = state.paymentMethod;
-    const want = state.method === "credito" ? "credit_card" : state.method === "debito" ? "debit_card" : "";
-    const mismatch = !!(pm && want && pm.payment_type_id && pm.payment_type_id !== want);
+    const want =
+      state.method === "credito"
+        ? "credit_card"
+        : state.method === "debito"
+          ? "debit_card"
+          : "";
+    const mismatch = !!(
+      pm &&
+      want &&
+      pm.payment_type_id &&
+      pm.payment_type_id !== want
+    );
     typeWarn.hidden = !mismatch;
     if (mismatch) {
       const isCredit = pm.payment_type_id === "credit_card";
@@ -532,10 +671,19 @@ loading(async function () {
   function setInstallmentOptions() {
     const current = parseInt(cuotasSelect.value, 10) || 1;
     const items = pricingItems();
-    const base = Pricing.quote({ items, province: provinceSelect.value, method: "credito", installments: 1 }).base;
+    const base = Pricing.quote({
+      items,
+      province: provinceSelect.value,
+      method: "credito",
+      installments: 1,
+    }).base;
     const freeMax = Pricing.freeInstallments(items);
-    const supported = state.installmentPlans.filter((p) => !p.installment_rate).map((p) => p.installments);
-    const list = Pricing.installmentOptions(freeMax).filter((n) => n === 1 || !supported.length || supported.includes(n));
+    const supported = state.installmentPlans
+      .filter((p) => !p.installment_rate)
+      .map((p) => p.installments);
+    const list = Pricing.installmentOptions(freeMax).filter(
+      (n) => n === 1 || !supported.length || supported.includes(n),
+    );
     cuotasSelect.innerHTML = "";
     list.forEach((n) => {
       const plan = Pricing.installmentPlan(base, n, freeMax);
@@ -551,7 +699,11 @@ loading(async function () {
     });
     cuotasSelect.value = list.includes(current) ? String(current) : "1";
     cuotasHint.textContent =
-      supported.length && list.length === 1 ? "Tu tarjeta no admite cuotas para este pedido" : freeMax > 1 ? `Hasta ${freeMax} cuotas sin interés` : "";
+      supported.length && list.length === 1
+        ? "Tu tarjeta no admite cuotas para este pedido"
+        : freeMax > 1
+          ? `Hasta ${freeMax} cuotas sin interés`
+          : "";
     cuotasHint.hidden = !cuotasHint.textContent;
   }
 
@@ -563,7 +715,12 @@ loading(async function () {
     if (!mp || !state.bin || state.method !== "credito") return;
     const seq = ++installmentsSeq;
     try {
-      const res = await mp.getInstallments({ amount: String(t.base), bin: state.bin, paymentTypeId: "credit_card", locale: "es-AR" });
+      const res = await mp.getInstallments({
+        amount: String(t.base),
+        bin: state.bin,
+        paymentTypeId: "credit_card",
+        locale: "es-AR",
+      });
       if (seq !== installmentsSeq) return; // llegó una consulta más nueva
       state.installmentPlans = (res && res[0] && res[0].payer_costs) || [];
     } catch (e) {
@@ -577,7 +734,9 @@ loading(async function () {
   function initMercadoPago() {
     if (!CARD_ENABLED) return false;
     if (!window.MercadoPago || !ENV.MP_PUBLIC_KEY) {
-      console.error("[mp] SDK no cargado o falta MP_PUBLIC_KEY (corré npm run env)");
+      console.error(
+        "[mp] SDK no cargado o falta MP_PUBLIC_KEY (corré npm run env)",
+      );
       mpErrorEl.hidden = false;
       return false;
     }
@@ -629,11 +788,15 @@ loading(async function () {
     receiptDrop.hidden = receiptOk;
     if (receiptOk) receiptName.textContent = file.name;
     if (!receiptOk) receiptInput.value = "";
-    receiptInput.setCustomValidity(receiptOk ? "" : "Subí el comprobante de la transferencia");
+    receiptInput.setCustomValidity(
+      receiptOk ? "" : "Subí el comprobante de la transferencia",
+    );
     updatePayButton();
   }
 
-  receiptInput.addEventListener("change", () => setReceipt(receiptInput.files[0]));
+  receiptInput.addEventListener("change", () =>
+    setReceipt(receiptInput.files[0]),
+  );
   receiptRemove.addEventListener("click", () => setReceipt(null));
 
   // Abre el comprobante elegido en otra pestaña para revisarlo antes de pagar
@@ -678,7 +841,9 @@ loading(async function () {
   function setFormLocked(locked) {
     form.classList.toggle("is-processing", locked);
     if (locked) {
-      lockedEls = Array.from(form.querySelectorAll("input, select, textarea, button")).filter((el) => el !== payBtn && !el.disabled);
+      lockedEls = Array.from(
+        form.querySelectorAll("input, select, textarea, button"),
+      ).filter((el) => el !== payBtn && !el.disabled);
       lockedEls.forEach((el) => (el.disabled = true));
       if (mp && mp.fields && mp.fields.blur) mp.fields.blur();
     } else {
@@ -688,7 +853,7 @@ loading(async function () {
   }
 
   function updatePayButton() {
-    if (state.processing) return payBtn.disabled = true;
+    if (state.processing) return (payBtn.disabled = true);
     if (state.method === "transferencia") payBtn.disabled = !receiptOk;
     else payBtn.disabled = !mpReady || !typeWarn.hidden;
   }
@@ -701,7 +866,10 @@ loading(async function () {
     missing.forEach((k) => secureEls[k].classList.add("is-invalid"));
     if (missing.length) {
       toast("Revisá los datos de la tarjeta", "bad");
-      secureEls[missing[0]].scrollIntoView({ behavior: "smooth", block: "center" });
+      secureEls[missing[0]].scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
       return false;
     }
     if (!state.paymentMethod) {
@@ -720,16 +888,34 @@ loading(async function () {
         email: f.email.value.trim(),
         phone: f.telefono.value.trim(),
         dni: f.dni.value.trim(),
-        address: [`${f.calle.value.trim()} ${f.numero.value.trim()}`.trim(), f.piso.value.trim(), f.cp.value.trim(), f.ciudad.value.trim(), f.provincia.value].filter(Boolean).join(", "),
+        address: [
+          `${f.calle.value.trim()} ${f.numero.value.trim()}`.trim(),
+          f.piso.value.trim(),
+          f.cp.value.trim(),
+          f.ciudad.value.trim(),
+          f.provincia.value,
+        ]
+          .filter(Boolean)
+          .join(", "),
       },
-      address: { calle: f.calle.value.trim(), numero: f.numero.value.trim(), piso: f.piso.value.trim(), cp: f.cp.value.trim(), ciudad: f.ciudad.value.trim(), provincia: f.provincia.value },
+      address: {
+        calle: f.calle.value.trim(),
+        numero: f.numero.value.trim(),
+        piso: f.piso.value.trim(),
+        cp: f.cp.value.trim(),
+        ciudad: f.ciudad.value.trim(),
+        provincia: f.provincia.value,
+      },
     };
   }
 
   // Guarda teléfono y dirección en el perfil para la próxima compra
   function saveProfile({ customer, address }) {
     sb.from("profiles")
-      .update({ phone: customer.phone, address: { dni: customer.dni, ...address } })
+      .update({
+        phone: customer.phone,
+        address: { dni: customer.dni, ...address },
+      })
       .eq("id", user.id)
       .then(() => {});
   }
@@ -763,7 +949,10 @@ loading(async function () {
       const master = ctx.createGain();
       master.gain.value = 0.18;
       master.connect(ctx.destination);
-      [[659.25, 0], [987.77, 0.13]].forEach(([freq, at]) => {
+      [
+        [659.25, 0],
+        [987.77, 0.13],
+      ].forEach(([freq, at]) => {
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
         osc.type = "sine";
@@ -789,7 +978,8 @@ loading(async function () {
     const totalEl = document.getElementById("orderTotal");
     if (methodEl) methodEl.textContent = methodLabel;
     if (totalEl) totalEl.textContent = formatPrice(order.total);
-    document.getElementById("orderDetailLink").href = "/compra-detalle.html?id=" + order.id;
+    document.getElementById("orderDetailLink").href =
+      "/compra-detalle.html?id=" + order.id;
     const noteEl = document.getElementById("orderSuccessNote");
     noteEl.hidden = !note;
     noteEl.textContent = note || "";
@@ -805,10 +995,14 @@ loading(async function () {
   // POST a /api/* con la sesión de Supabase -> {res, out}
   async function postApi(path, body) {
     const { data: sess } = await sb.auth.getSession();
-    if (!sess || !sess.session) throw new Error("Tu sesión venció. Volvé a ingresar.");
+    if (!sess || !sess.session)
+      throw new Error("Tu sesión venció. Volvé a ingresar.");
     const res = await fetch(path, {
       method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: "Bearer " + sess.session.access_token },
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + sess.session.access_token,
+      },
       body: JSON.stringify(body),
     });
     let out = {};
@@ -820,27 +1014,41 @@ loading(async function () {
     return { res, out };
   }
 
-  const cartItems = () => store.getItems().map((it) => ({ product_id: it.id, qty: it.qty }));
+  const cartItems = () =>
+    store.getItems().map((it) => ({ product_id: it.id, qty: it.qty }));
 
   // Transferencia: orden en el backend (calcula el envío) + comprobante al storage privado
   async function payWithTransfer(data) {
-    const { res, out } = await postApi("/api/orders/transfer", { items: cartItems(), customer: data.customer, address: data.address });
-    if (!res.ok || !out.order) throw new Error(out.error || "No pudimos crear el pedido");
+    const { res, out } = await postApi("/api/orders/transfer", {
+      items: cartItems(),
+      customer: data.customer,
+      address: data.address,
+    });
+    if (!res.ok || !out.order)
+      throw new Error(out.error || "No pudimos crear el pedido");
     const order = out.order;
 
     const file = receiptInput.files[0];
     if (file) {
       const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
       const path = `${user.id}/${order.id}.${ext}`;
-      const up = await sb.storage.from("receipts").upload(path, file, { upsert: true, contentType: file.type });
+      const up = await sb.storage
+        .from("receipts")
+        .upload(path, file, { upsert: true, contentType: file.type });
       if (up.error) throw up.error;
-      const ins = await sb.from("payment_receipts").insert({ order_id: order.id, user_id: user.id, file_path: path, amount: order.total });
+      const ins = await sb.from("payment_receipts").insert({
+        order_id: order.id,
+        user_id: user.id,
+        file_path: path,
+        amount: order.total,
+      });
       if (ins.error) throw ins.error;
     }
 
     saveProfile(data);
     return () => {
-      document.getElementById("orderSuccessText").innerHTML = `Recibimos tu comprobante. El pedido queda <strong>pendiente</strong> hasta que verifiquemos la transferencia de <strong>${formatPrice(order.total)}</strong>.`;
+      document.getElementById("orderSuccessText").innerHTML =
+        `Recibimos tu comprobante. El pedido queda <strong>pendiente</strong> hasta que verifiquemos la transferencia de <strong>${formatPrice(order.total)}</strong>.`;
       showSuccess(order, { methodLabel: "transferencia" });
     };
   }
@@ -857,10 +1065,17 @@ loading(async function () {
       });
     } catch (e) {
       console.error("[mp] createCardToken", e);
-      const msg = Array.isArray(e) ? e.map((x) => x.message).join(". ") : e && e.message;
-      throw new Error(msg && /card|security|expir|number/i.test(msg) ? "Revisá los datos de la tarjeta." : "No pudimos validar la tarjeta. Revisá los datos e intentá de nuevo.");
+      const msg = Array.isArray(e)
+        ? e.map((x) => x.message).join(". ")
+        : e && e.message;
+      throw new Error(
+        msg && /card|security|expir|number/i.test(msg)
+          ? "Revisá los datos de la tarjeta."
+          : "No pudimos validar la tarjeta. Revisá los datos e intentá de nuevo.",
+      );
     }
-    if (!token || !token.id) throw new Error("No pudimos validar la tarjeta. Intentá de nuevo.");
+    if (!token || !token.id)
+      throw new Error("No pudimos validar la tarjeta. Intentá de nuevo.");
 
     const pm = state.paymentMethod;
     const { res, out } = await postApi("/api/mp/pay", {
@@ -888,8 +1103,12 @@ loading(async function () {
     const label = `${PAYMENT[state.method].label.toLowerCase()}${card.brand ? ` ${card.brand}` : ""}${card.last_four ? ` •••• ${card.last_four}` : ""}${card.installments > 1 ? ` en ${card.installments} cuotas` : ""}`;
     if (out.result === "pending") {
       return () => {
-        document.getElementById("orderSuccessText").innerHTML = `Mercado Pago está procesando tu pago con <strong>${escapeHtml(label)}</strong> por <strong>$${formatPrice(out.order.total)}</strong>.`;
-        showSuccess(out.order, { methodLabel: label, note: "El pedido queda pendiente hasta que se acredite. Te avisamos por acá y por notificación cuando esté confirmado." });
+        document.getElementById("orderSuccessText").innerHTML =
+          `Mercado Pago está procesando tu pago con <strong>${escapeHtml(label)}</strong> por <strong>$${formatPrice(out.order.total)}</strong>.`;
+        showSuccess(out.order, {
+          methodLabel: label,
+          note: "El pedido queda pendiente hasta que se acredite. Te avisamos por acá y por notificación cuando esté confirmado.",
+        });
       };
     }
     return async () => {
@@ -923,12 +1142,19 @@ loading(async function () {
     setFormLocked(true);
     const minWait = new Promise((r) => setTimeout(r, 3000));
     try {
-      const [finish] = await Promise.all([state.method === "transferencia" ? payWithTransfer(data) : payWithCard(data), minWait]);
+      const [finish] = await Promise.all([
+        state.method === "transferencia"
+          ? payWithTransfer(data)
+          : payWithCard(data),
+        minWait,
+      ]);
       await finish();
     } catch (err) {
       console.error(err);
       await minWait;
       toast(err.message || "No pudimos procesar el pedido", "bad");
+      // Si se llegó a crear (y cancelar) la orden, la compra vuelve a quedar pendiente
+      syncDraft();
       state.processing = false;
       setFormLocked(false);
       payBtn.textContent = prevLabel;
@@ -953,6 +1179,25 @@ loading(async function () {
   }
 
   store.onChange(render);
+
+  // Compra en curso guardada en la cuenta: si se va sin pagar (aunque borre los
+  // datos del navegador) al volver se recupera el carrito y se le avisa.
+  // Al crearse el pedido la base la borra sola (migración 0029).
+  function syncDraft() {
+    if (!state.completed && store.totalQty() > 0)
+      saveCheckoutDraft(store.getItems());
+  }
+  let draftTimer = null;
+  store.onChange(() => {
+    clearTimeout(draftTimer);
+    draftTimer = setTimeout(syncDraft, 800);
+  });
+  // Cambió de pestaña o cerró: la última vez que estuvo en el pago es ahora
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "hidden") syncDraft();
+  });
+  syncDraft();
+
   // Estado inicial: transferencia (activa panel y deshabilita los campos del resto)
   state.method = "";
   setMethod(CARD_ENABLED ? "credito" : "transferencia");

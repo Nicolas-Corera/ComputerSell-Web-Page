@@ -140,6 +140,16 @@ export function watchSession(user, redirect) {
 
 export async function signOut() {
   profileCache = null;
+  // Este navegador deja de recibir las notificaciones push de la cuenta (lo
+  // puede usar otra persona). Al volver a entrar se suscribe solo (notifications.js).
+  try {
+    const reg = "serviceWorker" in navigator ? await navigator.serviceWorker.getRegistration("/") : null;
+    const sub = reg && (await reg.pushManager.getSubscription());
+    if (sub) {
+      await sb.rpc("delete_push_subscription", { p_endpoint: sub.endpoint });
+      await sub.unsubscribe();
+    }
+  } catch (e) {}
   await sb.auth.signOut();
 }
 

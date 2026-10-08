@@ -38,6 +38,9 @@ function env() {
     CONTACT_DAILY_LIMIT: Number(out.CONTACT_DAILY_LIMIT) || 40,
     NOTIFY_HOOK_SECRET: out.NOTIFY_HOOK_SECRET || "",
     SITE_URL: (out.SITE_URL || "").replace(/\/$/, ""),
+    VAPID_PUBLIC_KEY: out.VAPID_PUBLIC_KEY || "",
+    VAPID_PRIVATE_KEY: out.VAPID_PRIVATE_KEY || "",
+    VAPID_SUBJECT: out.VAPID_SUBJECT || "mailto:" + (out.CONTACT_TO || "contacto@computersell.com.ar"),
   };
   return cached;
 }

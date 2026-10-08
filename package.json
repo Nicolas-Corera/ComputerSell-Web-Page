@@ -14,6 +14,7 @@
     "setup": "npm run db:push && npm run admins:sync && npm run seller:sync && npm run auth:configure && npm run env",
     "firma": "node scripts/upload-signature.js",
     "mfa:reset": "node scripts/mfa-reset.js",
+    "push:keys": "node scripts/push-keys.js",
     "test:db": "node tests/db/run.js",
     "test:js": "node --test \"tests/js/*.test.js\""
   },
