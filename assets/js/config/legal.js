@@ -24,6 +24,12 @@ export const LEGAL = {
   emailPrivacidad:"privacidad@computersell.com.ar",
   telefono: SELLER.phone,
   whatsapp: "+54 9 11 4094-2695",
+  // TEMPORAL (hasta ~2027-01-05): los mails a contacto@ / soporte@ llegan a
+  // Resend pero no a la casilla de Gmail. Mientras sea true, todo contacto se
+  // deriva a WhatsApp: los links a emailContacto pasan a WhatsApp, se ocultan
+  // los renglones marcados con data-legal-email y el formulario de contacto
+  // abre WhatsApp en vez de mandar un mail. Para volver al email: false.
+  emailPausado: true,
   // Disp. 954/2025 art. 6: atención mínima de 8 h diarias de lunes a viernes
   // (o el horario comercial) por teléfono, email o sitio web.
   horarioAtencion: "Lunes a viernes de 09:00 a 19:00 hs. Sábados de 10:00 a 14:00 hs.",

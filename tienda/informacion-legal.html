@@ -158,7 +158,7 @@
               <h2>Datos de contacto</h2>
               <dl class="legal-data">
                 <div><dt>Nombre de fantasía</dt><dd><span data-legal="nombreFantasia"></span></dd></div>
-                <div><dt>Email</dt><dd><a data-legal="emailContacto" data-legal-link="email"></a></dd></div>
+                <div data-legal-email hidden><dt>Email</dt><dd><a data-legal="emailContacto" data-legal-link="email"></a></dd></div>
                 <div><dt>WhatsApp</dt><dd><a data-legal="whatsapp" data-legal-link="whatsapp" target="_blank" rel="noopener"></a></dd></div>
                 <div><dt>Horario de atención</dt><dd><span data-legal="horarioAtencion"></span></dd></div>
               </dl>
@@ -222,7 +222,7 @@
             <section class="legal-section" id="atencion">
               <h2>Atención y reclamos</h2>
               <dl class="legal-data">
-                <div><dt>Email</dt><dd><a data-legal="emailContacto" data-legal-link="email"></a></dd></div>
+                <div data-legal-email hidden><dt>Email</dt><dd><a data-legal="emailContacto" data-legal-link="email"></a></dd></div>
                 <div><dt>WhatsApp</dt><dd><a data-legal="whatsapp" data-legal-link="whatsapp" target="_blank" rel="noopener"></a></dd></div>
                 <div><dt>Horario</dt><dd><span data-legal="horarioAtencion"></span></dd></div>
                 <div><dt>Página de contacto</dt><dd><a href="/contacto">Ver canales de contacto</a></dd></div>
@@ -417,7 +417,7 @@
               <a href="#" aria-label="Mercado Libre"
                 ><svg class="ic-sm"><use href="#ic-mercadolibre" /></svg>
               </a>
-              <a href="#" aria-label="WhatsApp"
+              <a href="https://wa.me/5491140942695" target="_blank" rel="noopener" aria-label="WhatsApp"
                 ><svg class="ic-sm"><use href="#ic-whatsapp" /></svg>
               </a>
             </div>
@@ -472,7 +472,7 @@
                 <svg class="ic-sm"><use href="#ic-whatsapp" /></svg>
                 <span>WhatsApp:</span><a href="https://wa.me/5491140942695" target="_blank" rel="noopener" data-legal="whatsapp" data-legal-link="whatsapp">+54 9 11 4094-2695</a>
               </li>
-              <li>
+              <li data-legal-email hidden>
                 <svg class="ic-sm"><use href="#ic-mail" /></svg>
                 <span>Email:</span><a href="mailto:contacto@computersell.com.ar" data-legal="emailContacto" data-legal-link="email">contacto@computersell.com.ar</a>
               </li>

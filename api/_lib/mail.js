@@ -12,6 +12,11 @@ const DARK = "#0d0f12";
 const INK = "#1a1d21";
 const SOFT = "#5b6068";
 const FONT = "Montserrat, 'Segoe UI', Helvetica, Arial, sans-serif";
+// Canal de consultas para los clientes (mismo número que assets/js/config/legal.js).
+// Por ahora los mails a CONTACT_TO no llegan a la casilla: las consultas van por WhatsApp.
+const WHATSAPP = "+54 9 11 4094-2695";
+const WHATSAPP_URL = "https://wa.me/" + WHATSAPP.replace(/\D/g, "");
+const WHATSAPP_TEXT = `Este es un correo automático: no lo respondas. Para consultas escribinos por WhatsApp al ${WHATSAPP} (${WHATSAPP_URL}).`;
 
 const esc = (s) =>
   String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
@@ -24,7 +29,7 @@ function siteUrl(req) {
   return host ? `${/localhost|127\.0\.0\.1/.test(host) ? "http" : "https"}://${host}` : SITE_URL;
 }
 
-function layout({ preheader, title, intro, rows, button, note, site }) {
+function layout({ preheader, title, intro, rows, button, note, site, whatsapp }) {
   const table = rows && rows.length
     ? `<tr><td style="padding-bottom:24px">
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e6e8eb;border-radius:10px">
@@ -73,7 +78,7 @@ function layout({ preheader, title, intro, rows, button, note, site }) {
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px">
       <tr><td align="center" style="font-family:${FONT};font-size:12px;line-height:18px;color:${SOFT};padding:20px 16px">
         ComputerSell${site ? ` · <a href="${esc(site)}" style="color:${SOFT}">${esc(site.replace(/^https?:\/\//, ""))}</a>` : ""}<br />
-        Este es un correo automático.
+        ${whatsapp ? `Este es un correo automático: no lo respondas.<br />Para consultas escribinos por WhatsApp al <a href="${WHATSAPP_URL}" style="color:${BLUE}">${WHATSAPP}</a>.` : "Este es un correo automático."}
       </td></tr>
     </table>
   </td></tr>
@@ -125,8 +130,9 @@ const templates = {
         button: site ? { href: site + "/productos", label: "Ver productos" } : null,
         note: "Si no enviaste ninguna consulta, ignorá este correo.",
         site,
+        whatsapp: true,
       }),
-      text: `¡Gracias, ${c.nombre}! Recibimos tu consulta y te respondemos a la brevedad.\n\nSi no enviaste ninguna consulta, ignorá este correo.`,
+      text: `¡Gracias, ${c.nombre}! Recibimos tu consulta y te respondemos a la brevedad.\n\nSi no enviaste ninguna consulta, ignorá este correo.\n\n${WHATSAPP_TEXT}`,
     };
   },
 
@@ -142,8 +148,9 @@ const templates = {
         button: n.button,
         note: n.audience === "admin" ? "Aviso automático del panel de ComputerSell." : "Te escribimos porque hay una novedad en tu pedido. También la ves en la campanita de la tienda.",
         site,
+        whatsapp: n.audience !== "admin",
       }),
-      text: `${n.title}\n\n${n.body || ""}${n.button ? "\n\n" + n.button.href : ""}`,
+      text: `${n.title}\n\n${n.body || ""}${n.button ? "\n\n" + n.button.href : ""}${n.audience !== "admin" ? "\n\n" + WHATSAPP_TEXT : ""}`,
     };
   },
 };

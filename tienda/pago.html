@@ -4,10 +4,29 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#3b82f6" />
-    <link rel="icon" type="image/png" sizes="32x32" href="/assets/images/favicon-32x32.png" />
-    <link rel="icon" type="image/png" sizes="16x16" href="/assets/images/favicon-16x16.png" />
-    <link rel="icon" type="image/png" sizes="192x192" href="/assets/images/favicon-192x192.png" />
-    <link rel="apple-touch-icon" sizes="180x180" href="/assets/images/apple-touch-icon.png" />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="32x32"
+      href="/assets/images/favicon-32x32.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="16x16"
+      href="/assets/images/favicon-16x16.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="192x192"
+      href="/assets/images/favicon-192x192.png"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="180x180"
+      href="/assets/images/apple-touch-icon.png"
+    />
     <title>Pago — ComputerSell</title>
     <meta name="robots" content="noindex" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -16,7 +35,11 @@
       href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap"
       rel="stylesheet"
     />
-    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js" integrity="sha384-XmJ9SoHtVOHoQUcKvFAzVXwdkKo1Ie3bhmSoIAkcdsHGaIrVJIkmozyq0FJeb/Ly" crossorigin="anonymous"></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"
+      integrity="sha384-XmJ9SoHtVOHoQUcKvFAzVXwdkKo1Ie3bhmSoIAkcdsHGaIrVJIkmozyq0FJeb/Ly"
+      crossorigin="anonymous"
+    ></script>
     <!-- SDK de Mercado Pago desactivado (pago con tarjeta oculto, ver api/_mp):
     <script src="https://sdk.mercadopago.com/js/v2"></script> -->
     <link rel="stylesheet" href="/assets/css/base.css" />
@@ -71,16 +94,10 @@
           <li class="item" id="productsMenuBtn">
             <span class="item-spn2">Productos</span>
           </li>
-          <li
-            class="item"
-            data-href="/productos.html?categoria=computadoras"
-          >
+          <li class="item" data-href="/productos.html?categoria=computadoras">
             <span class="item-spn2">Computadoras</span>
           </li>
-          <li
-            class="item"
-            data-href="/productos.html?categoria=notebooks"
-          >
+          <li class="item" data-href="/productos.html?categoria=notebooks">
             <span class="item-spn2">Notebooks</span>
           </li>
           <li class="item" data-href="/productos.html?disponibilidad=oferta">
@@ -278,6 +295,30 @@
             <!-- 3. Forma de pago -->
             <section class="checkout-section">
               <h2><span class="step">3</span> Forma de pago</h2>
+              <p class="payMethodOnly" id="payMethodOnly" hidden>
+                Transferencia bancaria<small></small>
+              </p>
+              <div class="paymentText">
+                <span>Para confirmar tu compra:</span>
+                <ol class="transferSteps">
+                  <li>
+                    <small>Transferí el total a la cuenta de abajo.</small>
+                  </li>
+                  <li>
+                    <small
+                      >Subí el comprobante de la transferencia y confirmá el
+                      pedido.</small
+                    >
+                  </li>
+                  <li>
+                    <small
+                      >Cuando se acredita el pago (hasta 48 hs hábiles)
+                      comenzamos con la preparación, el despacho y el envío de
+                      tu pedido.</small
+                    >
+                  </li>
+                </ol>
+              </div>
               <div class="payTabs" role="tablist">
                 <button
                   class="payTab"
@@ -287,7 +328,12 @@
                 >
                   Tarjeta de crédito<small></small>
                 </button>
-                <button class="payTab" type="button" data-method="debito" hidden>
+                <button
+                  class="payTab"
+                  type="button"
+                  data-method="debito"
+                  hidden
+                >
                   Tarjeta de débito<small></small>
                 </button>
                 <button
@@ -379,11 +425,19 @@
                     </label>
                     <div class="cardNotice is-full" id="cardTypeWarn" hidden>
                       <span id="cardTypeWarnText"></span>
-                      <button type="button" class="cardNotice-btn" id="cardTypeSwitch">
+                      <button
+                        type="button"
+                        class="cardNotice-btn"
+                        id="cardTypeSwitch"
+                      >
                         Cambiar
                       </button>
                     </div>
-                    <div class="cardNotice is-full is-error" id="mpError" hidden>
+                    <div
+                      class="cardNotice is-full is-error"
+                      id="mpError"
+                      hidden
+                    >
                       No se pudo cargar Mercado Pago. Recargá la página o pagá
                       por transferencia.
                     </div>
@@ -394,10 +448,6 @@
               <!-- Panel transferencia -->
               <div class="payPanel is-active" data-panel="transferencia">
                 <div class="transferBox">
-                  <p>
-                    Transferí el total a la siguiente cuenta. El pedido se
-                    confirma cuando se acredita el pago (hasta 48 hs hábiles).
-                  </p>
                   <!-- Los datos de la cuenta no van en el HTML (es público): los completa pago.js con seller_private() -->
                   <dl id="bankData">
                     <dt>Titular</dt>
@@ -504,7 +554,9 @@
             <span class="summarySheet-label">Total</span>
             <strong class="summarySheet-total" id="summarySheetTotal">0</strong>
             <span class="summarySheet-hint">Ver resumen</span>
-            <svg class="ic-md summarySheet-chevron"><use href="#ic-expand_more" /></svg>
+            <svg class="ic-md summarySheet-chevron">
+              <use href="#ic-expand_more" />
+            </svg>
           </button>
         </div>
 
@@ -515,10 +567,7 @@
             Tu carrito está vacío. Agregá productos para continuar con la
             compra.
           </p>
-          <button
-            class="btn btn-secondary"
-            data-href="/productos.html"
-          >
+          <button class="btn btn-secondary" data-href="/productos.html">
             Ver productos
           </button>
         </div>
@@ -526,7 +575,11 @@
         <!-- Animación de pago aprobado: el círculo se dibuja, después el tilde,
              un pulso y un sonido; recién ahí se muestra el pedido confirmado -->
         <div class="payApproved" id="payApproved" hidden aria-live="polite">
-          <svg class="payApproved-mark" viewBox="0 0 120 120" aria-hidden="true">
+          <svg
+            class="payApproved-mark"
+            viewBox="0 0 120 120"
+            aria-hidden="true"
+          >
             <circle class="payApproved-ring" cx="60" cy="60" r="52" />
             <path class="payApproved-tick" d="M36 62l16 16 32-34" />
           </svg>
@@ -544,8 +597,20 @@
           </p>
           <p class="checkout-successNote" id="orderSuccessNote" hidden></p>
           <span class="orderNumber">Pedido <span id="orderNumber"></span></span>
-          <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center">
-            <a class="btn btn-secondary" id="orderDetailLink" href="/perfil.html">Ver mi pedido</a>
+          <div
+            style="
+              display: flex;
+              gap: 12px;
+              flex-wrap: wrap;
+              justify-content: center;
+            "
+          >
+            <a
+              class="btn btn-secondary"
+              id="orderDetailLink"
+              href="/perfil.html"
+              >Ver mi pedido</a
+            >
             <a class="btn btn-third" href="/productos.html">Seguir comprando</a>
           </div>
         </div>
@@ -577,7 +642,11 @@
                   <use href="#ic-mercadolibre" />
                 </svg>
               </a>
-              <a href="#" aria-label="WhatsApp"
+              <a
+                href="https://wa.me/5491140942695"
+                target="_blank"
+                rel="noopener"
+                aria-label="WhatsApp"
                 ><svg class="ic-sm">
                   <use href="#ic-whatsapp" />
                 </svg>
@@ -589,13 +658,25 @@
           <div class="footer-col">
             <h3>Productos</h3>
             <ul>
-              <li><a href="/productos.html?categoria=computadoras">PCs Armadas</a></li>
-              <li><a href="/productos.html?categoria=notebooks">Notebooks</a></li>
+              <li>
+                <a href="/productos.html?categoria=computadoras">PCs Armadas</a>
+              </li>
+              <li>
+                <a href="/productos.html?categoria=notebooks">Notebooks</a>
+              </li>
               <li><a href="/productos.html?categoria=tablets">Tablets</a></li>
-              <li><a href="/productos.html?categoria=celulares">Celulares</a></li>
-              <li><a href="/productos.html?categoria=componentes">Componentes</a></li>
-              <li><a href="/productos.html?categoria=perifericos">Periféricos</a></li>
-              <li><a href="/productos.html?disponibilidad=oferta">Ofertas</a></li>
+              <li>
+                <a href="/productos.html?categoria=celulares">Celulares</a>
+              </li>
+              <li>
+                <a href="/productos.html?categoria=componentes">Componentes</a>
+              </li>
+              <li>
+                <a href="/productos.html?categoria=perifericos">Periféricos</a>
+              </li>
+              <li>
+                <a href="/productos.html?disponibilidad=oferta">Ofertas</a>
+              </li>
             </ul>
           </div>
 
@@ -605,7 +686,9 @@
             <ul>
               <li><a href="#">Preguntas frecuentes</a></li>
               <li><a href="/envios">Envíos</a></li>
-              <li><a href="/cambios-y-devoluciones">Cambios y devoluciones</a></li>
+              <li>
+                <a href="/cambios-y-devoluciones">Cambios y devoluciones</a>
+              </li>
               <li><a href="#">Garantía</a></li>
               <li><a href="#">Métodos de pago</a></li>
             </ul>
@@ -620,7 +703,9 @@
               <li><a href="/cookies">Política de cookies</a></li>
               <li><a href="/politica-de-venta">Política de venta</a></li>
               <li><a href="/envios">Envíos</a></li>
-              <li><a href="/cambios-y-devoluciones">Cambios y devoluciones</a></li>
+              <li>
+                <a href="/cambios-y-devoluciones">Cambios y devoluciones</a>
+              </li>
               <li><a href="/arrepentimiento">Arrepentimiento</a></li>
               <li><a href="/informacion-legal">Información legal</a></li>
             </ul>
@@ -634,13 +719,27 @@
                 <svg class="ic-sm">
                   <use href="#ic-whatsapp" />
                 </svg>
-                <span>WhatsApp:</span><a href="https://wa.me/5491140942695" target="_blank" rel="noopener" data-legal="whatsapp" data-legal-link="whatsapp">+54 9 11 4094-2695</a>
+                <span>WhatsApp:</span
+                ><a
+                  href="https://wa.me/5491140942695"
+                  target="_blank"
+                  rel="noopener"
+                  data-legal="whatsapp"
+                  data-legal-link="whatsapp"
+                  >+54 9 11 4094-2695</a
+                >
               </li>
-              <li>
+              <li data-legal-email hidden>
                 <svg class="ic-sm">
                   <use href="#ic-mail" />
                 </svg>
-                <span>Email:</span><a href="mailto:contacto@computersell.com.ar" data-legal="emailContacto" data-legal-link="email">contacto@computersell.com.ar</a>
+                <span>Email:</span
+                ><a
+                  href="mailto:contacto@computersell.com.ar"
+                  data-legal="emailContacto"
+                  data-legal-link="email"
+                  >contacto@computersell.com.ar</a
+                >
               </li>
             </ul>
           </div>
@@ -648,7 +747,9 @@
 
         <!-- Botón de arrepentimiento (Disp. 954/2025) -->
         <div class="footer-legal">
-          <a class="btn-arrepentimiento" href="/arrepentimiento">Botón de arrepentimiento</a>
+          <a class="btn-arrepentimiento" href="/arrepentimiento"
+            >Botón de arrepentimiento</a
+          >
         </div>
 
         <div class="footer-bottom">
@@ -659,14 +760,21 @@
           <div class="footer-bottom-links">
             <a href="/terminos">Términos y condiciones</a>
             <a href="/privacidad">Privacidad</a>
-            <button type="button" class="cc-link" data-cookie-settings>Configurar cookies</button>
+            <button type="button" class="cc-link" data-cookie-settings>
+              Configurar cookies
+            </button>
           </div>
           <div class="footer-payments">Pago por transferencia bancaria</div>
         </div>
 
         <div class="footer-credit">
           Página web diseñada por
-          <a href="https://www.intercomsite.com.ar" target="_blank" rel="noopener">IntercomSite</a>
+          <a
+            href="https://www.intercomsite.com.ar"
+            target="_blank"
+            rel="noopener"
+            >IntercomSite</a
+          >
         </div>
       </div>
     </footer>
@@ -686,6 +794,9 @@
     <script type="module" src="/assets/js/core/favorites.js"></script>
     <script type="module" src="/assets/js/core/account.js"></script>
     <script type="module" src="/assets/js/pages/pago.js"></script>
-    <script type="module" src="/assets/js/components/cookie-consent.js"></script>
+    <script
+      type="module"
+      src="/assets/js/components/cookie-consent.js"
+    ></script>
   </body>
 </html>

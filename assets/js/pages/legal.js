@@ -87,7 +87,7 @@ function structuredData() {
     name: LEGAL.nombreFantasia,
     url: origin,
     logo: origin + "/assets/images/isotipo-dark.png",
-    email: ok(LEGAL.emailContacto) ? LEGAL.emailContacto : undefined,
+    email: ok(LEGAL.emailContacto) && !LEGAL.emailPausado ? LEGAL.emailContacto : undefined,
     telephone: ok(LEGAL.telefono) ? LEGAL.telefono : undefined,
   });
   const page = clean({

@@ -3,6 +3,7 @@
 // Se actualiza en tiempo real cuando el panel cambia el estado.
 import { sb, requireAuth, subscribe, loading } from "../core/supabase.js";
 import { printSaleNote } from "../core/sale-note.js";
+import { whatsappUrl } from "../core/legal.js";
 
 const { formatPrice, escapeHtml, toast } = window.CS;
 const $ = (s) => document.querySelector(s);
@@ -116,6 +117,9 @@ function render(o) {
   const revoke = $("#revocationBtn");
   revoke.hidden = o.status === "cancelado";
   revoke.href = "/arrepentimiento?pedido=CS-" + o.number + "#solicitud";
+
+  // Soporte por WhatsApp con el número de pedido en el mensaje
+  $("#supportBtn").href = whatsappUrl(`Hola, tengo una consulta sobre mi pedido CS-${o.number}.`);
 
   renderReceipt(o);
 }

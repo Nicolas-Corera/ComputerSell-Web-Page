@@ -301,6 +301,15 @@ loading(async function () {
 
   // Bajada de cada pestaña según la configuración de recargos y las cuotas del carrito
   function renderTabs() {
+    if (!CARD_ENABLED) {
+      // Solo transferencia: sin pestañas, el medio de pago va como texto
+      const only = document.getElementById("payMethodOnly");
+      const pay = PAYMENT.transferencia;
+      only.querySelector("small").textContent = pay.surcharge ? `+${Math.round(pay.surcharge * 100)}%` : "Sin recargo";
+      only.hidden = false;
+      document.querySelector(".payTabs").hidden = true;
+      return;
+    }
     const maxCuotas = Math.max(...Pricing.installmentOptions(Pricing.freeInstallments(pricingItems())));
     tabs.forEach((tab) => {
       const pay = PAYMENT[tab.dataset.method];

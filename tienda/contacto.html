@@ -139,7 +139,7 @@
                 >+54 9 11 4094-2695</a
               >
             </div>
-            <div class="infoCard">
+            <div class="infoCard" data-legal-email hidden>
               <div class="infoIcon">
                 <svg class="ic-md"><use href="#ic-mail" /></svg>
               </div>
@@ -167,7 +167,7 @@
         <section>
           <div class="contactSplit">
             <div class="sidePanel">
-              <a class="whatsapp-card" href="#" style="cursor: pointer">
+              <a class="whatsapp-card" href="https://wa.me/5491140942695" target="_blank" rel="noopener">
                 <div class="infoIcon">
                   <svg class="ic-md"><use href="#ic-whatsapp" /></svg>
                 </div>
@@ -183,7 +183,7 @@
                 <input id="website" name="website" type="text" tabindex="-1" autocomplete="off" />
               </div>
               <h2>Envianos tu consulta</h2>
-              <p>Completá el formulario y te contactamos a la brevedad.</p>
+              <p id="contactIntro">Completá el formulario y te contactamos a la brevedad.</p>
 
               <div class="formRow">
                 <div class="field">
@@ -251,7 +251,7 @@
                 Enviar consulta
                 <svg class="ic-sm"><use href="#ic-arrow_forward" /></svg>
               </button>
-              <p class="form-note">
+              <p class="form-note" id="contactConsent">
                 Al enviar este formulario aceptás que te contactemos por email o
                 teléfono para responder tu consulta.
               </p>
@@ -281,7 +281,7 @@
               <a href="#" aria-label="Mercado Libre"
                 ><svg class="ic-sm"><use href="#ic-mercadolibre" /></svg>
               </a>
-              <a href="#" aria-label="WhatsApp"
+              <a href="https://wa.me/5491140942695" target="_blank" rel="noopener" aria-label="WhatsApp"
                 ><svg class="ic-sm"><use href="#ic-whatsapp" /></svg>
               </a>
             </div>
@@ -336,7 +336,7 @@
                 <svg class="ic-sm"><use href="#ic-whatsapp" /></svg>
                 <span>WhatsApp:</span><a href="https://wa.me/5491140942695" target="_blank" rel="noopener" data-legal="whatsapp" data-legal-link="whatsapp">+54 9 11 4094-2695</a>
               </li>
-              <li>
+              <li data-legal-email hidden>
                 <svg class="ic-sm"><use href="#ic-mail" /></svg>
                 <span>Email:</span><a href="mailto:contacto@computersell.com.ar" data-legal="emailContacto" data-legal-link="email">contacto@computersell.com.ar</a>
               </li>

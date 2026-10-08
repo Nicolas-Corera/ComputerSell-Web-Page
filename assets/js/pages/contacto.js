@@ -1,6 +1,9 @@
 import { CATEGORIES } from "/assets/js/core/supabase.js";
+import { LEGAL } from "/assets/js/config/legal.js";
+import { fillLegal, whatsappUrl } from "/assets/js/core/legal.js";
 
 document.addEventListener("DOMContentLoaded", () => {
+  fillLegal(document.querySelector("main"));
   const motivoSelect = document.getElementById("motivo");
   const extraField = document.getElementById("motivoExtraField");
 
@@ -141,8 +144,38 @@ document.addEventListener("DOMContentLoaded", () => {
     return val("motivoPedido") || val("motivoOtro");
   }
 
+  // Email pausado (assets/js/config/legal.js): la consulta se arma y se abre en
+  // WhatsApp en vez de mandarse por mail
+  if (LEGAL.emailPausado) {
+    document.getElementById("email").required = false;
+    document.getElementById("contactIntro").textContent = "Completá el formulario y se abre WhatsApp con tu consulta lista para enviar.";
+    document.getElementById("contactConsent").textContent = "Al enviar este formulario aceptás que te respondamos por WhatsApp.";
+    submit.firstChild.textContent = "Enviar por WhatsApp ";
+  }
+
+  function whatsappMessage() {
+    const motivo = motivoSelect.options[motivoSelect.selectedIndex].textContent;
+    return [
+      `Hola, soy ${val("nombre")} ${val("apellido")}.`,
+      `Motivo: ${motivo}${detalle() ? ` (${detalle()})` : ""}`,
+      val("email") ? `Email: ${val("email")}` : null,
+      val("telefono") ? `Teléfono: ${val("telefono")}` : null,
+      "",
+      val("mensaje"),
+    ].filter((l) => l !== null).join("\n");
+  }
+
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
+    if (LEGAL.emailPausado) {
+      if (val("website")) return;
+      const url = whatsappUrl(whatsappMessage());
+      const win = window.open(url, "_blank");
+      if (win) win.opener = null;
+      else location.href = url;
+      showStatus("Abrimos WhatsApp con tu consulta: enviá el mensaje desde ahí y te respondemos a la brevedad.", true);
+      return;
+    }
     if (submit.disabled) return;
     submit.disabled = true;
     status.hidden = true;
