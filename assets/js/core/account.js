@@ -87,6 +87,8 @@ if (btn) {
     }),
   );
   getUser().then(startNotifications);
+  // El perfil cambió el nombre o la foto (perfil.js): se ve sin recargar
+  window.addEventListener("cs:profile", (e) => render(e.detail));
   onAuth(async (u) => {
     render(u ? await getProfile(true) : null);
     startNotifications(u);

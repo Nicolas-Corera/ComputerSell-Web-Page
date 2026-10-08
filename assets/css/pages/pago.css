@@ -1310,3 +1310,34 @@
     max-height: none;
   }
 }
+
+/* ---- Transferencia: datos de la cuenta y comprobante después de confirmar ---- */
+.transferNote {
+  font-size: 13px;
+  color: var(--ink-soft);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.transferNext {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  text-align: left;
+  margin-top: 6px;
+}
+
+.transferNext .field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.transferNext #receiptSend {
+  align-self: flex-start;
+}
+
+.checkout-success .transferNote {
+  text-align: left;
+}

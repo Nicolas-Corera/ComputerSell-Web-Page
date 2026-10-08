@@ -61,12 +61,14 @@ export async function getProfile(force) {
   return data;
 }
 
-// Datos privados de quien vende (nombre completo, DNI/CUIT, cuenta bancaria):
-// no están en archivos públicos, los da el RPC seller_private() solo con sesión.
-// { owner, doc, bank: { holder, cbu, alias, cuil } } · {} sin sesión o si falla.
+// Datos privados de quien vende: no están en archivos públicos. seller_private()
+// devuelve solo lo que corresponde a la sesión: la cuenta para transferir si hay
+// un pedido por transferencia pendiente, nombre y DNI/CUIT si hay una nota de
+// venta, todo para el panel. { owner?, doc?, bank?: { holder, cbu, alias } }
+// force: vuelve a pedirlos (cambian cuando se crea un pedido o se emite una nota).
 let sellerPrivate = null;
-export async function getSellerPrivate() {
-  if (sellerPrivate) return sellerPrivate;
+export async function getSellerPrivate(force) {
+  if (sellerPrivate && !force) return sellerPrivate;
   const { data, error } = await sb.rpc("seller_private");
   if (error || !data) return {};
   sellerPrivate = data;
@@ -112,6 +114,13 @@ export function applyStoreLinks() {
   document.querySelectorAll("a[data-store]").forEach((a) => (a.href = storeUrl(a.dataset.store)));
 }
 
+// A dónde va watchSession cuando la sesión se cierra (p. ej. el cierre por
+// inactividad del panel lleva al login con el aviso)
+let leaveRedirect = null;
+export function setLeaveRedirect(url) {
+  leaveRedirect = url;
+}
+
 export function watchSession(user, redirect) {
   if (watching) return;
   watching = true;
@@ -123,7 +132,7 @@ export function watchSession(user, redirect) {
     try {
       await sb.auth.signOut({ scope: "local" });
     } catch (e) {}
-    location.replace(redirect);
+    location.replace(leaveRedirect || redirect);
   };
   sb.auth.onAuthStateChange((event, session) => {
     if (event === "SIGNED_OUT" || (event === "TOKEN_REFRESHED" && !session)) leave();
@@ -138,8 +147,11 @@ export function watchSession(user, redirect) {
   });
 }
 
-export async function signOut() {
+// scope: "global" (por defecto: "Cerrar sesión" del perfil, cierra todos los
+// dispositivos) o "local" (solo este navegador: inactividad, cuenta sin acceso al panel)
+export async function signOut(scope) {
   profileCache = null;
+  sellerPrivate = null;
   // Este navegador deja de recibir las notificaciones push de la cuenta (lo
   // puede usar otra persona). Al volver a entrar se suscribe solo (notifications.js).
   try {
@@ -150,7 +162,7 @@ export async function signOut() {
       await sub.unsubscribe();
     }
   } catch (e) {}
-  await sb.auth.signOut();
+  await sb.auth.signOut({ scope: scope === "local" ? "local" : "global" });
 }
 
 // Escucha cambios de sesión (login/logout en esta u otra pestaña)
@@ -163,13 +175,18 @@ export function onAuth(cb) {
 
 // ---------- Realtime ----------
 // Suscribe a cambios de una tabla y llama cb(payload). Devuelve la función para cancelar.
+// events: "*" o una lista (["INSERT", "UPDATE"]). Realtime no aplica RLS ni el
+// filtro a los DELETE: quien no necesite borrados no los escucha (si no, recibe
+// los de todos los usuarios).
 let channelSeq = 0;
-export function subscribe(table, cb, filter) {
-  const opts = { event: "*", schema: "public", table };
-  if (filter) opts.filter = filter;
-  const ch = sb.channel(`${table}-${++channelSeq}-${Math.random().toString(36).slice(2, 7)}`)
-    .on("postgres_changes", opts, (payload) => cb(payload))
-    .subscribe();
+export function subscribe(table, cb, filter, events) {
+  let ch = sb.channel(`${table}-${++channelSeq}-${Math.random().toString(36).slice(2, 7)}`);
+  (Array.isArray(events) ? events : [events || "*"]).forEach((event) => {
+    const opts = { event, schema: "public", table };
+    if (filter) opts.filter = filter;
+    ch = ch.on("postgres_changes", opts, (payload) => cb(payload));
+  });
+  ch.subscribe();
   return () => sb.removeChannel(ch);
 }
 

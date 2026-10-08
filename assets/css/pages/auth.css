@@ -1002,3 +1002,18 @@ body.auth-body {
   border-color: rgba(52, 211, 153, 0.3);
   color: #34d399;
 }
+
+/* CAPTCHA (Turnstile), solo si está configurado */
+.auth-captcha {
+  margin: 4px 0 2px;
+  min-height: 65px;
+}
+.auth-captcha[hidden] {
+  display: none;
+}
+
+/* Foco visible en las casillas personalizadas (el input real está transparente) */
+.checkOption input:focus-visible ~ .checkbox {
+  outline: 2px solid var(--blue);
+  outline-offset: 2px;
+}

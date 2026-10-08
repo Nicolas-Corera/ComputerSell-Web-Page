@@ -11,6 +11,13 @@ const PAGES = [
   { path: "/productos", changefreq: "daily", priority: "0.9" },
   { path: "/nosotros", changefreq: "monthly", priority: "0.5" },
   { path: "/contacto", changefreq: "monthly", priority: "0.5" },
+  { path: "/envios", changefreq: "monthly", priority: "0.5" },
+  { path: "/cambios-y-devoluciones", changefreq: "monthly", priority: "0.5" },
+  { path: "/informacion-legal", changefreq: "monthly", priority: "0.4" },
+  { path: "/politica-de-venta", changefreq: "yearly", priority: "0.3" },
+  { path: "/terminos", changefreq: "yearly", priority: "0.3" },
+  { path: "/privacidad", changefreq: "yearly", priority: "0.3" },
+  { path: "/cookies", changefreq: "yearly", priority: "0.3" },
   { path: "/arrepentimiento", changefreq: "yearly", priority: "0.3" },
 ];
 

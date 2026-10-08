@@ -47,7 +47,7 @@
           <span>•</span>
           <span class="marquee-item"
             ><svg class="ic-sm"><use href="#ic-shipping_truck" /></svg>Envíos
-            gratias en productos seleccionados</span
+            gratis en CABA y Bs. As. (productos seleccionados)</span
           >
           <span>•</span>
           <span class="marquee-item"
@@ -112,7 +112,7 @@
         <div class="breadcrumb">
           <a href="/perfil.html">Mi perfil</a>
           <span>/</span>
-          <span class="current" id="crumbOrderId">Pedido #48213</span>
+          <span class="current" id="crumbOrderId">Pedido</span>
         </div>
 
         <div class="order-head">
@@ -121,16 +121,19 @@
               <svg class="rot180"><use href="#ic-arrow_forward" /></svg>
               Volver a mis compras
             </a>
-            <h1 style="margin-top: 14px" id="orderTitle">Pedido #48213</h1>
-            <span class="order-sub" id="orderSub"
-              >Realizado el 12 ago 2026</span
-            >
+            <h1 style="margin-top: 14px" id="orderTitle">Cargando pedido…</h1>
+            <span class="order-sub" id="orderSub"></span>
             <span
-              class="badge badge-ok"
+              class="badge"
               id="orderBadge"
               style="margin-left: 10px; vertical-align: middle"
-              >Entregado</span
-            >
+              hidden
+            ></span>
+            <p class="order-sub" id="orderNotFound" hidden>
+              Puede que el enlace esté incompleto o que el pedido sea de otra
+              cuenta. Revisá tus pedidos en
+              <a href="/perfil.html#compras">Mis compras</a>.
+            </p>
           </div>
           <div class="order-head-actions">
             <button class="btn btn-third" id="trackingBtn" type="button" disabled>
@@ -178,8 +181,8 @@
                 <span>Envío</span>
                 <span id="sumShipping">0</span>
               </div>
-              <div class="summary-row">
-                <span>Descuento</span>
+              <div class="summary-row" id="sumDiscountRow" hidden>
+                <span>Recargo medio de pago</span>
                 <span id="sumDiscount">0</span>
               </div>
               <div class="summary-row total">
@@ -233,12 +236,6 @@
               justo.
             </p>
             <div class="footer-social">
-              <a href="#" aria-label="Instagram"
-                ><svg class="ic-sm"><use href="#ic-instagram" /></svg>
-              </a>
-              <a href="#" aria-label="Mercado Libre"
-                ><svg class="ic-sm"><use href="#ic-mercadolibre" /></svg>
-              </a>
               <a href="https://wa.me/5491140942695" target="_blank" rel="noopener" aria-label="WhatsApp"
                 ><svg class="ic-sm"><use href="#ic-whatsapp" /></svg>
               </a>
@@ -263,11 +260,11 @@
           <div class="footer-col">
             <h3>Ayuda</h3>
             <ul>
-              <li><a href="#">Preguntas frecuentes</a></li>
+              <li><a href="/informacion-legal#preguntas">Preguntas frecuentes</a></li>
               <li><a href="/envios">Envíos</a></li>
               <li><a href="/cambios-y-devoluciones">Cambios y devoluciones</a></li>
-              <li><a href="#">Garantía</a></li>
-              <li><a href="#">Métodos de pago</a></li>
+              <li><a href="/cambios-y-devoluciones#garantia">Garantía</a></li>
+              <li><a href="/politica-de-venta#pagos">Métodos de pago</a></li>
             </ul>
           </div>
 
@@ -330,6 +327,7 @@
     <script src="/assets/js/components/navbar.js"></script>
     <script src="/assets/js/components/menu.js"></script>
     <script type="module" src="/assets/js/components/footer-legal.js"></script>
+    <script type="module" src="/assets/js/components/empty-categories.js"></script>
     <script src="/assets/js/core/env.js"></script>
     <script src="/assets/js/core/utils.js"></script>
     <script type="module" src="/assets/js/pages/compra-detalle.js"></script>

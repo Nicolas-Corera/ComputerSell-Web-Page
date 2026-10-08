@@ -1,7 +1,7 @@
 // Datos del panel: carga todo desde Supabase, lo normaliza a la forma que
 // usan las vistas y lo mantiene al día con realtime. Exporta arreglos
 // mutables (se vacían y rellenan en cada recarga) y un onChange(tabla).
-import { sb, subscribe, getProfile, signOut, watchSession } from "/assets/js/core/supabase.js";
+import { sb, subscribe, getProfile, signOut, watchSession, setLeaveRedirect } from "/assets/js/core/supabase.js";
 
 export const PRODUCTS = [];
 export const ORDERS = [];
@@ -10,6 +10,7 @@ export const INVOICES = [];
 export const RECEIPTS = [];
 export const NOTIFS = [];
 export const CUSTOMERS = [];
+export const REVOCATIONS = [];
 export let USER = { id: null, name: "", email: "", avatar: "" };
 
 const listeners = [];
@@ -28,8 +29,10 @@ export async function requireAdmin() {
     return null;
   }
   if (profile.role !== "admin") {
-    await signOut();
-    location.replace("login.html#login");
+    // Solo este navegador: un cliente que entra acá por error no pierde su
+    // sesión de la tienda en sus otros dispositivos
+    await signOut("local");
+    location.replace("login.html?noadmin=1#login");
     return null;
   }
   // Con la 2FA activada y sin el código en esta sesión la base no lo reconoce
@@ -72,7 +75,9 @@ function idleLogout() {
   });
   setInterval(async () => {
     if (Date.now() - last < IDLE_MS) return;
-    await signOut();
+    // Solo esta sesión (no el celular del dueño ni otras PCs) y con el aviso
+    setLeaveRedirect("login.html?inactividad=1#login");
+    await signOut("local");
     location.replace("login.html?inactividad=1#login");
   }, 30000);
 }
@@ -216,15 +221,40 @@ export async function loadNotifs() {
   replace(NOTIFS, (data || []).map(normNotif));
 }
 
+// Solicitudes de arrepentimiento (Botón de arrepentimiento, migración 0008)
+export async function loadRevocations() {
+  const { data } = await sb.from("revocation_requests").select("*").order("created_at", { ascending: false });
+  replace(
+    REVOCATIONS,
+    (data || []).map((r) => ({
+      ...r,
+      date: new Date(r.created_at),
+      order: ORDERS.find((o) => o.uuid === r.order_id),
+    })),
+  );
+}
+
 export async function loadAll() {
   await loadProducts();
   await loadOrders();
-  await Promise.all([loadInvoices(), loadReceipts(), loadReservas(), loadNotifs()]);
+  await Promise.all([loadInvoices(), loadReceipts(), loadReservas(), loadNotifs(), loadRevocations()]);
 }
 
 // ---------- Acciones (RPC) ----------
 export async function setOrderStatus(order, status, note, tracking) {
   const { error } = await sb.rpc("set_order_status", { p_order: order.uuid, p_status: status, p_note: note || "", p_tracking: tracking == null ? null : tracking });
+  if (error) throw error;
+}
+
+export async function setRevocationStatus(rev, status, note) {
+  const { error } = await sb.rpc("set_revocation_status", { p_id: rev.id, p_status: status, p_note: note || "" });
+  if (error) throw error;
+}
+
+// Stock con control de concurrencia: falla si cambió desde que se mostró
+// (una venta mientras se editaba) en lugar de pisarlo
+export async function setProductStock(productId, expected, value) {
+  const { error } = await sb.rpc("set_product_stock", { p_product: productId, p_expected: expected, p_new: value });
   if (error) throw error;
 }
 
@@ -243,7 +273,7 @@ export async function markRead(ids) {
 }
 
 export async function receiptUrl(receipt) {
-  const { data } = await sb.storage.from("receipts").createSignedUrl(receipt.file, 3600);
+  const { data } = await sb.storage.from("receipts").createSignedUrl(receipt.file, 600);
   return data ? data.signedUrl : "";
 }
 
@@ -264,12 +294,14 @@ export function startRealtime() {
     debounced("orders", async () => {
       reloading = (reloading || Promise.resolve()).then(async () => {
         await loadOrders();
-        await Promise.all([loadInvoices(), loadReceipts()]);
+        await Promise.all([loadInvoices(), loadReceipts(), loadRevocations()]);
         emit("orders");
       });
       await reloading;
     });
   ["orders", "order_items", "order_events", "invoices", "payment_receipts"].forEach((t) => subscribe(t, reloadOrders));
   subscribe("reservations", () => debounced("reservas", async () => (await loadReservas(), emit("reservas"))));
-  subscribe("notifications", () => debounced("notifs", async () => (await loadNotifs(), emit("notifs"))));
+  // Sin DELETE: realtime los manda sin filtrar (los avisos "carrito" de los clientes)
+  subscribe("notifications", () => debounced("notifs", async () => (await loadNotifs(), emit("notifs"))), null, ["INSERT", "UPDATE"]);
+  subscribe("revocation_requests", () => debounced("revocations", async () => (await loadRevocations(), emit("revocations"))));
 }

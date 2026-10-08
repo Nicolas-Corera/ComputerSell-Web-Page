@@ -70,11 +70,22 @@ module.exports = handler(["POST"], async (req, res) => {
     return send(res, 200, { ok: true, ignored: n.type });
   }
 
-  const allowed = await rateLimit([
-    { key: "notify:to:" + digest(to.toLowerCase()).toString("hex").slice(0, 32), limit: 30, window: 86400 },
-    { key: "notify:all", limit: 300, window: 86400 },
-  ]);
-  if (!allowed) return send(res, 200, { ok: true, ignored: "límite" });
+  // Límites diarios. El canal del dueño tiene su propio cupo (los clientes no
+  // pueden agotarlo creando pedidos) y no consume el de los clientes. Los
+  // avisos del panel siguen llegando aunque se corte el correo.
+  const { NOTIFY_ADMIN_DAILY_LIMIT, NOTIFY_USER_DAILY_LIMIT, NOTIFY_DAILY_LIMIT } = env();
+  const rules =
+    n.audience === "admin"
+      ? [{ key: "notify:admin", limit: NOTIFY_ADMIN_DAILY_LIMIT, window: 86400 }]
+      : [
+          { key: "notify:to:" + digest(to.toLowerCase()).toString("hex").slice(0, 32), limit: NOTIFY_USER_DAILY_LIMIT, window: 86400 },
+          { key: "notify:all", limit: NOTIFY_DAILY_LIMIT, window: 86400 },
+        ];
+  const allowed = await rateLimit(rules);
+  if (!allowed) {
+    console.warn("[notify-mail] límite diario alcanzado: no se envió", n.audience, n.type, n.id);
+    return send(res, 200, { ok: true, ignored: "límite" });
+  }
 
   const replyTo = n.audience === "user" ? env().CONTACT_TO : undefined;
   await sendMail({ to, replyTo, ...templates.notification({ ...n, name, button }, site), idempotencyKey: "notif-" + n.id });

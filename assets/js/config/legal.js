@@ -35,8 +35,9 @@ export const LEGAL = {
   horarioAtencion: "Lunes a viernes de 09:00 a 19:00 hs. Sábados de 10:00 a 14:00 hs.",
 
   // --- Plazos comerciales (se citan en Términos y Política de venta) ---
-  // Hoy la cancelación por falta de pago de una transferencia es manual (desde el panel).
-  plazoPagoTransferencia: "48hs hábiles",
+  // Un pedido por transferencia sin comprobante se cancela solo a las 48 hs
+  // (expire_stale_transfer_orders, migración 0030).
+  plazoPagoTransferencia: "48 horas",
 
   // --- Jurisdicción ---
   // En contratos de consumo a distancia la prórroga de jurisdicción se

@@ -13,7 +13,9 @@ import { CARD_COLUMNS } from "./catalog.js";
 
 const ENV = window.CS_ENV || {};
 const PAY_PAGE = /^\/pago(\.html)?$/;
-const NO_PROMPT_PAGES = /^\/(pago|acceso)(\.html)?$/;
+// El permiso de notificaciones se ofrece cuando tiene sentido: con un pedido
+// que espera el pago (confirmación del pago y detalle del pedido), no al navegar
+const PROMPT_PAGES = /^\/compra-detalle(\.html)?$/;
 
 let user = null;
 
@@ -112,6 +114,7 @@ function watchBadge() {
       badgeTimer = setTimeout(refreshBadge, 250);
     },
     `user_id=eq.${user.id}`,
+    ["INSERT", "UPDATE"],
   );
 }
 
@@ -293,9 +296,9 @@ async function syncPush() {
   subscribePush().catch((e) => console.error("[push]", e));
 }
 
-function askPush() {
+// delay: ms antes de mostrar la tarjeta (la confirmación del pago la pide al instante)
+export function askPush(delay = 4000) {
   if (!PUSH_OK || Notification.permission !== "default" || storage.get(OFF_KEY)) return;
-  if (NO_PROMPT_PAGES.test(location.pathname)) return;
   if (Date.now() - (+storage.get(ASK_KEY) || 0) < ASK_AGAIN_MS) return;
   setTimeout(() => {
     // Otro aviso en pantalla (cookies, compra pendiente): se ofrece en la próxima página
@@ -321,13 +324,14 @@ function askPush() {
               }
             } catch (e) {
               console.error("[push]", e);
-              window.CS.toast("No pudimos activar las notificaciones. Probá de nuevo.", "bad");
+              later(); // no se vuelve a ofrecer en cada visita
+              window.CS.toast("No pudimos activar las notificaciones. Probá de nuevo desde Mi cuenta > Avisos.", "bad");
             }
           },
         },
       ],
     });
-  }, 4000);
+  }, delay);
 }
 
 // ---------- Inicio ----------
@@ -348,5 +352,5 @@ export async function startNotifications(u) {
     console.error("[compra pendiente]", e);
     return false;
   });
-  if (!shown) askPush();
+  if (!shown && PROMPT_PAGES.test(location.pathname)) askPush();
 }

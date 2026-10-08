@@ -23,6 +23,8 @@ function safeNext(value) {
   }
 }
 const NEXT = safeNext(params.get("next"));
+// ?next para los enlaces de los correos (confirmación, recuperación)
+const NEXT_QUERY = NEXT ? "?next=" + encodeURIComponent(NEXT) : "";
 // Enlaces de los correos (scripts/email-templates.js): llegan con
 // #panel&token_hash=…&type=… y se verifican acá con verifyOtp, así funcionan
 // aunque se abran en otro navegador o dispositivo. Van en el hash para que el
@@ -87,6 +89,7 @@ function showPanel(name, animate) {
     title.textContent = COPY[name][0];
     subtitle.textContent = COPY[name][1];
   }
+  mountCaptcha(next);
   history.replaceState(null, "", "#" + name);
   const first = $("input:not([type=checkbox])", next);
   first && setTimeout(() => first.focus({ preventScroll: true }), 80);
@@ -163,6 +166,8 @@ function markField(input, ok, message) {
   const field = input.closest(".field") || input.closest(".checkOption");
   if (!field) return ok;
   field.classList.toggle("is-error", !ok);
+  if (ok) input.removeAttribute("aria-invalid");
+  else input.setAttribute("aria-invalid", "true");
   const err = $(".field-error", field);
   if (err && message && !ok) err.textContent = message;
   return ok;
@@ -221,9 +226,15 @@ function hideAlert(form) {
   alert && alert.classList.remove("is-visible");
 }
 
-// Mensajes de Supabase en castellano
+// Mensajes de Supabase en castellano. Nunca se muestra un mensaje técnico en
+// inglés: lo que no se reconoce va a la consola y el usuario ve uno genérico.
 function friendly(error) {
   const m = (error && error.message) || "";
+  const code = (error && error.code) || "";
+  if (/captcha/i.test(m + code)) return "No pudimos verificar que no sos un robot. Completá la verificación y probá de nuevo.";
+  if (/reauthenticat/i.test(m + code)) return "Por seguridad, para cambiar la contraseña pedí un enlace desde \"¿Olvidaste tu contraseña?\".";
+  if (/email_address_invalid|validation_failed|Unable to validate email|invalid format/i.test(m + code)) return "Ingresá un correo válido.";
+  if (/Password should contain|weak_password/i.test(m + code)) return "La contraseña no cumple los requisitos (8 caracteres, mayúsculas, minúsculas y números).";
   if (/Invalid login credentials/i.test(m)) return "El correo o la contraseña no son correctos.";
   if (/Email not confirmed/i.test(m)) return "Tenés que confirmar tu correo antes de ingresar. Revisá tu casilla.";
   if (/already registered|already been registered/i.test(m)) return "Ya existe una cuenta con ese correo. Iniciá sesión.";
@@ -238,7 +249,49 @@ function friendly(error) {
   if (/Password should be/i.test(m)) return "La contraseña no cumple los requisitos.";
   if (/provider is not enabled|Unsupported provider/i.test(m)) return "Google todavía no está configurado. Usá correo y contraseña.";
   if (/network|fetch/i.test(m)) return "No hay conexión con el servidor. Probá de nuevo.";
-  return m || "Ocurrió un error. Probá de nuevo.";
+  // Mensajes propios (en castellano) pasan tal cual
+  if (/[áéíóúñ¿¡]/i.test(m) || /^(Ese |Tu |Tenés |No |El |La )/.test(m)) return m;
+  if (m) console.warn("[auth]", code, m);
+  return "Ocurrió un error. Probá de nuevo en unos minutos.";
+}
+
+// ---------- CAPTCHA (Cloudflare Turnstile) ----------
+// Solo si el sitio tiene CAPTCHA_SITE_KEY (env.js) y Supabase lo exige
+// (npm run auth:configure con CAPTCHA_SECRET). El token va en captchaToken.
+const CAPTCHA_KEY = (window.CS_ENV || {}).CAPTCHA_SITE_KEY || "";
+const captchaWidgets = new Map(); // form -> widget id
+let captchaReady = null;
+function loadCaptcha() {
+  if (!CAPTCHA_KEY) return Promise.resolve(false);
+  if (captchaReady) return captchaReady;
+  captchaReady = new Promise((resolve) => {
+    const s = document.createElement("script");
+    s.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
+    s.async = true;
+    s.onload = () => resolve(true);
+    s.onerror = () => resolve(false);
+    document.head.appendChild(s);
+  });
+  return captchaReady;
+}
+async function mountCaptcha(form) {
+  const el = $(".auth-captcha", form);
+  if (!el || !CAPTCHA_KEY || captchaWidgets.has(form)) return;
+  if (!(await loadCaptcha()) || !window.turnstile) return;
+  el.hidden = false;
+  captchaWidgets.set(form, window.turnstile.render(el, { sitekey: CAPTCHA_KEY, size: "flexible", language: "es" }));
+}
+// Token del formulario (undefined si no hay CAPTCHA). Tira si falta completarlo.
+function captchaToken(form) {
+  if (!CAPTCHA_KEY) return undefined;
+  const id = captchaWidgets.get(form);
+  const token = id != null && window.turnstile ? window.turnstile.getResponse(id) : "";
+  if (!token) throw new Error("Completá la verificación de seguridad para continuar.");
+  return token;
+}
+function resetCaptcha(form) {
+  const id = captchaWidgets.get(form);
+  if (id != null && window.turnstile) window.turnstile.reset(id);
 }
 
 // Con sesión válida, ¿puede entrar acá? (el panel exige rol admin y 2FA).
@@ -257,7 +310,9 @@ async function finish() {
   if (IS_ADMIN) {
     const profile = await getProfile(true);
     if (!profile || profile.role !== "admin") {
-      await signOut();
+      // Solo en este navegador: un cliente que entra acá por error no pierde
+      // su sesión de la tienda en sus otros dispositivos
+      await signOut("local");
       return "Ese correo no está habilitado para el panel de control.";
     }
     // 2FA: si la activó, pide el código (sin él la base no lo reconoce como
@@ -370,7 +425,7 @@ if (mfaSkip) {
 const mfaCancel = $(".auth-mfa-cancel");
 if (mfaCancel) {
   mfaCancel.addEventListener("click", async () => {
-    await signOut();
+    await signOut("local");
     showPanel("login", false);
   });
 }
@@ -425,8 +480,10 @@ registro.addEventListener("submit", async (e) => {
       email,
       options: {
         shouldCreateUser: true,
-        data: { first_name, last_name, full_name: `${first_name} ${last_name}`.trim(), phone: phone.trim(), marketing },
-        emailRedirectTo: THIS_PAGE + "#login",
+        data: { first_name: first_name.slice(0, 60), last_name: last_name.slice(0, 60), full_name: `${first_name} ${last_name}`.trim().slice(0, 120), phone: phone.trim().slice(0, 30), marketing },
+        // Vuelve a donde estaba (p. ej. el checkout) después de confirmar
+        emailRedirectTo: THIS_PAGE + NEXT_QUERY + "#login",
+        captchaToken: captchaToken(registro),
       },
     });
     if (error) throw error;
@@ -443,6 +500,7 @@ registro.addEventListener("submit", async (e) => {
     );
   } catch (err) {
     showAlert(registro, friendly(err));
+    resetCaptcha(registro);
   } finally {
     setLoading(btn, false);
   }
@@ -460,12 +518,13 @@ login.addEventListener("submit", async (e) => {
   const email = $('input[type="email"]', login).value.trim().toLowerCase();
   const password = $("input[data-pw]", login).value;
   try {
-    const { error } = await sb.auth.signInWithPassword({ email, password });
+    const { error } = await sb.auth.signInWithPassword({ email, password, options: { captchaToken: captchaToken(login) } });
     if (error) throw error;
     const msg = await finish();
     if (msg) showAlert(login, msg);
   } catch (err) {
     showAlert(login, friendly(err));
+    resetCaptcha(login);
   } finally {
     setLoading(btn, false);
   }
@@ -481,9 +540,17 @@ recuperar.addEventListener("submit", async (e) => {
   const btn = $(".auth-submit", recuperar);
   setLoading(btn, true);
   const email = $('input[type="email"]', recuperar).value.trim();
-  const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: THIS_PAGE + "#nueva" });
+  let error;
+  try {
+    ({ error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: THIS_PAGE + NEXT_QUERY + "#nueva", captchaToken: captchaToken(recuperar) }));
+  } catch (e) {
+    error = e;
+  }
   setLoading(btn, false);
-  if (error) return showAlert(recuperar, friendly(error));
+  if (error) {
+    resetCaptcha(recuperar);
+    return showAlert(recuperar, friendly(error));
+  }
   $(".auth-recover-form", recuperar).hidden = true;
   const ok = $(".auth-success", recuperar);
   $("strong", ok).textContent = email;
@@ -515,6 +582,23 @@ nueva.addEventListener("submit", async (e) => {
   if (msg) showAlert(nueva, msg);
 });
 
+// Cerrar sesión desde "Nueva contraseña": una cuenta sin contraseña (confirmó
+// el correo en una PC compartida) no queda atrapada en este paso
+const nuevaLogout = $(".auth-nueva-logout");
+if (nuevaLogout) {
+  nuevaLogout.addEventListener("click", async () => {
+    nuevaLogout.disabled = true;
+    await signOut("local");
+    location.replace(THIS_PAGE + "#login");
+    location.reload();
+  });
+}
+
+// Volviendo con "Atrás" desde Google (bfcache): el botón vuelve a funcionar
+window.addEventListener("pageshow", (e) => {
+  if (e.persisted) $$(".auth-google").forEach((b) => (b.disabled = false));
+});
+
 // Google
 $$(".auth-google").forEach((b) =>
   b.addEventListener("click", async () => {
@@ -531,9 +615,20 @@ $$(".auth-google").forEach((b) =>
 );
 
 // ---------- Inicio ----------
+// "Nueva contraseña" solo con un enlace de recuperación (token o evento
+// PASSWORD_RECOVERY) o una cuenta que todavía no tiene contraseña (finish).
+// Con #nueva a secas no: con una sesión abierta (ajena) se podría cambiar la
+// contraseña sin la actual.
 const hash = location.hash.replace("#", "").split("&")[0];
-const recovering = /type=recovery/.test(location.hash) || hash === "nueva" || LINK_TYPE === "recovery" || LINK_TYPE === "invite";
+const recovering = /type=recovery/.test(location.hash) || LINK_TYPE === "recovery" || LINK_TYPE === "invite";
 showPanel(recovering ? "nueva" : ["registro", "login", "recuperar"].includes(hash) ? hash : body.dataset.start || "registro", false);
+if (hash === "nueva" && !recovering && !TOKEN_HASH) {
+  sb.auth.getSession().then(({ data }) => {
+    if (data && data.session) return; // finish() decide (sin contraseña -> la elige)
+    showPanel("recuperar", false);
+    showAlert(recuperar, "Para cambiar la contraseña pedí un enlace: te lo mandamos por correo.");
+  });
+}
 
 // Enlace de un correo: recuperación/invitación -> se queda en "Nueva
 // contraseña" con la sesión ya iniciada. Confirmación de cuenta o enlace para
@@ -556,6 +651,7 @@ async function verifyLink() {
 }
 if (TOKEN_HASH) verifyLink();
 if (IS_ADMIN && params.has("inactividad")) showAlert(login, "Cerramos tu sesión por 30 minutos de inactividad. Volvé a ingresar.");
+if (IS_ADMIN && params.has("noadmin")) showAlert(login, "Ese correo no está habilitado para el panel de control.");
 
 // Volviendo de Google (o ya con sesión): entra directo. Si es recuperación,
 // se queda en el panel de nueva contraseña.

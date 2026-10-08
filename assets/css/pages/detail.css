@@ -84,6 +84,8 @@
 }
 
 .thumb {
+  font: inherit;
+  color: inherit;
   background: var(--bg-1);
   border: 1px solid var(--line);
   border-radius: var(--radius-sm);

@@ -26,7 +26,7 @@ test("[LOW] security.txt publicado (RFC 9116) y vigente", () => {
   const cfg = JSON.parse(fs.readFileSync(path.join(ROOT, "vercel.json"), "utf8"));
   assert.ok(cfg.rewrites.some((r) => r.source === "/.well-known/security.txt"), "falta el rewrite de /.well-known/security.txt");
   const txt = fs.readFileSync(path.join(ROOT, "tienda/security.txt"), "utf8");
-  assert.match(txt, /^Contact: mailto:/m);
+  assert.match(txt, /^Contact: (mailto:|https:\/\/)/m);
   const exp = new Date(txt.match(/^Expires: (.+)$/m)[1]);
   assert.ok(exp > new Date(), "security.txt venció: actualizá Expires (máximo un año)");
 });

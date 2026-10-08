@@ -59,13 +59,16 @@ const subGroups = Array.from(aside.querySelectorAll(".filterGroup[data-parent]")
 aside.querySelectorAll(".filterGroup-head").forEach((head) => {
   head.addEventListener("click", () => head.closest(".filterGroup").classList.toggle("is-collapsed"));
 });
+// Con el panel abierto la página de atrás no scrollea (solo el panel)
 const openAside = () => {
   aside.classList.add("is-open");
   backdrop.classList.add("is-open");
+  document.body.style.overflow = "hidden";
 };
 const closeAside = () => {
   aside.classList.remove("is-open");
   backdrop.classList.remove("is-open");
+  document.body.style.overflow = "";
 };
 openBtn && openBtn.addEventListener("click", openAside);
 closeBtn && closeBtn.addEventListener("click", closeAside);
@@ -105,8 +108,14 @@ function optionCount(input) {
 
 function renderCounts() {
   checkboxes().forEach((input) => {
-    const countEl = input.closest(".checkOption")?.querySelector(".count");
-    if (countEl) countEl.textContent = optionCount(input);
+    const option = input.closest(".checkOption");
+    const countEl = option?.querySelector(".count");
+    const n = optionCount(input);
+    if (countEl) countEl.textContent = n;
+    // Categorías y subcategorías sin productos no se ofrecen (salvo que ya
+    // estén marcadas, p. ej. desde un link viejo)
+    const group = normalize(input.dataset.filterGroup);
+    if (option && facets && facets.total && (group === "categoria" || SUBGROUPS.includes(group))) option.hidden = n === 0 && !input.checked;
   });
 }
 
@@ -219,7 +228,7 @@ pagination.addEventListener("click", (e) => {
   if (!b) return;
   page = +b.dataset.page;
   applyFilters();
-  writeUrl();
+  writeUrl(true);
   grid.scrollIntoView({ behavior: "smooth", block: "start" });
 });
 
@@ -286,7 +295,7 @@ function update() {
   syncSubGroups();
   renderTags();
   applyFilters();
-  writeUrl();
+  writeUrl(true);
 }
 
 // ---------- Filtros <-> URL ----------
@@ -294,7 +303,9 @@ function update() {
 // la búsqueda: ?categoria=componentes&componentes=fuentes,gabinetes&marca=asus
 // &disponibilidad=oferta&min=10000&max=50000&q=rtx&orden=menor-precio&pagina=2
 // Sin filtros la URL queda limpia (/productos.html).
-function writeUrl() {
+// push: true para acciones del usuario (filtros, orden, página): "Atrás"
+// vuelve al estado anterior. La búsqueda mientras se tipea solo reemplaza.
+function writeUrl(push) {
   const state = readChecked();
   const params = new URLSearchParams();
   const setList = (key, values) => values.length && params.set(key, values.join(","));
@@ -312,7 +323,8 @@ function writeUrl() {
   const qs = params.toString().replace(/%2C/g, ",");
   const url = window.location.pathname + (qs ? `?${qs}` : "") + window.location.hash;
   if (url !== window.location.pathname + window.location.search + window.location.hash) {
-    history.replaceState(history.state, "", url);
+    if (push) history.pushState({ filters: true }, "", url);
+    else history.replaceState(history.state, "", url);
   }
 }
 
@@ -344,8 +356,9 @@ function readUrl() {
     const n = raw === null || raw === "" ? NaN : Number(raw);
     return Number.isFinite(n) ? n : null;
   };
-  priceRange.min = num("min");
-  priceRange.max = num("max");
+  priceRange.min = clampPrice(num("min"));
+  priceRange.max = clampPrice(num("max"));
+  fixPriceOrder();
   if (priceMin) priceMin.value = priceRange.min ?? "";
   if (priceMax) priceMax.value = priceRange.max ?? "";
 
@@ -356,11 +369,26 @@ function readUrl() {
 }
 
 // ---------- Precio ----------
+// Entre 0 y el máximo que acepta la base (int): un número enorme rompía la consulta
+const PRICE_MAX = 999999999;
+function clampPrice(n) {
+  if (n === null || !Number.isFinite(n)) return null;
+  return Math.min(PRICE_MAX, Math.max(0, Math.round(n)));
+}
+// "Desde" mayor que "hasta": se invierten (en lugar de no mostrar nada)
+function fixPriceOrder() {
+  if (priceRange.min !== null && priceRange.max !== null && priceRange.min > priceRange.max) {
+    [priceRange.min, priceRange.max] = [priceRange.max, priceRange.min];
+  }
+  if (priceMin) priceMin.value = priceRange.min ?? "";
+  if (priceMax) priceMax.value = priceRange.max ?? "";
+}
 function readPriceInputs() {
   const min = priceMin && priceMin.value !== "" ? Number(priceMin.value) : null;
   const max = priceMax && priceMax.value !== "" ? Number(priceMax.value) : null;
-  priceRange.min = min !== null && !Number.isNaN(min) ? Math.round(min) : null;
-  priceRange.max = max !== null && !Number.isNaN(max) ? Math.round(max) : null;
+  priceRange.min = clampPrice(min);
+  priceRange.max = clampPrice(max);
+  fixPriceOrder();
 }
 function clearPrice() {
   priceRange.min = null;
@@ -418,8 +446,18 @@ sortSelect &&
   sortSelect.addEventListener("change", () => {
     page = 1;
     applyFilters();
-    writeUrl();
+    writeUrl(true);
   });
+
+// "Atrás" / "Adelante": vuelve a los filtros y la página de la URL
+window.addEventListener("popstate", () => {
+  readUrl();
+  lastWords = searchWords().join(" ");
+  syncSubGroups();
+  renderTags();
+  renderCounts();
+  applyFilters();
+});
 
 // Filtros preseleccionados desde la URL (menú, links del sitio o una búsqueda compartida)
 readUrl();

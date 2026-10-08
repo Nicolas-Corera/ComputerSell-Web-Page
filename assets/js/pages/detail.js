@@ -8,6 +8,7 @@ const { formatPrice, escapeHtml, cardHtml, register } = window.CS;
 const $ = (s) => document.querySelector(s);
 
 const id = new URLSearchParams(location.search).get("id");
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const detail = $("#productDetail");
 let product = null;
 
@@ -22,16 +23,21 @@ window.setMainImage = function (el, src) {
 window.changeQty = function (delta) {
   const input = $("#qtyInput");
   const current = parseInt(input.dataset.qty || input.value, 10) || 1;
-  const max = product ? Math.max(1, product.stock) : 99;
+  // Tope: el stock y como mucho 10 por pedido (lo exige también el backend)
+  const MAX_PER_ORDER = 10;
+  const max = product ? Math.max(1, Math.min(MAX_PER_ORDER, product.stock)) : MAX_PER_ORDER;
   const next = Math.min(max, Math.max(1, current + delta));
   input.dataset.qty = next;
-  input.value = next > 99 ? "99+" : next;
-  // Al llegar al stock: se bloquea el "+" y se avisa cuántas unidades hay
-  const atMax = !!product && next >= product.stock;
+  input.value = next;
+  const atMax = !!product && next >= max;
   $("#qtyPlus").disabled = atMax;
   const limit = $("#qtyLimit");
   limit.hidden = !atMax || !product || product.stock <= 0;
-  if (atMax && product) limit.querySelector("span").textContent = `Límite alcanzado: hay ${product.stock} unidad${product.stock === 1 ? "" : "es"} disponible${product.stock === 1 ? "" : "s"} y ya tenés ${next} en la selección.`;
+  if (atMax && product)
+    limit.querySelector("span").textContent =
+      product.stock <= MAX_PER_ORDER
+        ? `Límite alcanzado: hay ${product.stock} unidad${product.stock === 1 ? "" : "es"} disponible${product.stock === 1 ? "" : "s"} y ya tenés ${next} en la selección.`
+        : `Podés comprar hasta ${MAX_PER_ORDER} unidades por pedido. Si necesitás más, escribinos por WhatsApp.`;
 };
 
 window.switchTab = function (btn, panelId) {
@@ -69,10 +75,11 @@ function render(p) {
   const main = $("#mainImage");
   if (!imgs.includes(main.getAttribute("src"))) main.src = imgs[0] || "";
   main.alt = p.title;
+  // Miniaturas como botones: se pueden elegir con el teclado
   $("#galleryThumbs").innerHTML = imgs
     .map(
       (src, i) =>
-        `<div class="thumb ${src === main.getAttribute("src") || (!main.getAttribute("src") && i === 0) ? "is-active" : ""}" data-main-src="${escapeHtml(src)}"><img src="${escapeHtml(src)}" alt="Imagen ${i + 1}" /></div>`,
+        `<button type="button" class="thumb ${src === main.getAttribute("src") || (!main.getAttribute("src") && i === 0) ? "is-active" : ""}" data-main-src="${escapeHtml(src)}" aria-label="Ver imagen ${i + 1} de ${imgs.length}"><img src="${escapeHtml(src)}" alt="" /></button>`,
     )
     .join("");
   const badge = $("#discountBadge");
@@ -94,18 +101,28 @@ function render(p) {
   const DELIVERY = { "24-48hs": "Envío en 24/48 hs", "3-5": "Envío en 3 a 5 días hábiles", "7-10": "Envío en 7 a 10 días hábiles", "a-pedido": "A pedido (consultar)" };
   const out = p.stock <= 0;
   $("#stockDot").style.background = out ? "#ef4444" : p.stock <= p.stock_min ? "#f59e0b" : "";
+  const low = p.stock === 1 ? "¡Última unidad!" : `¡Últimas ${p.stock} unidades!`;
   $("#stockText").textContent = out
     ? "Sin stock por el momento"
-    : `${p.stock <= p.stock_min ? `¡Últimas ${p.stock} unidad${p.stock === 1 ? "" : "es"}!` : "Stock disponible"} · ${DELIVERY[p.delivery] || p.delivery}`;
+    : `${p.stock <= p.stock_min ? low : "Stock disponible"} · ${DELIVERY[p.delivery] || p.delivery}`;
   $("#addCartBtn").disabled = out;
   $("#buyNowBtn").disabled = out;
   $("#addCartBtn").querySelector("span").textContent = out ? "Sin stock" : "Agregar al carrito";
   changeQty(0);
 
-  $("#shipLine span").innerHTML = p.free_shipping ? "<strong>Envío gratis</strong> para CABA y Provincia de Buenos Aires" : "<strong>Envío a domicilio</strong> a todo el país";
+  $("#shipLine span").innerHTML = p.free_shipping
+    ? "<strong>Envío gratis</strong> solo para CABA y Provincia de Buenos Aires"
+    : "<strong>Envío a domicilio</strong> a todo el país";
+  // Garantía del vendedor; nunca menos que la legal (6 meses nuevo, 3 usado:
+  // Ley 24.240 art. 11). La base ya no deja cargar menos (migración 0031).
   const UNIT = { dias: ["día", "días"], meses: ["mes", "meses"], anios: ["año", "años"] };
-  const warranty = p.warranty ? `${p.warranty} ${(UNIT[p.warranty_unit] || UNIT.meses)[p.warranty === 1 ? 0 : 1]} de garantía oficial` : "";
-  $("#warrantyLine").innerHTML = warranty ? `<strong>${warranty}</strong> ComputerSell` : "Garantía oficial ComputerSell";
+  const legalMonths = (p.condition || "nuevo") === "nuevo" ? 6 : 3;
+  const months = { dias: (p.warranty || 0) / 30, anios: (p.warranty || 0) * 12 }[p.warranty_unit] ?? (p.warranty || 0);
+  const warranty =
+    p.warranty && months >= legalMonths
+      ? `${p.warranty} ${(UNIT[p.warranty_unit] || UNIT.meses)[p.warranty === 1 ? 0 : 1]} de garantía`
+      : `${legalMonths} meses de garantía`;
+  $("#warrantyLine").innerHTML = `<strong>${escapeHtml(warranty)}</strong> del vendedor (ComputerSell)`;
 
   // Descripción / especificaciones
   $("#pDescription").innerHTML = String(p.description || "")
@@ -115,15 +132,24 @@ function render(p) {
     .join("");
   $("#pHighlights").innerHTML = (p.highlights || []).map((h) => `<li><svg><use href="#ic-check" /></svg> ${escapeHtml(h)}</li>`).join("");
   const specs = (p.specs || []).map((s) => `<tr><td>${escapeHtml(s.k)}</td><td>${escapeHtml(s.v)}</td></tr>`);
-  if (p.weight > 0) specs.push(`<tr><td>Peso</td><td>${p.weight} ${p.weight_unit || "kg"}</td></tr>`);
-  if (p.dimensions) specs.push(`<tr><td>Dimensiones</td><td>${escapeHtml(p.dimensions)} ${p.dimensions_unit || "cm"}</td></tr>`);
-  if (warranty) specs.push(`<tr><td>Garantía del vendedor</td><td>${warranty} ComputerSell</td></tr>`);
+  if (p.weight > 0) specs.push(`<tr><td>Peso</td><td>${escapeHtml(p.weight)} ${escapeHtml(p.weight_unit || "kg")}</td></tr>`);
+  if (p.dimensions) specs.push(`<tr><td>Dimensiones</td><td>${escapeHtml(p.dimensions)} ${escapeHtml(p.dimensions_unit || "cm")}</td></tr>`);
+  specs.push(`<tr><td>Garantía del vendedor</td><td>${escapeHtml(warranty)} (ComputerSell)</td></tr>`);
   $("#pSpecs").innerHTML = specs.join("") || `<tr><td colspan="2">Sin especificaciones cargadas.</td></tr>`;
 
   if (window.syncFavorites) window.syncFavorites();
 }
 
 function missing() {
+  // Soft 404: que los buscadores no indexen la ficha vacía
+  document.title = "Producto no encontrado — ComputerSell";
+  let robots = document.querySelector('meta[name="robots"]');
+  if (!robots) {
+    robots = document.createElement("meta");
+    robots.name = "robots";
+    document.head.appendChild(robots);
+  }
+  robots.content = "noindex";
   detail.hidden = true;
   document.querySelector(".tabs").hidden = true;
   $("#relatedSection").hidden = true;
@@ -154,7 +180,8 @@ async function loadProduct() {
 
 // ---------- Carga ----------
 loading(async () => {
-  if (!id) return missing();
+  // Un id mal formado ni se consulta (la base respondería 400)
+  if (!id || !UUID_RE.test(id)) return missing();
   const data = await loadProduct();
   if (!data) return;
   await loadRelated(data);

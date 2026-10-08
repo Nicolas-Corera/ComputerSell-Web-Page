@@ -146,7 +146,7 @@ const templates = {
         title: n.title,
         intro: hi + body,
         button: n.button,
-        note: n.audience === "admin" ? "Aviso automático del panel de ComputerSell." : "Te escribimos porque hay una novedad en tu pedido. También la ves en la campanita de la tienda.",
+        note: n.audience === "admin" ? "Aviso automático del panel de ComputerSell." : "Te escribimos porque hay una novedad en tu pedido. También la ves en Avisos, dentro de Mi cuenta en la tienda.",
         site,
         whatsapp: n.audience !== "admin",
       }),

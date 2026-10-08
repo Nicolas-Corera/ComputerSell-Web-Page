@@ -9,12 +9,12 @@
     <link rel="icon" type="image/png" sizes="192x192" href="/assets/images/favicon-192x192.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="/assets/images/apple-touch-icon.png" />
     <title>Producto — ComputerSell</title>
-    <meta name="description" content="Detalle del producto en ComputerSell: especificaciones, precio, cuotas y envío a todo el país." />
+    <meta name="description" content="Detalle del producto en ComputerSell: especificaciones, precio, garantía y envío a todo el país." />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="ComputerSell" />
     <meta property="og:locale" content="es_AR" />
     <meta property="og:title" content="Producto — ComputerSell" />
-    <meta property="og:description" content="Detalle del producto en ComputerSell: especificaciones, precio, cuotas y envío a todo el país." />
+    <meta property="og:description" content="Detalle del producto en ComputerSell: especificaciones, precio, garantía y envío a todo el país." />
     <meta property="og:image" content="https://computersell.com.ar/assets/images/isotipo-dark.png" />
     <meta property="og:image:alt" content="Logo de ComputerSell" />
     <meta name="twitter:card" content="summary" />
@@ -56,7 +56,7 @@
           <span>•</span>
           <span class="marquee-item"
             ><svg class="ic-sm"><use href="#ic-shipping_truck" /></svg>Envíos
-            gratias en productos seleccionados</span
+            gratis en CABA y Bs. As. (productos seleccionados)</span
           >
           <span>•</span>
           <span class="marquee-item"
@@ -148,7 +148,7 @@
 
             <div class="price-block">
               <div class="prices">
-                <span class="dashed" id="pOld" hidden></span>
+                <del class="dashed" id="pOld" hidden></del>
                 <span class="priceNow" id="pPrice"></span>
               </div>
               <span class="cuotas" id="pCuotas" hidden></span>
@@ -160,7 +160,7 @@
 
             <div class="purchase-row">
               <div class="qty-selector">
-                <button type="button" data-qty-delta="-1">−</button>
+                <button type="button" data-qty-delta="-1" aria-label="Restar una unidad">−</button>
                 <input
                   id="qtyInput"
                   type="text"
@@ -275,9 +275,6 @@
                 precio justo.
               </p>
               <div class="footer-social">
-                <a href="#" aria-label="Instagram"
-                  ><svg class="ic-sm"><use href="#ic-whatsapp" /></svg>
-                </a>
                 <a href="https://wa.me/5491140942695" target="_blank" rel="noopener" aria-label="WhatsApp"
                   ><svg class="ic-sm"><use href="#ic-whatsapp" /></svg>
                 </a>
@@ -300,11 +297,11 @@
             <div class="footer-col">
               <h3>Ayuda</h3>
               <ul>
-                <li><a href="#">Preguntas frecuentes</a></li>
+                <li><a href="/informacion-legal#preguntas">Preguntas frecuentes</a></li>
                 <li><a href="/envios">Envíos</a></li>
                 <li><a href="/cambios-y-devoluciones">Cambios y devoluciones</a></li>
-                <li><a href="#">Garantía</a></li>
-                <li><a href="#">Métodos de pago</a></li>
+                <li><a href="/cambios-y-devoluciones#garantia">Garantía</a></li>
+                <li><a href="/politica-de-venta#pagos">Métodos de pago</a></li>
               </ul>
             </div>
 
@@ -368,6 +365,7 @@
     <script src="/assets/js/components/navbar.js"></script>
     <script src="/assets/js/components/menu.js"></script>
     <script type="module" src="/assets/js/components/footer-legal.js"></script>
+    <script type="module" src="/assets/js/components/empty-categories.js"></script>
     <script type="module" src="/assets/js/pages/detail.js"></script>
     <script src="/assets/js/core/env.js"></script>
     <script src="/assets/js/core/utils.js"></script>

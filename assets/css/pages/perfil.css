@@ -79,6 +79,8 @@
 .avatar-card h2 {
   font-size: 20px;
   font-weight: 700;
+  max-width: 100%;
+  overflow-wrap: anywhere;
 }
 .avatar-card .avatar-email {
   color: var(--ink-soft);
@@ -440,4 +442,8 @@
 }
 .pushPref:hover {
   transform: none;
+}
+
+.avatar-remove[hidden] {
+  display: none;
 }

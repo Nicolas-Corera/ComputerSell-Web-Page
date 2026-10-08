@@ -24,7 +24,11 @@ const fmtDate = (d) =>
   new Date(d.length === 10 ? d + "T12:00:00" : d).toLocaleDateString("es-AR", { day: "2-digit", month: "long", year: "numeric" });
 const fmtDateTime = (d) => new Date(d).toLocaleString("es-AR", { day: "2-digit", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" });
 let userId = null; // con sesión: id del cliente
-const orderNumber = (v) => parseInt(String(v || "").replace(/\D/g, ""), 10) || null;
+// "CS-10486" -> 10486 (dentro del rango de la base; si no, null)
+const orderNumber = (v) => {
+  const n = parseInt(String(v || "").replace(/\D/g, "").slice(0, 10), 10);
+  return n > 0 && n <= 2147483647 ? n : null;
+};
 
 async function prefill() {
   const params = new URLSearchParams(location.search);
@@ -110,7 +114,10 @@ form.addEventListener("submit", async (e) => {
 
   const row = Array.isArray(data) ? data[0] : data;
   if (error || !row) {
-    errorBox.textContent = (error && error.message) || "No pudimos registrar la solicitud. Probá de nuevo o escribinos.";
+    // Los mensajes de la base para el cliente están en castellano; un error
+    // técnico (en inglés) no se muestra tal cual
+    const msg = error && error.message;
+    errorBox.textContent = msg && /[áéíóúñ]|^(No |El |La |Hiciste )/.test(msg) ? msg : "No pudimos registrar la solicitud. Revisá los datos o escribinos.";
     errorBox.hidden = false;
     errorBox.focus();
     return;

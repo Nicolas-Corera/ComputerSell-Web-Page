@@ -142,7 +142,7 @@
           <span>•</span>
           <span class="marquee-item"
             ><svg class="ic-sm"><use href="#ic-shipping_truck" /></svg>Envíos
-            gratias en productos seleccionados</span
+            gratis en CABA y Bs. As. (productos seleccionados)</span
           >
           <span>•</span>
           <span class="marquee-item"
@@ -168,7 +168,7 @@
                 Ver productos
                 <svg class="ic-sm"><use href="#ic-arrow_forward" /></svg>
               </button>
-              <a class="btn-text" href="#nosotros">
+              <a class="btn-text" href="/productos?disponibilidad=oferta">
                 Ofertas
                 <svg class="ic-sm"><use href="#ic-arrow_forward" /></svg>
               </a>
@@ -176,7 +176,10 @@
           </div>
           <div class="hero-visual">
             <img
-              src="/assets/images/pc.png"
+              src="/assets/images/pc.webp"
+              width="520"
+              height="520"
+              fetchpriority="high"
               alt="Equipo gamer armado por ComputerSell con monitor, gabinete RGB, teclado y mouse"
             />
           </div>
@@ -239,10 +242,10 @@
       <main class="container">
         <section class="section destacados">
           <div class="destacados-head">
-            <h2>Productos Destacadas</h2>
+            <h2>Productos destacados</h2>
             <span>
-              Una selección de equipos armados para gaming, diseño y trabajo
-              pesado.
+              Una selección de equipos, notebooks y tablets elegidos por
+              nuestro equipo.
             </span>
           </div>
           <div class="carouselWrap">
@@ -268,9 +271,25 @@
             </div>
           </div>
         </section>
-        <div class="bannerSections">
-          <!-- <img src="/assets/images/banner.png" alt="" /> -->
-          <img src="/assets/images/bannerMotherDay.jpg" alt="" />
+        <div class="bannerSections" id="promoBanner" data-until="2026-10-19T00:00:00-03:00">
+          <a href="/productos?disponibilidad=oferta" class="promoBanner-link">
+            <picture>
+              <source media="(max-width: 640px)" srcset="/assets/images/mothersDay.webp" />
+              <img
+                src="/assets/images/bannerMotherDay.webp"
+                width="1600"
+                height="497"
+                loading="lazy"
+                alt="Especial Día de la Madre: hasta 30% de descuento en tecnología seleccionada"
+              />
+            </picture>
+          </a>
+          <p class="promoBanner-terms">
+            Especial Día de la Madre: hasta 30% OFF en productos seleccionados,
+            hasta el 18/10/2026 o hasta agotar stock. Envío gratis solo a CABA y
+            Provincia de Buenos Aires en los productos marcados con envío
+            gratis. Imágenes ilustrativas.
+          </p>
         </div>
         <section class="section hardware">
           <div class="hardware-head">
@@ -303,206 +322,10 @@
               <svg class="ic-md"><use href="#ic-arrow_forward" /></svg>
             </button>
             <div class="listDestacados" id="carouselHardware" data-carousel>
-              <div class="itemDestacado">
-                <div class="imageDestacado">
-                  <img src="/assets/images/pc1.webp" alt="" />
-                </div>
-                <div class="textCard">
-                  <span>PC Armada AMD Ryzen 5 5500 RTX 3050 16GB 512GB 1</span>
-                  <div class="prices">
-                    <span class="dashed">$1.610.400</span>
-                    <span class="priceNow">1.304.424</span>
-                  </div>
-                </div>
-                <div class="actionsDestacados">
-                  <button class="btn btn-secondary">
-                    <span>Seleccionar</span>
-                  </button>
-                  <button class="btn btn-third">
-                    <svg class="ic-md"><use href="#ic-info" /></svg>
-                  </button>
-                  <button class="btn btn-third">
-                    <svg class="ic-md">
-                      <use class="favorite-icon" href="#ic-favorite" />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-              <div class="itemDestacado">
-                <div class="imageDestacado">
-                  <img src="/assets/images/pc1.webp" alt="" />
-                </div>
-                <div class="textCard">
-                  <span>PC Armada AMD Ryzen 5 5500 RTX 3050 16GB 512GB 2</span>
-                  <div class="prices">
-                    <span class="dashed">$1.610.400</span>
-                    <span class="priceNow">1.304.424</span>
-                  </div>
-                </div>
-                <div class="actionsDestacados">
-                  <button class="btn btn-secondary">
-                    <span>Seleccionar</span>
-                  </button>
-                  <button class="btn btn-third">
-                    <svg class="ic-md"><use href="#ic-info" /></svg>
-                  </button>
-                  <button class="btn btn-third">
-                    <svg class="ic-md">
-                      <use class="favorite-icon" href="#ic-favorite" />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-              <div class="itemDestacado">
-                <div class="imageDestacado">
-                  <img src="/assets/images/pc1.webp" alt="" />
-                </div>
-                <div class="textCard">
-                  <span>PC Armada AMD Ryzen 5 5500 RTX 3050 16GB 512GB 3</span>
-                  <div class="prices">
-                    <span class="dashed">$1.610.400</span>
-                    <span class="priceNow">1.304.424</span>
-                  </div>
-                </div>
-                <div class="actionsDestacados">
-                  <button class="btn btn-secondary">
-                    <span>Seleccionar</span>
-                  </button>
-                  <button class="btn btn-third">
-                    <svg class="ic-md"><use href="#ic-info" /></svg>
-                  </button>
-                  <button class="btn btn-third">
-                    <svg class="ic-md">
-                      <use class="favorite-icon" href="#ic-favorite" />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-              <div class="itemDestacado">
-                <div class="imageDestacado">
-                  <img src="/assets/images/pc1.webp" alt="" />
-                </div>
-                <div class="textCard">
-                  <span>PC Armada AMD Ryzen 5 5500 RTX 3050 16GB 512GB 4</span>
-                  <div class="prices">
-                    <span class="dashed">$1.610.400</span>
-                    <span class="priceNow">1.304.424</span>
-                  </div>
-                </div>
-                <div class="actionsDestacados">
-                  <button class="btn btn-secondary">
-                    <span>Seleccionar</span>
-                  </button>
-                  <button class="btn btn-third">
-                    <svg class="ic-md"><use href="#ic-info" /></svg>
-                  </button>
-                  <button class="btn btn-third">
-                    <svg class="ic-md">
-                      <use class="favorite-icon" href="#ic-favorite" />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-              <div class="itemDestacado">
-                <div class="imageDestacado">
-                  <img src="/assets/images/pc1.webp" alt="" />
-                </div>
-                <div class="textCard">
-                  <span>PC Armada AMD Ryzen 5 5500 RTX 3050 16GB 512GB 5</span>
-                  <div class="prices">
-                    <span class="dashed">$1.610.400</span>
-                    <span class="priceNow">1.304.424</span>
-                  </div>
-                </div>
-                <div class="actionsDestacados">
-                  <button class="btn btn-secondary">
-                    <span>Seleccionar</span>
-                  </button>
-                  <button class="btn btn-third">
-                    <svg class="ic-md"><use href="#ic-info" /></svg>
-                  </button>
-                  <button class="btn btn-third">
-                    <svg class="ic-md">
-                      <use class="favorite-icon" href="#ic-favorite" />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-              <div class="itemDestacado">
-                <div class="imageDestacado">
-                  <img src="/assets/images/pc1.webp" alt="" />
-                </div>
-                <div class="textCard">
-                  <span>PC Armada AMD Ryzen 5 5500 RTX 3050 16GB 512GB 6</span>
-                  <div class="prices">
-                    <span class="dashed">$1.610.400</span>
-                    <span class="priceNow">1.304.424</span>
-                  </div>
-                </div>
-                <div class="actionsDestacados">
-                  <button class="btn btn-secondary">
-                    <span>Seleccionar</span>
-                  </button>
-                  <button class="btn btn-third">
-                    <svg class="ic-md"><use href="#ic-info" /></svg>
-                  </button>
-                  <button class="btn btn-third">
-                    <svg class="ic-md">
-                      <use class="favorite-icon" href="#ic-favorite" />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-              <div class="itemDestacado">
-                <div class="imageDestacado">
-                  <img src="/assets/images/pc1.webp" alt="" />
-                </div>
-                <div class="textCard">
-                  <span>PC Armada AMD Ryzen 5 5500 RTX 3050 16GB 512GB 7</span>
-                  <div class="prices">
-                    <span class="dashed">$1.610.400</span>
-                    <span class="priceNow">1.304.424</span>
-                  </div>
-                </div>
-                <div class="actionsDestacados">
-                  <button class="btn btn-secondary">
-                    <span>Seleccionar</span>
-                  </button>
-                  <button class="btn btn-third">
-                    <svg class="ic-md"><use href="#ic-info" /></svg>
-                  </button>
-                  <button class="btn btn-third">
-                    <svg class="ic-md">
-                      <use class="favorite-icon" href="#ic-favorite" />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-              <div class="itemDestacado">
-                <div class="imageDestacado">
-                  <img src="/assets/images/pc1.webp" alt="" />
-                </div>
-                <div class="textCard">
-                  <span>PC Armada AMD Ryzen 5 5500 RTX 3050 16GB 512GB 8</span>
-                  <div class="prices">
-                    <span class="dashed">$1.610.400</span>
-                    <span class="priceNow">1.304.424</span>
-                  </div>
-                </div>
-                <div class="actionsDestacados">
-                  <button class="btn btn-secondary">
-                    <span>Seleccionar</span>
-                  </button>
-                  <button class="btn btn-third">
-                    <svg class="ic-md"><use href="#ic-info" /></svg>
-                  </button>
-                  <button class="btn btn-third">
-                    <svg class="ic-md">
-                      <use class="favorite-icon" href="#ic-favorite" />
-                    </svg>
-                  </button>
-                </div>
-              </div>
+              <div class="cardSkeleton"></div>
+              <div class="cardSkeleton"></div>
+              <div class="cardSkeleton"></div>
+              <div class="cardSkeleton"></div>
             </div>
           </div>
         </section>
@@ -510,12 +333,15 @@
           <a
             href="https://intercomsite.com.ar"
             target="_blank"
+            rel="noopener"
             class="masonry-item is-wide"
           >
             <div class="masonry-item is-wide">
               <img
-                src="/assets/images/BANNER_INTERCOMSITE.png"
-                alt="Cocina"
+                src="/assets/images/BANNER_INTERCOMSITE.webp"
+                width="1400"
+                height="572"
+                alt="IntercomSite: diseño de páginas web y sistemas a medida (sitio externo)"
                 loading="lazy"
                 style="object-position: center 8%"
               />
@@ -524,8 +350,10 @@
           <a href="/envios" class="masonry-item is-tall">
             <div class="masonry-item is-tall">
               <img
-                src="/assets/images/envios.png"
-                alt="Dormitorio"
+                src="/assets/images/envios.webp"
+                width="800"
+                height="800"
+                alt="Envíos a todo el país"
                 loading="lazy"
               />
             </div>
@@ -536,8 +364,10 @@
           >
             <div class="masonry-item is-xtall">
               <img
-                src="/assets/images/tall_banner.png"
-                alt="Frente del edificio"
+                src="/assets/images/tall_banner.webp"
+                width="720"
+                height="1080"
+                alt="30% OFF en productos seleccionados"
                 loading="lazy"
               />
             </div>
@@ -548,8 +378,10 @@
           >
             <div class="masonry-item is-tall">
               <img
-                src="/assets/images/bigsell.png"
-                alt="Comedor"
+                src="/assets/images/bigsell.webp"
+                width="800"
+                height="800"
+                alt="Ofertas imperdibles en tecnología"
                 loading="lazy"
               />
             </div>
@@ -557,12 +389,15 @@
           <a
             href="https://wa.me/5491140942695"
             target="_blank"
+            rel="noopener"
             class="masonry-link is-std"
           >
             <div class="masonry-item is-std">
               <img
-                src="/assets/images/portfolio.png"
-                alt="Baño"
+                src="/assets/images/portfolio.webp"
+                width="1000"
+                height="667"
+                alt="Armado de PC, soporte técnico y desarrollo web: consultas por WhatsApp"
                 loading="lazy"
               />
             </div>
@@ -570,8 +405,10 @@
           <a href="/nosotros" class="masonry-item is-wide">
             <div class="masonry-item is-wide">
               <img
-                src="/assets/images/banner3.png"
-                alt="Baño"
+                src="/assets/images/banner3.webp"
+                width="1400"
+                height="560"
+                alt="ComputerSell: tecnología que te acompaña en cada paso. Conocé quiénes somos"
                 loading="lazy"
                 style="object-position: center top"
               />
@@ -596,12 +433,6 @@
               justo.
             </p>
             <div class="footer-social">
-              <a href="#" aria-label="Instagram"
-                ><svg class="ic-sm"><use href="#ic-instagram" /></svg>
-              </a>
-              <a href="#" aria-label="Mercado Libre"
-                ><svg class="ic-sm"><use href="#ic-mercadolibre" /></svg>
-              </a>
               <a href="https://wa.me/5491140942695" target="_blank" rel="noopener" aria-label="WhatsApp"
                 ><svg class="ic-sm"><use href="#ic-whatsapp" /></svg>
               </a>
@@ -640,13 +471,13 @@
           <div class="footer-col">
             <h3>Ayuda</h3>
             <ul>
-              <li><a href="#">Preguntas frecuentes</a></li>
+              <li><a href="/informacion-legal#preguntas">Preguntas frecuentes</a></li>
               <li><a href="/envios">Envíos</a></li>
               <li>
                 <a href="/cambios-y-devoluciones">Cambios y devoluciones</a>
               </li>
-              <li><a href="#">Garantía</a></li>
-              <li><a href="#">Métodos de pago</a></li>
+              <li><a href="/cambios-y-devoluciones#garantia">Garantía</a></li>
+              <li><a href="/politica-de-venta#pagos">Métodos de pago</a></li>
             </ul>
           </div>
 
@@ -727,6 +558,7 @@
     <script src="/assets/js/components/navbar.js"></script>
     <script src="/assets/js/components/menu.js"></script>
     <script type="module" src="/assets/js/components/footer-legal.js"></script>
+    <script type="module" src="/assets/js/components/empty-categories.js"></script>
     <script src="/assets/js/components/carousel.js"></script>
     <script src="/assets/js/core/env.js"></script>
     <script src="/assets/js/core/utils.js"></script>

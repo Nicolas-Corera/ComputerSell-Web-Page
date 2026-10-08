@@ -115,5 +115,5 @@
     };
   }
 
-  return { PAYMENT, isRegional, shipping, freeInstallments, installmentOptions, installmentRate, installmentPlan, quote };
+  return { PAYMENT, PROVINCES: SHIPPING.provinces, isRegional, shipping, freeInstallments, installmentOptions, installmentRate, installmentPlan, quote };
 });

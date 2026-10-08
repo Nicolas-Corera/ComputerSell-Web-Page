@@ -3876,3 +3876,18 @@ body.is-sorting * {
   font-size: 13.5px;
   color: var(--ink-soft);
 }
+
+/* Animaciones reducidas (Mi perfil > Configuración) */
+.reduce-motion *,
+.reduce-motion *::before,
+.reduce-motion *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+/* Hasta confirmar que la sesión es de un admin no se muestra el panel */
+.is-checking .admin {
+  visibility: hidden;
+}

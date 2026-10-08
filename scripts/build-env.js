@@ -13,6 +13,8 @@ const url = env.SUPABASE_URL || "";
 const anon = env.SUPABASE_ANON_KEY || "";
 const mpPublicKey = env.MP_PUBLIC_KEY || env.PUBLIC_KEY || "";
 const vapidPublicKey = env.VAPID_PUBLIC_KEY || "";
+// CAPTCHA (Turnstile): la site key es pública; el secreto nunca sale del .env
+const captchaSiteKey = env.CAPTCHA_SITE_KEY || "";
 
 if (!url || !anon) {
   console.warn("[env] Falta SUPABASE_URL o SUPABASE_ANON_KEY: el sitio no va a poder conectarse.");
@@ -25,7 +27,7 @@ if (!vapidPublicKey) {
 }
 
 const out = `// Archivo generado por scripts/build-env.js — no editar a mano.
-window.CS_ENV = ${JSON.stringify({ SUPABASE_URL: url, SUPABASE_ANON_KEY: anon, MP_PUBLIC_KEY: mpPublicKey, VAPID_PUBLIC_KEY: vapidPublicKey }, null, 2)};
+window.CS_ENV = ${JSON.stringify({ SUPABASE_URL: url, SUPABASE_ANON_KEY: anon, MP_PUBLIC_KEY: mpPublicKey, VAPID_PUBLIC_KEY: vapidPublicKey, CAPTCHA_SITE_KEY: captchaSiteKey }, null, 2)};
 `;
 const dest = path.join(ROOT, "assets", "js", "core", "env.js");
 fs.mkdirSync(path.dirname(dest), { recursive: true });

@@ -8,7 +8,6 @@
     <link rel="icon" type="image/png" sizes="16x16" href="/assets/images/favicon-16x16.png" />
     <link rel="icon" type="image/png" sizes="192x192" href="/assets/images/favicon-192x192.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="/assets/images/apple-touch-icon.png" />
-    <!-- Sacá el noindex cuando el texto esté aprobado. -->
     <title>Información legal — ComputerSell</title>
     <meta name="description" content="Información legal de ComputerSell: datos de contacto, datos personales, canales de atención y reclamos, y preguntas frecuentes." />
     <link rel="canonical" href="/informacion-legal" />
@@ -21,7 +20,6 @@
     <meta property="og:image" content="https://computersell.com.ar/assets/images/isotipo-dark.png" />
     <meta property="og:image:alt" content="Logo de ComputerSell" />
     <meta name="twitter:card" content="summary" />
-    <meta name="robots" content="noindex" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -59,7 +57,7 @@
           <span>•</span>
           <span class="marquee-item"
             ><svg class="ic-sm"><use href="#ic-shipping_truck" /></svg>Envíos
-            gratias en productos seleccionados</span
+            gratis en CABA y Bs. As. (productos seleccionados)</span
           >
           <span>•</span>
           <span class="marquee-item"
@@ -302,10 +300,12 @@
                   <p>
                     Una persona de nuestro equipo verifica el comprobante, en
                     general dentro de las 24 horas hábiles. Mientras tanto, el
-                    pedido figura como Pendiente. Si la transferencia no se
-                    acredita dentro de las
-                    <span data-legal="plazoPagoTransferencia"></span>, podemos
-                    cancelar el pedido. Ver la
+                    pedido figura como Pendiente. Si no recibimos el
+                    comprobante dentro de las
+                    <span data-legal="plazoPagoTransferencia"></span> de
+                    confirmado el pedido, se cancela solo y el stock se libera.
+                    También lo podés cancelar vos desde el detalle del pedido
+                    mientras no hayas pagado. Ver la
                     <a href="/politica-de-venta#pagos">Política de venta</a>.
                   </p>
                 </div>
@@ -411,12 +411,6 @@
               justo.
             </p>
             <div class="footer-social">
-              <a href="#" aria-label="Instagram"
-                ><svg class="ic-sm"><use href="#ic-instagram" /></svg>
-              </a>
-              <a href="#" aria-label="Mercado Libre"
-                ><svg class="ic-sm"><use href="#ic-mercadolibre" /></svg>
-              </a>
               <a href="https://wa.me/5491140942695" target="_blank" rel="noopener" aria-label="WhatsApp"
                 ><svg class="ic-sm"><use href="#ic-whatsapp" /></svg>
               </a>
@@ -441,11 +435,11 @@
           <div class="footer-col">
             <h3>Ayuda</h3>
             <ul>
-              <li><a href="#">Preguntas frecuentes</a></li>
+              <li><a href="/informacion-legal#preguntas">Preguntas frecuentes</a></li>
               <li><a href="/envios">Envíos</a></li>
               <li><a href="/cambios-y-devoluciones">Cambios y devoluciones</a></li>
-              <li><a href="#">Garantía</a></li>
-              <li><a href="#">Métodos de pago</a></li>
+              <li><a href="/cambios-y-devoluciones#garantia">Garantía</a></li>
+              <li><a href="/politica-de-venta#pagos">Métodos de pago</a></li>
             </ul>
           </div>
 
@@ -508,6 +502,7 @@
     <script src="/assets/js/components/navbar.js"></script>
     <script src="/assets/js/components/menu.js"></script>
     <script type="module" src="/assets/js/components/footer-legal.js"></script>
+    <script type="module" src="/assets/js/components/empty-categories.js"></script>
     <script src="/assets/js/core/env.js"></script>
     <script src="/assets/js/core/utils.js"></script>
     <script type="module" src="/assets/js/core/favorites.js"></script>

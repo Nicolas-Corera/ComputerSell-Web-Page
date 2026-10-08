@@ -32,6 +32,8 @@ const inside = (dir, file) => {
 };
 // Ningún segmento puede empezar con "." (.env, .git, .vercel...)
 const hasDotSegment = (f) => path.relative(ROOT, f).split(path.sep).some((seg) => seg.startsWith("."));
+// Archivos que tampoco publica el build (scripts/build.js): firma y plantilla interna
+const isPrivate = (f) => /^firma\./i.test(path.basename(f)) || /^plantilla-legal\.html$/i.test(path.basename(f));
 const MIME = {
   ".html": "text/html; charset=utf-8",
   ".css": "text/css; charset=utf-8",
@@ -83,6 +85,7 @@ http
     if (url.startsWith("/api/")) return runApi(url, req, res);
     const app = /^dash./i.test(req.headers.host || "") ? "dash" : "tienda";
     if (app === "tienda" && url === "/sitemap.xml") return runApi("/api/sitemap", req, res);
+    if (app === "tienda" && url === "/.well-known/security.txt") url = "/security.txt";
     // Primero la carpeta de la app, después la raíz (assets compartidos).
     // URLs limpias: /productos -> productos.html (igual que cleanUrls en Vercel)
     const found = [app, ""].flatMap((dir) => {
@@ -96,8 +99,14 @@ http
         return false; // no existe, nombre inválido, sin permiso...
       }
     };
-    const file = found.find((f) => SHARED.some((dir) => inside(dir, f)) && !hasDotSegment(f) && isFile(f));
+    const file = found.find((f) => SHARED.some((dir) => inside(dir, f)) && !hasDotSegment(f) && !isPrivate(f) && isFile(f));
     if (!file) {
+      // Igual que Vercel: la página 404.html de la raíz
+      const page = path.join(ROOT, "404.html");
+      if (req.method === "GET" && /\.html$|\/[^.]*$/.test(url) && fs.existsSync(page)) {
+        res.writeHead(404, { ...SECURITY_HEADERS, "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" });
+        return fs.createReadStream(page).pipe(res);
+      }
       res.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" });
       return res.end("404 · " + url);
     }

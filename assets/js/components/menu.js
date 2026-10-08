@@ -172,15 +172,25 @@
   requestAnimationFrame(() => requestAnimationFrame(unlockDrawer));
   setTimeout(unlockDrawer, 500);
 
+  let opener = null;
   function openMenu() {
     unlockDrawer();
     // Un solo drawer abierto a la vez
     document.body.classList.remove("cart-open");
     document.body.classList.add("menu-open");
+    // El foco entra al menú (teclado y lectores de pantalla) y vuelve al cerrar
+    opener = document.activeElement;
+    setTimeout(() => {
+      const first = drawer.querySelector(".menuDrawer-close, a, button");
+      if (first) first.focus({ preventScroll: true });
+    }, 60);
   }
 
   function closeMenu() {
+    if (!document.body.classList.contains("menu-open")) return;
     document.body.classList.remove("menu-open");
+    if (opener && typeof opener.focus === "function") opener.focus({ preventScroll: true });
+    opener = null;
   }
 
   if (btn) btn.addEventListener("click", openMenu);

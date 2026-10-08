@@ -8,7 +8,6 @@
     <link rel="icon" type="image/png" sizes="16x16" href="/assets/images/favicon-16x16.png" />
     <link rel="icon" type="image/png" sizes="192x192" href="/assets/images/favicon-192x192.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="/assets/images/apple-touch-icon.png" />
-    <!-- Sacá el noindex cuando el texto esté aprobado. -->
     <title>Política de cookies — ComputerSell</title>
     <meta name="description" content="Política de cookies de ComputerSell: qué cookies y almacenamiento local usamos, para qué, y cómo aceptarlos, rechazarlos o borrarlos." />
     <link rel="canonical" href="/cookies" />
@@ -21,7 +20,6 @@
     <meta property="og:image" content="https://computersell.com.ar/assets/images/isotipo-dark.png" />
     <meta property="og:image:alt" content="Logo de ComputerSell" />
     <meta name="twitter:card" content="summary" />
-    <meta name="robots" content="noindex" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -59,7 +57,7 @@
           <span>•</span>
           <span class="marquee-item"
             ><svg class="ic-sm"><use href="#ic-shipping_truck" /></svg>Envíos
-            gratias en productos seleccionados</span
+            gratis en CABA y Bs. As. (productos seleccionados)</span
           >
           <span>•</span>
           <span class="marquee-item"
@@ -220,6 +218,41 @@
                       <td data-label="Categoría"><span class="legal-tag">Necesaria</span></td>
                     </tr>
                     <tr>
+                      <td data-label="Nombre"><code>cs_push_ask</code><br />localStorage</td>
+                      <td data-label="Proveedor">ComputerSell</td>
+                      <td data-label="Finalidad">Recordar cuándo elegiste “Ahora no” al ofrecerte notificaciones, para no volver a preguntarte por 30 días.</td>
+                      <td data-label="Duración">30 días.</td>
+                      <td data-label="Categoría"><span class="legal-tag">Necesaria</span></td>
+                    </tr>
+                    <tr>
+                      <td data-label="Nombre"><code>cs_push_off</code><br />localStorage</td>
+                      <td data-label="Proveedor">ComputerSell</td>
+                      <td data-label="Finalidad">Recordar que desactivaste las notificaciones en este navegador.</td>
+                      <td data-label="Duración">Hasta que las vuelvas a activar o borres los datos del navegador.</td>
+                      <td data-label="Categoría"><span class="legal-tag">Necesaria</span></td>
+                    </tr>
+                    <tr>
+                      <td data-label="Nombre"><code>cs_facets_v1</code><br />sessionStorage</td>
+                      <td data-label="Proveedor">ComputerSell</td>
+                      <td data-label="Finalidad">Guardar por unos minutos los contadores de los filtros del listado de productos, para no pedirlos en cada página.</td>
+                      <td data-label="Duración">Hasta cerrar la pestaña.</td>
+                      <td data-label="Categoría"><span class="legal-tag">Necesaria</span></td>
+                    </tr>
+                    <tr>
+                      <td data-label="Nombre"><code>cs_pw_ok_…, cs_visit_…, cs_push_sync_…</code><br />sessionStorage</td>
+                      <td data-label="Proveedor">ComputerSell</td>
+                      <td data-label="Finalidad">Evitar consultas repetidas durante tu visita: si tu cuenta ya tiene contraseña, si ya revisamos una compra pendiente y si este navegador ya está suscripto a las notificaciones.</td>
+                      <td data-label="Duración">Hasta cerrar la pestaña.</td>
+                      <td data-label="Categoría"><span class="legal-tag">Necesaria</span></td>
+                    </tr>
+                    <tr>
+                      <td data-label="Nombre"><code>cs_fav_pending</code><br />sessionStorage</td>
+                      <td data-label="Proveedor">ComputerSell</td>
+                      <td data-label="Finalidad">Recordar el producto que quisiste guardar en favoritos antes de iniciar sesión, para guardarlo al volver.</td>
+                      <td data-label="Duración">Se borra al usarse o al cerrar la pestaña.</td>
+                      <td data-label="Categoría"><span class="legal-tag">Necesaria</span></td>
+                    </tr>
+                    <tr>
                       <td data-label="Nombre"><code>cs_admin_*</code><br />localStorage</td>
                       <td data-label="Proveedor">ComputerSell (solo en el panel de administración)</td>
                       <td data-label="Finalidad">Preferencias del panel: tema, vista inicial, cantidad de filas y avisos. Solo lo usa el personal autorizado, no los clientes.</td>
@@ -231,7 +264,8 @@
               </div>
               <p>
                 Los <strong>favoritos</strong> no se guardan en tu navegador,
-                sino en tu cuenta. No usamos sessionStorage ni cookies propias.
+                sino en tu cuenta. No usamos cookies propias. Lo que guardamos
+                en sessionStorage es temporal y se borra al cerrar la pestaña.
               </p>
 
               <h3>De terceros</h3>
@@ -434,12 +468,6 @@
               justo.
             </p>
             <div class="footer-social">
-              <a href="#" aria-label="Instagram"
-                ><svg class="ic-sm"><use href="#ic-instagram" /></svg>
-              </a>
-              <a href="#" aria-label="Mercado Libre"
-                ><svg class="ic-sm"><use href="#ic-mercadolibre" /></svg>
-              </a>
               <a href="https://wa.me/5491140942695" target="_blank" rel="noopener" aria-label="WhatsApp"
                 ><svg class="ic-sm"><use href="#ic-whatsapp" /></svg>
               </a>
@@ -464,11 +492,11 @@
           <div class="footer-col">
             <h3>Ayuda</h3>
             <ul>
-              <li><a href="#">Preguntas frecuentes</a></li>
+              <li><a href="/informacion-legal#preguntas">Preguntas frecuentes</a></li>
               <li><a href="/envios">Envíos</a></li>
               <li><a href="/cambios-y-devoluciones">Cambios y devoluciones</a></li>
-              <li><a href="#">Garantía</a></li>
-              <li><a href="#">Métodos de pago</a></li>
+              <li><a href="/cambios-y-devoluciones#garantia">Garantía</a></li>
+              <li><a href="/politica-de-venta#pagos">Métodos de pago</a></li>
             </ul>
           </div>
 
@@ -531,6 +559,7 @@
     <script src="/assets/js/components/navbar.js"></script>
     <script src="/assets/js/components/menu.js"></script>
     <script type="module" src="/assets/js/components/footer-legal.js"></script>
+    <script type="module" src="/assets/js/components/empty-categories.js"></script>
     <script src="/assets/js/core/env.js"></script>
     <script src="/assets/js/core/utils.js"></script>
     <script type="module" src="/assets/js/core/favorites.js"></script>

@@ -15,7 +15,7 @@ self.addEventListener("push", (e) => {
     self.registration.showNotification(data.title || "ComputerSell", {
       body: data.body || "",
       icon: "/assets/images/favicon-192x192.png",
-      badge: "/assets/images/favicon-32x32.png",
+      badge: "/assets/images/badge-96.png", // silueta monocroma (Android la pinta del color del sistema)
       tag: data.tag || undefined,
       lang: "es-AR",
       data: { url: data.url || "/perfil.html#avisos" },

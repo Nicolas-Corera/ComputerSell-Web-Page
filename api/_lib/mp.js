@@ -36,7 +36,12 @@ function env() {
     CONTACT_TO: out.CONTACT_TO || "contacto@computersell.com.ar",
     NOTIFY_ADMIN_TO: out.NOTIFY_ADMIN_TO || out.CONTACT_TO || "ventas@computersell.com.ar",
     CONTACT_DAILY_LIMIT: Number(out.CONTACT_DAILY_LIMIT) || 40,
+    CONTACT_FORM_ENABLED: out.CONTACT_FORM_ENABLED || "",
     NOTIFY_HOOK_SECRET: out.NOTIFY_HOOK_SECRET || "",
+    // Correos de avisos por día: al dueño, a cada cliente y a todos los clientes juntos
+    NOTIFY_ADMIN_DAILY_LIMIT: Number(out.NOTIFY_ADMIN_DAILY_LIMIT) || 200,
+    NOTIFY_USER_DAILY_LIMIT: Number(out.NOTIFY_USER_DAILY_LIMIT) || 30,
+    NOTIFY_DAILY_LIMIT: Number(out.NOTIFY_DAILY_LIMIT) || 300,
     SITE_URL: (out.SITE_URL || "").replace(/\/$/, ""),
     VAPID_PUBLIC_KEY: out.VAPID_PUBLIC_KEY || "",
     VAPID_PRIVATE_KEY: out.VAPID_PRIVATE_KEY || "",
@@ -61,17 +66,35 @@ function send(res, status, body) {
   res.end(JSON.stringify(body));
 }
 
-// Body JSON: Vercel ya lo parsea (req.body); en el dev server se lee del stream
+// Body JSON: Vercel ya lo parsea (req.body); en el dev server se lee del
+// stream (con tope de tamaño). JSON roto o que no es un objeto -> 400.
+const MAX_BODY = 100 * 1024;
+function parseBody(raw) {
+  if (!raw) return {};
+  let data;
+  try {
+    data = JSON.parse(raw);
+  } catch (e) {
+    throw new HttpError(400, "El pedido no tiene un formato válido");
+  }
+  if (!data || typeof data !== "object" || Array.isArray(data)) throw new HttpError(400, "El pedido no tiene un formato válido");
+  return data;
+}
 async function readJson(req) {
   if (req.body !== undefined && req.body !== null) {
-    if (typeof req.body === "string") return req.body ? JSON.parse(req.body) : {};
-    if (Buffer.isBuffer(req.body)) return req.body.length ? JSON.parse(req.body.toString("utf8")) : {};
+    if (typeof req.body === "string") return parseBody(req.body);
+    if (Buffer.isBuffer(req.body)) return parseBody(req.body.toString("utf8"));
+    if (typeof req.body !== "object" || Array.isArray(req.body)) throw new HttpError(400, "El pedido no tiene un formato válido");
     return req.body;
   }
   const chunks = [];
-  for await (const chunk of req) chunks.push(chunk);
-  const raw = Buffer.concat(chunks).toString("utf8");
-  return raw ? JSON.parse(raw) : {};
+  let size = 0;
+  for await (const chunk of req) {
+    size += chunk.length;
+    if (size > MAX_BODY) throw new HttpError(413, "El pedido es demasiado grande");
+    chunks.push(chunk);
+  }
+  return parseBody(Buffer.concat(chunks).toString("utf8"));
 }
 
 function query(req) {

@@ -2,9 +2,10 @@
 // Lo usan el panel (vista previa + imprimir) y el detalle de pedido del cliente.
 // Los datos públicos del vendedor están en assets/js/config/seller.js (SELLER),
 // que también usan las páginas legales. Nombre completo y DNI/CUIT no son
-// públicos: salen de seller_private() (solo con sesión). La imagen de la firma
-// no va en el repo: se sube al bucket privado "docs" con `npm run firma` y se
-// lee con una URL firmada (solo usuarios con sesión).
+// públicos: salen de seller_private() (solo admin o quien tiene una nota de
+// venta). La imagen de la firma no va en el repo: se sube al bucket privado
+// "docs" con `npm run firma`. El panel la lee con una URL firmada de pocos
+// minutos (solo admins); el cliente, de /api/firma (solo con una nota emitida).
 import { sb, getSellerPrivate } from "./supabase.js";
 import { SELLER } from "../config/seller.js";
 
@@ -17,7 +18,8 @@ const esc = (s) =>
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
 const fmtDate = (d) => new Date(d).toLocaleDateString("es-AR", { day: "2-digit", month: "2-digit", year: "numeric" });
 
 export const NOTE_STYLE = `
@@ -54,16 +56,36 @@ export const NOTE_STYLE = `
 @media print{.saleNote{padding:0;border-radius:0;max-width:none}}
 `;
 
-// URL firmada de la firma (1 h) y datos privados del vendedor. Se cachean; si
-// la firma no está subida, no se muestra.
+// Firma (data URL o URL firmada de 10 min) y datos privados del vendedor. Se
+// cachean; si la firma no está o no corresponde verla, no se muestra.
 let signatureUrl = null;
 let seller = {};
+const inPanel = /^dash\./i.test(location.hostname) || location.pathname.startsWith("/dash/");
+
+async function fetchSignature() {
+  if (inPanel) {
+    const { data } = await sb.storage.from("docs").createSignedUrl("firma.png", 600);
+    return data ? data.signedUrl : "";
+  }
+  const { data: sess } = await sb.auth.getSession();
+  if (!sess || !sess.session) return "";
+  const res = await fetch("/api/firma", { headers: { Authorization: "Bearer " + sess.session.access_token } });
+  if (!res.ok) return "";
+  const blob = await res.blob();
+  if (blob.type !== "image/png") return "";
+  return await new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ""));
+    reader.onerror = () => resolve("");
+    reader.readAsDataURL(blob);
+  });
+}
+
 export async function loadSignature() {
-  seller = await getSellerPrivate();
+  seller = await getSellerPrivate(true);
   if (signatureUrl !== null) return signatureUrl;
   try {
-    const { data } = await sb.storage.from("docs").createSignedUrl("firma.png", 3600);
-    signatureUrl = data ? data.signedUrl : "";
+    signatureUrl = await fetchSignature();
   } catch (e) {
     signatureUrl = "";
   }
@@ -115,7 +137,7 @@ export function saleNoteHtml(inv, order) {
         <small>Vendedor</small>
         <strong>${esc(sellerName)}</strong><br />
         ${seller.doc ? esc(seller.doc) : '<span style="color:#999">DNI / CUIT sin cargar</span>'}<br />
-        ${SELLER.phone ? esc(SELLER.phone) : '<span style="color:#999">DNI / CUIT sin cargar</span>'}
+        ${SELLER.phone ? esc(SELLER.phone) : '<span style="color:#999">Teléfono sin cargar</span>'}
       </div>
       <div class="sn-box">
         <small>Comprador</small>
@@ -146,7 +168,7 @@ export function saleNoteHtml(inv, order) {
     <div class="sn-sign">
       <div style="font-size:12px;color:#555">Emitido por ${esc(SELLER.name)}</div>
       <div>
-        ${signatureUrl ? `<img class="sn-firma" src="${signatureUrl}" alt="Firma" />` : ""}
+        ${signatureUrl && /^(data:image\/png;base64,|https:\/\/)/.test(signatureUrl) ? `<img class="sn-firma" src="${esc(signatureUrl)}" alt="Firma" />` : ""}
         <div class="line"><strong>${esc(sellerName)}</strong>Firma y aclaración</div>
       </div>
     </div>
@@ -158,11 +180,16 @@ export function saleNoteHtml(inv, order) {
   </div>`;
 }
 
-// Abre el documento en una ventana lista para imprimir / guardar como PDF
+// Abre el documento en una ventana lista para imprimir / guardar como PDF.
+// La ventana se abre ANTES de cargar la firma: si se abre después de un await
+// el navegador ya no lo considera un click del usuario y la bloquea.
 export async function printSaleNote(inv, order) {
-  await loadSignature();
   const w = window.open("", "_blank");
   if (!w) return false;
+  w.document.write(`<!doctype html><html lang="es"><head><meta charset="utf-8" /><title>${esc(inv.number)}</title></head><body style="font-family:Arial,sans-serif;padding:24px">Preparando la nota de venta…</body></html>`);
+  await loadSignature();
+  if (w.closed) return true;
+  w.document.open();
   w.document.write(`<!doctype html><html lang="es"><head><meta charset="utf-8" /><title>${esc(inv.number)}</title>
     <style>body{margin:0;padding:24px;background:#fff}@page{margin:16mm}</style></head>
     <body>${saleNoteHtml(inv, order)}</body></html>`);

@@ -7,12 +7,14 @@
 import { sb, signOut, CATEGORIES, applyStoreLinks, storeUrl } from "/assets/js/core/supabase.js";
 import { saleNoteHtml, printSaleNote, loadSignature } from "/assets/js/core/sale-note.js";
 import {
-  PRODUCTS, ORDERS, RESERVAS, INVOICES, RECEIPTS, NOTIFS, CUSTOMERS, USER,
+  PRODUCTS, ORDERS, RESERVAS, INVOICES, RECEIPTS, NOTIFS, CUSTOMERS, REVOCATIONS, USER,
   requireAdmin, loadAll, onChange, startRealtime, setOrderStatus, reviewReceipt, markRead, receiptUrl, loadProducts,
+  setProductStock, setRevocationStatus,
 } from "./data.js";
 
 (async function () {
   if (!(await requireAdmin())) return;
+  document.body.classList.remove("is-checking");
   applyStoreLinks();
   await loadAll();
   const { formatPrice, parsePrice, escapeHtml } = window.CS;
@@ -20,8 +22,24 @@ import {
   const $ = (sel, root) => (root || document).querySelector(sel);
   const $$ = (sel, root) => Array.from((root || document).querySelectorAll(sel));
 
-  const TODAY = new Date();
+  let TODAY = new Date();
+  setInterval(() => (TODAY = new Date()), 60000);
   const DAY = 86400000;
+
+  // Errores de la base / Supabase en castellano para los toasts. Los mensajes
+  // propios (RPC con raise exception) ya están en castellano y pasan tal cual.
+  function errText(err, fallback) {
+    const m = String((err && err.message) || err || "");
+    if (/duplicate key.*sku|products_sku_key/i.test(m)) return "Ya existe un producto con ese SKU.";
+    if (/products_stock_check|stock.*check/i.test(m)) return "El stock no puede ser negativo.";
+    if (/products_price_check|price.*check/i.test(m)) return "El precio no puede ser negativo.";
+    if (/row-level security|permission denied|Solo administradores/i.test(m)) return "No tenés permiso para hacer esto. Volvé a ingresar al panel.";
+    if (/JWT|session/i.test(m)) return "Tu sesión venció. Volvé a ingresar.";
+    if (/Failed to fetch|NetworkError|network/i.test(m)) return "Sin conexión con el servidor. Probá de nuevo.";
+    if (/[áéíóúñ¿¡]/i.test(m) || /^(El |La |No |Este |Ese |Indicá)/.test(m)) return m;
+    if (m) console.warn("[panel]", m);
+    return fallback || "No se pudo completar la acción. Probá de nuevo.";
+  }
 
   // ---------- Storage ----------
   const store = {
@@ -145,13 +163,13 @@ import {
     if (e.target === modalBackdrop) closeModal();
   });
 
-  function confirmModal({ title, text, okText, danger }) {
+  function confirmModal({ title, text, okText, danger, cancelText }) {
     return new Promise((resolve) => {
       openModal(`
         <h3>${escapeHtml(title)}</h3>
         <p>${escapeHtml(text)}</p>
         <div class="modal-actions">
-          <button class="btn btn-ghost" type="button" data-close>Cancelar</button>
+          <button class="btn btn-ghost" type="button" data-close>${escapeHtml(cancelText || "Volver")}</button>
           <button class="btn ${danger ? "btn-danger" : "btn-secondary"}" type="button" id="modalOk">${escapeHtml(okText || "Confirmar")}</button>
         </div>`);
       $("#modalOk").addEventListener("click", () => {
@@ -181,6 +199,7 @@ import {
     pagado: { label: "Pagado", cls: "is-info" },
     preparando: { label: "En preparación", cls: "is-info" },
     enviado: { label: "Despachado", cls: "is-ok" },
+    entregado: { label: "Entregado", cls: "is-ok" },
     cancelado: { label: "Cancelado", cls: "is-bad" },
   };
 
@@ -215,6 +234,7 @@ import {
     ordenes: ["Órdenes", "Ventas y reservas"],
     productos: ["Productos", "Catálogo publicado y stock"],
     facturas: ["Facturas", "Comprobantes emitidos y recibidos"],
+    arrepentimientos: ["Arrepentimientos", "Solicitudes del Botón de arrepentimiento"],
     cargas: ["Cargas", "Publicá un producto nuevo en el catálogo"],
     perfil: ["Mi perfil", USER.email],
   };
@@ -318,14 +338,16 @@ import {
     const W = 800, H = 260, padL = 52, padR = 10, padT = 14, padB = 30;
     const labels = cfg.labels;
     const series = cfg.series;
-    const max = niceMax(Math.max(...series.flatMap((s) => s.values)) || 1);
+    const ticks = 4;
+    let max = niceMax(Math.max(...series.flatMap((s) => s.values)) || 1);
+    // Cantidades enteras (órdenes): el eje no repite valores ("0, 0, 1, 1")
+    if (cfg.integer) max = Math.max(ticks, Math.ceil(max / ticks) * ticks);
     const innerW = W - padL - padR;
     const innerH = H - padT - padB;
     const groupW = innerW / labels.length;
     const gap = 2;
     const barW = Math.min(28, (groupW * 0.7 - gap * (series.length - 1)) / series.length);
     const fmt = cfg.format || ((v) => formatPrice(v));
-    const ticks = 4;
 
     let svg = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" style="aspect-ratio:${W}/${H}">`;
     for (let t = 0; t <= ticks; t++) {
@@ -554,7 +576,7 @@ import {
       notifList.innerHTML = `<div class="emptyState"><svg><use href="#ic-notifications" /></svg><h2>Sin notificaciones</h2><p>No hay novedades en esta categoría.</p></div>`;
       return;
     }
-    const TYPE_LABEL = { venta: "Venta", reserva: "Reserva", pago: "Pago", stock: "Stock", sistema: "Sistema" };
+    const TYPE_LABEL = { venta: "Venta", reserva: "Reserva", pago: "Pago", stock: "Stock", sistema: "Sistema", carrito: "Carrito" };
     notifList.innerHTML = items
       .map(
         (n) => `
@@ -578,6 +600,14 @@ import {
     updateNotifBadges();
     if (n.target && n.target.view) {
       showView(n.target.view, { tab: n.target.tab });
+      if (n.target.receipt) {
+        const rec = RECEIPTS.find((r) => r.uuid === n.target.receipt);
+        if (rec) return previewReceipt(rec);
+      }
+      if (n.target.revocation) {
+        const rev = REVOCATIONS.find((r) => r.id === n.target.revocation);
+        if (rev) return openRevocationDrawer(rev);
+      }
       if (n.target.order) openOrderDrawer(ORDERS.find((o) => o.uuid === n.target.order));
       if (n.target.reserva) openReservaDrawer(RESERVAS.find((r) => r.uuid === n.target.reserva));
       if (n.target.product && RENDERERS._editProduct) RENDERERS._editProduct(n.target.product);
@@ -654,7 +684,7 @@ import {
       kpi("payments", "Ingresos del mes", formatPrice(curRev), delta(curRev, prevRev), spark, true) +
       kpi("orders", "Órdenes del mes", cur.length, delta(cur.length, prev.length), sparkOrders) +
       kpi("point_of_sale", "Ticket promedio", formatPrice(ticket), delta(ticket, prevTicket), null, true) +
-      kpi("event", "Reservas activas", activeRes, null, null, false, `${pending} órdenes pendientes de pago`);
+      kpi("event", "Reservas activas", activeRes, null, null, false, `${pending} ${pending === 1 ? "orden pendiente" : "órdenes pendientes"} de pago`);
 
     // Ingresos con rango
     const revEl = $("#revenueChart");
@@ -795,6 +825,7 @@ import {
         ],
         format: (v) => v + " órdenes",
         axisFormat: (v) => Math.round(v),
+        integer: true,
       });
       const totalRev = m.revenue.reduce((a, b) => a + b, 0);
       const totalOrders = m.sales.reduce((a, b) => a + b, 0);
@@ -808,9 +839,9 @@ import {
           <span class="kpi-delta">${sub}</span>
         </div>`;
       $("#analyticsKpis").innerHTML =
-        kpi("payments", `Facturado (${months} meses)`, formatPrice(totalRev), `${totalOrders} órdenes pagadas`, true) +
+        kpi("payments", `Facturado (${months} meses)`, formatPrice(totalRev), `${totalOrders} ${totalOrders === 1 ? "orden pagada" : "órdenes pagadas"}`, true) +
         kpi("inventory_2", "Unidades vendidas", units, "en todo el período") +
-        kpi("group", "Clientes únicos", new Set(paid.map((o) => o.customer.id)).size, `${paid.length ? Math.round((paid.length / new Set(paid.map((o) => o.customer.id)).size) * 10) / 10 : 0} órdenes por cliente`) +
+        kpi("group", "Clientes únicos", new Set(paid.map((o) => o.customer.id)).size, `${(() => { const n = paid.length ? Math.round((paid.length / new Set(paid.map((o) => o.customer.id)).size) * 10) / 10 : 0; return `${String(n).replace(".", ",")} ${n === 1 ? "orden" : "órdenes"} por cliente`; })()}`) +
         kpi("cancel", "Tasa de cancelación", `${ORDERS.length ? Math.round((cancel / ORDERS.length) * 100) : 0}%`, `${cancel} de ${ORDERS.length} órdenes`);
     }
     draw(12);
@@ -859,6 +890,7 @@ import {
       series: [{ name: "Órdenes", color: "#3b82f6", values: hVals }],
       format: (v) => v + " órdenes",
       axisFormat: (v) => Math.round(v),
+      integer: true,
     });
 
     // Ticket promedio por semana (últimas 8 semanas)
@@ -1056,7 +1088,7 @@ import {
         return true;
       });
       const units = rows.reduce((a, p) => a + (p.stock || 0), 0);
-      $("#productsResult").textContent = `${rows.length} de ${PRODUCTS.length} productos · ${units} unidades`;
+      $("#productsResult").textContent = `${rows.length} de ${PRODUCTS.length} productos · ${units} ${units === 1 ? "unidad" : "unidades"}`;
       const pageSize = +(store.get("prefs", {}).pageSize || 25);
       $("#productsTable").innerHTML =
         `<thead><tr><th>Producto</th><th>SKU</th><th>Categoría</th><th>Estado</th><th class="num">Precio</th><th class="num">Stock</th><th class="num">Mínimo</th></tr></thead><tbody>` +
@@ -1111,9 +1143,9 @@ import {
       <div>
         <h4>Stock</h4>
         <dl class="kv">
-          <dt>Disponible</dt><dd><strong>${p.stock}</strong> unidades</dd>
+          <dt>Disponible</dt><dd><strong>${p.stock}</strong> ${p.stock === 1 ? "unidad" : "unidades"}</dd>
           <dt>Mínimo</dt><dd>${p.stockMin}</dd>
-          <dt>Ajustar</dt><dd><span class="stock-adjust"><input type="number" min="0" step="1" id="drawerStock" value="${p.stock}" /><button class="btn btn-secondary is-sm" type="button" id="drawerStockSave">Guardar</button></span></dd>
+          <dt>Nuevo stock</dt><dd><span class="stock-adjust"><input type="number" min="0" max="1000000" step="1" id="drawerStock" value="${p.stock}" aria-label="Nuevo stock (unidades disponibles)" /><button class="btn btn-secondary is-sm" type="button" id="drawerStockSave">Guardar</button></span><small class="field-help" style="display:block;margin-top:4px">Cantidad total disponible (no se suma ni se resta).</small></dd>
         </dl>
       </div>
       <div>
@@ -1151,11 +1183,24 @@ import {
       RENDERERS._editProduct && RENDERERS._editProduct(p.id);
     });
     $("#drawerStockSave").addEventListener("click", async () => {
-      const v = Math.max(0, Math.round(+$("#drawerStock").value || 0));
+      const raw = $("#drawerStock").value.trim();
+      const v = Number(raw);
+      if (raw === "" || !Number.isInteger(v) || v < 0 || v > 1000000)
+        return toast("Ingresá la cantidad total disponible: un número entero de 0 en adelante", "bad");
       if (v === p.stock) return;
-      const { error } = await sb.from("products").update({ stock: v }).eq("id", p.id);
-      if (error) return toast(error.message, "error");
-      toast(`Stock de ${p.name} actualizado a ${v}`, "success");
+      if (v === 0) {
+        const ok = await confirmModal({ title: "Dejar sin stock", text: `${p.name} va a aparecer como "Sin stock" en la tienda.`, okText: "Dejar en 0", danger: true });
+        if (!ok) return;
+      }
+      const btn = $("#drawerStockSave");
+      if (btn) btn.disabled = true;
+      try {
+        await setProductStock(p.id, p.stock, v);
+        toast(`Stock de ${p.name} actualizado a ${v}`, "ok");
+      } catch (err) {
+        toast(errText(err), "bad");
+        if (btn) btn.disabled = false;
+      }
     });
   }
 
@@ -1176,8 +1221,8 @@ import {
   $("#drawerClose").addEventListener("click", closeDrawer);
   drawerBackdrop.addEventListener("click", closeDrawer);
 
-  const NEXT_STATUS = { pendiente: "pagado", pagado: "preparando", preparando: "enviado" };
-  const NEXT_LABEL = { pendiente: "Marcar como pagado", pagado: "Pasar a preparación", preparando: "Marcar como despachado" };
+  const NEXT_STATUS = { pendiente: "pagado", pagado: "preparando", preparando: "enviado", enviado: "entregado" };
+  const NEXT_LABEL = { pendiente: "Marcar como pagado", pagado: "Pasar a preparación", preparando: "Marcar como despachado", enviado: "Marcar como entregado" };
 
   // Pide el código de seguimiento del correo antes de marcar como despachado
   function trackingModal(o) {
@@ -1205,18 +1250,24 @@ import {
   }
 
   function orderTimeline(o) {
-    const steps = ["pendiente", "pagado", "preparando", "enviado"];
+    const steps = ["pendiente", "pagado", "preparando", "enviado", "entregado"];
     const idx = o.status === "cancelado" ? -1 : steps.indexOf(o.status);
-    const labels = { pendiente: "Orden creada", pagado: "Pago confirmado", preparando: "En preparación", enviado: "Despachado" };
+    const labels = { pendiente: "Orden creada", pagado: "Pago confirmado", preparando: "En preparación", enviado: "Despachado", entregado: "Entregado" };
+    // La nota no se repite si dice lo mismo que el paso ("Orden creada · Orden creada")
+    const note = (st, ev) => (ev.note && normalize(ev.note) !== normalize(labels[st] || "") && normalize(ev.note) !== "pedido creado" ? " · " + escapeHtml(ev.note) : "");
     const when = (st) => {
       const ev = o.events.find((e) => e.status === st);
-      return ev ? `<small>${fmtDateTime(new Date(ev.created_at))}${ev.note ? " · " + escapeHtml(ev.note) : ""}</small>` : "";
+      return ev ? `<small>${fmtDateTime(new Date(ev.created_at))}${note(st, ev)}</small>` : "";
     };
     let html = "";
     steps.forEach((s, i) => {
       const done = i <= idx;
       html += `<li class="${done ? "" : "is-pending"}">${labels[s]}${done ? when(s) : ""}</li>`;
     });
+    // Otros eventos (arrepentimiento, cambio de seguimiento): quedan a la vista
+    const extra = o.events.filter((e, i) => o.events.findIndex((x) => x.status === e.status) !== i && e.note);
+    if (extra.length && o.status !== "cancelado")
+      html += extra.map((e) => `<li>${escapeHtml(e.note)}<small>${fmtDateTime(new Date(e.created_at))}</small></li>`).join("");
     if (o.status === "cancelado") {
       html = `<li>Orden creada<small>${fmtDateTime(o.date)}</small></li>`;
       o.events.filter((e) => e.status !== "pendiente" && e.status !== "cancelado").forEach((e) => (html += `<li>${labels[e.status] || e.status}<small>${fmtDateTime(new Date(e.created_at))}</small></li>`));
@@ -1253,7 +1304,7 @@ import {
             .map(
               (it) => `
             <div class="list-item">
-              <span class="thumb">${it.product.img ? `<img src="${it.product.img}" alt="" />` : '<svg><use href="#ic-image" /></svg>'}</span>
+              <span class="thumb">${it.product.img ? `<img src="${escapeHtml(it.product.img)}" alt="" />` : '<svg><use href="#ic-image" /></svg>'}</span>
               <div class="body"><strong>${escapeHtml(it.product.name)}</strong><small>x${it.qty} · $${formatPrice(it.price)} c/u${it.product.sku ? " · SKU " + escapeHtml(it.product.sku) : ""}</small></div>
               <span class="val is-money">${formatPrice(it.price * it.qty)}</span>
             </div>`,
@@ -1270,7 +1321,7 @@ import {
           <dt>Envío</dt><dd>${o.shipping ? "$" + formatPrice(o.shipping) : "Gratis"}</dd>
           ${o.surcharge ? `<dt>Recargo</dt><dd>$${formatPrice(o.surcharge)}</dd>` : ""}
           <dt><strong>Total</strong></dt><dd><strong style="font-family:var(--font-display);font-size:16px">$${formatPrice(o.total)}</strong></dd>
-          ${o.status === "enviado" ? `<dt>Seguimiento</dt><dd>${o.tracking ? `<span class="mono">${escapeHtml(o.tracking)}</span>` : '<span class="muted">Sin código</span>'} <button class="btn-text" type="button" id="editTracking" style="margin-left:6px">Editar</button></dd>` : ""}
+          ${o.status === "enviado" || o.status === "entregado" ? `<dt>Seguimiento</dt><dd>${o.tracking ? `<span class="mono">${escapeHtml(o.tracking)}</span>` : '<span class="muted">Sin código</span>'} <button class="btn-text" type="button" id="editTracking" style="margin-left:6px">Editar</button></dd>` : ""}
         </dl>
       </div>
       <div>
@@ -1283,7 +1334,7 @@ import {
       ${NEXT_STATUS[o.status] ? `<button class="btn btn-secondary is-sm" type="button" id="advanceOrder"><svg><use href="#ic-check_circle" /></svg>${NEXT_LABEL[o.status]}</button>` : ""}
       ${inv ? `<button class="btn btn-ghost is-sm" type="button" id="drawerInvoice"><svg><use href="#ic-receipt_long" /></svg>Nota de venta</button>` : ""}
       ${rec ? `<button class="btn btn-ghost is-sm" type="button" id="drawerReceipt"><svg><use href="#ic-account_balance" /></svg>Comprobante</button>` : ""}
-      ${o.status !== "cancelado" && o.status !== "enviado" ? `<button class="btn btn-danger is-sm" type="button" id="cancelOrder" style="margin-left:auto"><svg><use href="#ic-cancel" /></svg>Cancelar</button>` : ""}`;
+      ${o.status !== "cancelado" ? `<button class="btn btn-danger is-sm" type="button" id="cancelOrder" style="margin-left:auto"><svg><use href="#ic-cancel" /></svg>Cancelar orden</button>` : ""}`;
     openDrawer();
 
     const adv = $("#advanceOrder");
@@ -1296,12 +1347,29 @@ import {
           if (!r.ok) return;
           tracking = r.code;
         }
+        // Marcar como pagado emite la nota de venta y avisa al cliente: se
+        // confirma (sobre todo si no hay un comprobante aprobado)
+        if (next === "pagado") {
+          const approved = RECEIPTS.some((r) => r.order && r.order.uuid === o.uuid && r.status === "aprobado");
+          const ok = await confirmModal({
+            title: `Marcar ${o.id} como pagado`,
+            text: approved
+              ? "Se emite la nota de venta y se avisa al cliente por correo."
+              : `No hay un comprobante aprobado para este pedido. Marcalo como pagado solo si verificaste que recibiste $${formatPrice(o.total)}. Se emite la nota de venta y se avisa al cliente por correo.`,
+            okText: "Marcar como pagado",
+          });
+          if (!ok) return;
+        }
+        if (next === "entregado") {
+          const ok = await confirmModal({ title: `Marcar ${o.id} como entregado`, text: "El cliente recibió el pedido. Se le avisa y desde esa fecha corren los 10 días para el arrepentimiento.", okText: "Marcar como entregado" });
+          if (!ok) return;
+        }
         adv.disabled = true;
         try {
           await setOrderStatus(o, next, "", tracking);
           toast(`${o.id}: ${ORDER_STATUS[next].label}`, "ok");
         } catch (err) {
-          toast(err.message, "bad");
+          toast(errText(err), "bad");
           adv.disabled = false;
         }
       });
@@ -1311,10 +1379,10 @@ import {
         const r = await trackingModal(o);
         if (!r.ok) return;
         try {
-          await setOrderStatus(o, "enviado", "", r.code);
-          toast("Código de seguimiento actualizado", "ok");
+          await setOrderStatus(o, o.status, "", r.code);
+          toast("Código de seguimiento actualizado. Le avisamos al cliente.", "ok");
         } catch (err) {
-          toast(err.message, "bad");
+          toast(errText(err), "bad");
         }
       });
     const inv2 = $("#drawerInvoice");
@@ -1324,18 +1392,27 @@ import {
     const cancel = $("#cancelOrder");
     if (cancel)
       cancel.addEventListener("click", async () => {
+        const shipped = o.status === "enviado" || o.status === "entregado";
+        const paid = o.status !== "pendiente";
         const ok = await confirmModal({
           title: `Cancelar ${o.id}`,
-          text: "La orden pasará a estado cancelado y se notificará al cliente. Esta acción no se puede deshacer.",
+          text:
+            (shipped ? "Usalo cuando el paquete vuelve o por un arrepentimiento con el producto devuelto. " : "") +
+            "La orden pasa a cancelada, el stock vuelve al catálogo y se le avisa al cliente." +
+            (paid ? " Si ya pagó, coordiná el reintegro del total." : "") +
+            " No se puede deshacer.",
           okText: "Cancelar orden",
+          cancelText: "Volver",
           danger: true,
         });
         if (!ok) return;
+        cancel.disabled = true;
         try {
-          await setOrderStatus(o, "cancelado", "Cancelada desde el panel");
+          await setOrderStatus(o, "cancelado", shipped ? "Cancelada desde el panel (devolución)" : "Cancelada desde el panel");
           toast(`${o.id} cancelada`, "bad");
         } catch (err) {
-          toast(err.message, "bad");
+          toast(errText(err), "bad");
+          cancel.disabled = false;
         }
       });
   }
@@ -1352,8 +1429,8 @@ import {
       </div>
       <div class="list">
         <div class="list-item">
-          <span class="thumb">${r.product.img ? `<img src="${r.product.img}" alt="" />` : ""}</span>
-          <div class="body"><strong>${escapeHtml(r.product.name)}</strong><small>SKU ${r.product.sku} · Stock actual: ${r.product.stock}</small></div>
+          <span class="thumb">${r.product.img ? `<img src="${escapeHtml(r.product.img)}" alt="" />` : ""}</span>
+          <div class="body"><strong>${escapeHtml(r.product.name)}</strong><small>SKU ${escapeHtml(r.product.sku)} · Stock actual: ${r.product.stock}</small></div>
           <span class="val is-money">${formatPrice(r.product.price)}</span>
         </div>
       </div>
@@ -1383,7 +1460,7 @@ import {
     openDrawer();
     const done = async (patch, msg, type) => {
       const { error } = await sb.from("reservations").update(patch).eq("id", r.uuid);
-      if (error) return toast(error.message, "bad");
+      if (error) return toast(errText(error), "bad");
       toast(msg, type);
     };
     $("#resPickup") && $("#resPickup").addEventListener("click", () => done({ status: "retirada" }, `${r.id} marcada como retirada`, "ok"));
@@ -1397,6 +1474,145 @@ import {
         const ok = await confirmModal({ title: `Cancelar ${r.id}`, text: "Se liberará el stock reservado. La seña deberá devolverse manualmente.", okText: "Cancelar reserva", danger: true });
         if (ok) done({ status: "cancelada" }, `${r.id} cancelada`, "bad");
       });
+  }
+
+  // =====================================================================
+  //  ARREPENTIMIENTOS
+  // =====================================================================
+
+  const REVOCATION_STATUS = {
+    recibida: { label: "Recibida", cls: "is-warn" },
+    en_curso: { label: "En curso", cls: "is-info" },
+    reintegrada: { label: "Reintegrada", cls: "is-ok" },
+    rechazada: { label: "Rechazada", cls: "is-bad" },
+    desistida: { label: "Desistida", cls: "is-muted" },
+  };
+  const openRevocations = () => REVOCATIONS.filter((r) => r.status === "recibida" || r.status === "en_curso");
+
+  function updateRevBadge() {
+    const n = openRevocations().length;
+    const el = $("#sbRevBadge");
+    if (el) el.textContent = n ? String(n) : "";
+  }
+
+  function renderRevocations() {
+    const qEl = $("#revSearch"), stEl = $("#revStatus");
+    function draw() {
+      const q = normalize(qEl.value);
+      const rows = REVOCATIONS.filter((r) => {
+        if (stEl.value === "abiertas" && !["recibida", "en_curso"].includes(r.status)) return false;
+        if (stEl.value && stEl.value !== "abiertas" && r.status !== stEl.value) return false;
+        if (q && !normalize([r.code, r.name, r.email, r.dni, r.order ? r.order.id : ""].join(" ")).includes(q)) return false;
+        return true;
+      });
+      $("#revResult").textContent = `${rows.length} de ${REVOCATIONS.length} solicitudes`;
+      $("#revocationsTable").innerHTML =
+        `<thead><tr><th>Código</th><th>Orden</th><th>Cliente</th><th>Recibida</th><th>Plazo</th><th>Estado</th><th></th></tr></thead><tbody>` +
+        (rows.length
+          ? rows
+              .map(
+                (r) => `
+            <tr>
+              <td class="mono">${escapeHtml(r.code)}</td>
+              <td class="muted">${r.order ? escapeHtml(r.order.id) : "—"}</td>
+              <td>${escapeHtml(r.name || r.email)}<br /><small class="muted">${escapeHtml(r.email)}</small></td>
+              <td class="muted">${fmtDateTime(r.date)}</td>
+              <td class="muted">${r.deadline ? fmtDate(r.deadline + "T12:00:00") : "—"}</td>
+              <td>${badge(REVOCATION_STATUS, r.status)}</td>
+              <td><div class="actions"><button class="iconBtn is-sm" type="button" data-rev="${escapeHtml(r.id)}" title="Ver solicitud" aria-label="Ver solicitud ${escapeHtml(r.code)}"><svg><use href="#ic-visibility" /></svg></button></div></td>
+            </tr>`,
+              )
+              .join("")
+          : `<tr><td colspan="7" class="table-empty">No hay solicitudes que coincidan.</td></tr>`) +
+        "</tbody>";
+    }
+    [qEl, stEl].forEach((el) => (el.oninput = draw));
+    $("#revocationsTable").addEventListener("click", (e) => {
+      const b = e.target.closest("[data-rev]");
+      if (b) openRevocationDrawer(REVOCATIONS.find((r) => r.id === b.dataset.rev));
+    });
+    draw();
+    RENDERERS._redrawRevocations = draw;
+  }
+
+  function openRevocationDrawer(r) {
+    if (!r) return;
+    drawerOpen = { type: "revocation", uuid: r.id };
+    drawerTitle.textContent = `Arrepentimiento ${r.code}`;
+    const o = r.order;
+    drawerBody.innerHTML = `
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+        ${badge(REVOCATION_STATUS, r.status)}
+        <span style="font-size:13px;color:var(--ink-soft)">${fmtDateTime(r.date)}</span>
+      </div>
+      <div>
+        <h4>Cliente</h4>
+        <dl class="kv">
+          <dt>Nombre</dt><dd>${escapeHtml(r.name || "—")}</dd>
+          <dt>Email</dt><dd>${escapeHtml(r.email || "—")}</dd>
+          <dt>DNI</dt><dd>${escapeHtml(r.dni || "—")}</dd>
+          ${o ? `<dt>Teléfono</dt><dd>${escapeHtml(o.customer.phone || "—")}</dd>` : ""}
+        </dl>
+      </div>
+      <div>
+        <h4>Pedido</h4>
+        <dl class="kv">
+          <dt>Orden</dt><dd>${o ? `${escapeHtml(o.id)} · $${formatPrice(o.total)} · ${badge(ORDER_STATUS, o.status)}` : "—"}</dd>
+          <dt>Despachado</dt><dd>${r.shipped_at ? fmtDateTime(r.shipped_at) : "Todavía no"}</dd>
+          <dt>Recibido (según el cliente)</dt><dd>${r.received_on ? fmtDate(r.received_on + "T12:00:00") : "No lo informó"}</dd>
+          <dt>Plazo legal hasta</dt><dd>${r.deadline ? fmtDate(r.deadline + "T12:00:00") : "—"}</dd>
+          <dt>Motivo</dt><dd>${escapeHtml(r.reason || "No indicó (no es obligatorio)")}</dd>
+          ${r.admin_note ? `<dt>Nota</dt><dd>${escapeHtml(r.admin_note)}</dd>` : ""}
+        </dl>
+      </div>
+      ${
+        ["recibida", "en_curso"].includes(r.status)
+          ? `<div>
+        <h4>Actualizar</h4>
+        <label class="field">
+          <span>Nota para el cliente (obligatoria si se rechaza)</span>
+          <textarea id="revNote" rows="3" maxlength="500" placeholder="Ej: coordinamos el retiro por Correo Argentino; el reintegro se hace por transferencia al recibir el producto."></textarea>
+        </label>
+      </div>`
+          : ""
+      }`;
+    const open = ["recibida", "en_curso"].includes(r.status);
+    drawerFoot.innerHTML = open
+      ? `${r.status === "recibida" ? `<button class="btn btn-secondary is-sm" type="button" data-rev-status="en_curso"><svg><use href="#ic-schedule" /></svg>En curso</button>` : ""}
+         <button class="btn btn-secondary is-sm" type="button" data-rev-status="reintegrada"><svg><use href="#ic-check_circle" /></svg>Reintegrada</button>
+         <button class="btn btn-ghost is-sm" type="button" data-rev-status="desistida">Desistida</button>
+         <button class="btn btn-danger is-sm" type="button" data-rev-status="rechazada" style="margin-left:auto"><svg><use href="#ic-cancel" /></svg>Rechazar</button>
+         ${o ? `<button class="btn btn-ghost is-sm" type="button" id="revOrder">Ver orden</button>` : ""}`
+      : `${o ? `<button class="btn btn-ghost is-sm" type="button" id="revOrder">Ver orden</button>` : ""}`;
+    openDrawer();
+    const LABEL = { en_curso: "en curso", reintegrada: "reintegrada", desistida: "desistida", rechazada: "rechazada" };
+    $$("[data-rev-status]", drawerFoot).forEach((b) =>
+      b.addEventListener("click", async () => {
+        const status = b.dataset.revStatus;
+        const note = ($("#revNote") && $("#revNote").value.trim()) || "";
+        if (status === "rechazada" && !note) return toast("Escribí el motivo del rechazo: se le informa al cliente", "bad");
+        const ok = await confirmModal({
+          title: `Marcar ${r.code} como ${LABEL[status]}`,
+          text:
+            (status === "reintegrada" ? "Confirmá que ya devolviste el total de la compra. " : "") +
+            (status === "reintegrada" && o && o.status !== "cancelado" ? "Acordate de cancelar la orden si el producto volvió (devuelve el stock). " : "") +
+            "Se registra en el historial del pedido y se le avisa al cliente.",
+          okText: "Confirmar",
+          danger: status === "rechazada",
+        });
+        if (!ok) return;
+        $$("[data-rev-status]", drawerFoot).forEach((x) => (x.disabled = true));
+        try {
+          await setRevocationStatus(r, status, note);
+          toast(`${r.code}: ${LABEL[status]}`, "ok");
+        } catch (err) {
+          toast(errText(err), "bad");
+          $$("[data-rev-status]", drawerFoot).forEach((x) => (x.disabled = false));
+        }
+      }),
+    );
+    const ov = $("#revOrder");
+    if (ov) ov.addEventListener("click", () => openOrderDrawer(o));
   }
 
   // =====================================================================
@@ -1427,24 +1643,25 @@ import {
         if (q && !normalize(i.id + " " + i.customer.name + " " + (i.order ? i.order.id : "")).includes(q)) return false;
         return true;
       });
-      $("#invResult").textContent = `${rows.length} de ${INVOICES.length} comprobantes`;
+      const LIMIT = 200;
+      $("#invResult").textContent = rows.length > LIMIT ? `Mostrando ${LIMIT} de ${rows.length} (refiná la búsqueda o elegí un mes)` : `${rows.length} de ${INVOICES.length} comprobantes`;
       $("#invoicesTable").innerHTML =
         `<thead><tr><th>N° comprobante</th><th>Tipo</th><th>Cliente</th><th>Orden</th><th>Fecha</th><th class="num">Monto</th><th></th></tr></thead><tbody>` +
         (rows.length
           ? rows
-              .slice(0, 40)
+              .slice(0, LIMIT)
               .map(
                 (i) => `
             <tr>
-              <td class="mono">${i.id}</td>
+              <td class="mono">${escapeHtml(i.id)}</td>
               <td><span class="badge is-muted is-plain">Nota de venta</span></td>
               <td>${escapeHtml(i.customer.name)}</td>
-              <td class="muted">${i.order ? i.order.id : "—"}</td>
+              <td class="muted">${i.order ? escapeHtml(i.order.id) : "—"}</td>
               <td class="muted">${fmtDate(i.date)}</td>
               <td class="num is-money">${formatPrice(i.total)}</td>
               <td><div class="actions">
-                <button class="iconBtn is-sm" type="button" data-inv-preview="${i.id}" title="Previsualizar"><svg><use href="#ic-visibility" /></svg></button>
-                <button class="iconBtn is-sm" type="button" data-inv-download="${i.id}" title="Descargar PDF"><svg><use href="#ic-download" /></svg></button>
+                <button class="iconBtn is-sm" type="button" data-inv-preview="${escapeHtml(i.id)}" title="Previsualizar" aria-label="Previsualizar ${escapeHtml(i.id)}"><svg><use href="#ic-visibility" /></svg></button>
+                <button class="iconBtn is-sm" type="button" data-inv-download="${escapeHtml(i.id)}" title="Descargar PDF" aria-label="Descargar ${escapeHtml(i.id)}"><svg><use href="#ic-download" /></svg></button>
               </div></td>
             </tr>`,
               )
@@ -1465,7 +1682,7 @@ import {
       const q = normalize(rs.value);
       const rows = RECEIPTS.filter((r) => {
         if (rst.value && r.status !== rst.value) return false;
-        if (q && !normalize(r.customer.name + " " + (r.order ? r.order.id : "") + " " + r.bank).includes(q)) return false;
+        if (q && !normalize(r.id + " " + r.customer.name + " " + (r.order ? r.order.id : "") + " " + r.bank).includes(q)) return false;
         return true;
       });
       $("#recResult").textContent = `${rows.length} de ${RECEIPTS.length} comprobantes`;
@@ -1476,15 +1693,15 @@ import {
               .map(
                 (r) => `
             <tr>
-              <td class="mono">${r.id}</td>
+              <td class="mono">${escapeHtml(r.id)}</td>
               <td>${escapeHtml(r.customer.name)}</td>
-              <td class="muted">${r.order ? r.order.id : "—"}</td>
+              <td class="muted">${r.order ? escapeHtml(r.order.id) : "—"}</td>
               <td class="muted">${escapeHtml(r.bank) || "—"}</td>
               <td class="muted">${fmtDateTime(r.date)}</td>
               <td class="num is-money">${formatPrice(r.amount)}</td>
               <td>${badge(RECEIPT_STATUS, r.status)}</td>
               <td><div class="actions">
-                <button class="iconBtn is-sm" type="button" data-rec-preview="${r.id}" title="Ver comprobante"><svg><use href="#ic-visibility" /></svg></button>
+                <button class="iconBtn is-sm" type="button" data-rec-preview="${escapeHtml(r.id)}" title="Ver comprobante" aria-label="Ver comprobante ${escapeHtml(r.id)}"><svg><use href="#ic-visibility" /></svg></button>
 
               </div></td>
             </tr>`,
@@ -1555,23 +1772,25 @@ import {
   async function previewReceipt(r) {
     if (!r) return;
     const url = await receiptUrl(r);
+    if (!url) return toast("No se pudo abrir el comprobante", "bad");
     const isPdf = /\.pdf$/i.test(r.file);
+    const amountMismatch = r.order && r.amount !== r.order.total;
     openModal(
       `
       <div class="modal-head">
-        <h3>Comprobante ${r.id}</h3>
-        <a class="btn btn-secondary is-sm" href="${url}" target="_blank" rel="noopener"><svg><use href="#ic-download" /></svg>Abrir</a>
+        <h3>Comprobante ${escapeHtml(r.id)}</h3>
+        <a class="btn btn-secondary is-sm" href="${escapeHtml(url)}" target="_blank" rel="noopener"><svg><use href="#ic-download" /></svg>Abrir</a>
         <button class="iconBtn is-sm" type="button" data-close aria-label="Cerrar"><svg><use href="#ic-close" /></svg></button>
       </div>
       <div class="receipt-preview">
-        ${isPdf ? `<iframe src="${url}" style="width:100%;height:420px;border:0;border-radius:12px;background:#fff"></iframe>` : `<img src="${url}" alt="Comprobante de transferencia" />`}
+        ${isPdf ? `<iframe src="${escapeHtml(url)}" title="Comprobante en PDF" style="width:100%;height:420px;border:0;border-radius:12px;background:#fff"></iframe>` : `<img src="${escapeHtml(url)}" alt="Comprobante de transferencia" />`}
         <dl class="kv">
           <dt>Estado</dt><dd>${badge(RECEIPT_STATUS, r.status)}</dd>
           <dt>Cliente</dt><dd>${escapeHtml(r.customer.name)}</dd>
-          <dt>Orden</dt><dd>${r.order ? `${r.order.id} · $${formatPrice(r.order.total)}` : "—"}</dd>
+          <dt>Orden</dt><dd>${r.order ? `${escapeHtml(r.order.id)} · $${formatPrice(r.order.total)} · ${badge(ORDER_STATUS, r.order.status)}` : "—"}</dd>
           <dt>Banco</dt><dd>${escapeHtml(r.bank) || "—"}</dd>
           <dt>Referencia</dt><dd>${escapeHtml(r.reference) || "—"}</dd>
-          <dt>Monto</dt><dd>$${formatPrice(r.amount)}</dd>
+          <dt>Monto a verificar</dt><dd>$${formatPrice(r.order ? r.order.total : r.amount)}${amountMismatch ? ' <span class="badge is-warn is-plain">Revisá el monto</span>' : ""} <small class="muted">(controlá en el banco que se haya acreditado este monto)</small></dd>
           <dt>Recibido</dt><dd>${fmtDateTime(r.date)}</dd>
         </dl>
       </div>
@@ -1582,13 +1801,22 @@ import {
       </div>` : ""}`,
       { wide: true },
     );
+    // Los dos botones quedan bloqueados mientras se procesa: un doble click no
+    // manda dos rechazos (dos correos al cliente). La base además rechaza
+    // revisar un comprobante que ya no está pendiente.
     const done = async (status) => {
+      const btns = [$("#recApprove"), $("#recReject")].filter(Boolean);
+      if (btns.some((b) => b.disabled)) return;
+      if (status === "aprobado" && r.order && r.order.status !== "pendiente")
+        return toast(`${r.order.id} no está pendiente de pago (${ORDER_STATUS[r.order.status].label}): no se puede aprobar`, "bad");
+      btns.forEach((b) => (b.disabled = true));
       try {
         await reviewReceipt(r, status === "aprobado");
         closeModal();
         toast(status === "aprobado" ? `${r.order ? r.order.id : "Orden"} marcada como pagada` : `Comprobante ${r.id} rechazado`, status === "aprobado" ? "ok" : "bad");
       } catch (err) {
-        toast(err.message, "bad");
+        toast(errText(err), "bad");
+        btns.forEach((b) => (b.disabled = false));
       }
     };
     $("#recApprove") && $("#recApprove").addEventListener("click", () => done("aprobado"));
@@ -1649,9 +1877,11 @@ import {
     // --- Formato de precios (1.304.424) ---
     function moneyInput(el) {
       el.addEventListener("input", () => {
+        // Los precios no pueden ser negativos: se avisa en lugar de sacar el signo en silencio
+        if (/-/.test(el.value)) toast("Los montos no pueden ser negativos", "bad");
         const n = parsePrice(el.value);
         // "0" se conserva (costo cero = sin costo); vacío queda vacío
-        el.value = n ? formatPrice(n) : /d/.test(el.value) ? "0" : "";
+        el.value = n ? formatPrice(n) : /\d/.test(el.value) ? "0" : "";
       });
     }
     [price, cost, oldPrice].forEach(moneyInput);
@@ -1917,7 +2147,7 @@ import {
       row.querySelectorAll("input").forEach((i) => i.addEventListener("input", updateSummary));
       specRows.appendChild(row);
     }
-    function addHighlight(v) {
+    function addHighlight(v, focus) {
       const row = document.createElement("div");
       row.className = "row-single";
       row.innerHTML = `<input type="text" placeholder="Ej: Armado y testeado en Argentina, listo para usar" value="${escapeHtml(v || "")}" /><button class="row-remove" type="button" aria-label="Quitar"><svg><use href="#ic-delete" /></svg></button>`;
@@ -1926,15 +2156,15 @@ import {
         updatePreview();
       });
       highlightRows.appendChild(row);
-      if (!v) row.querySelector("input").focus();
+      if (focus) row.querySelector("input").focus();
     }
     $("#addSpec").addEventListener("click", () => {
       addSpec("", "");
       specRows.lastElementChild.querySelector("input").focus();
     });
-    $("#addHighlight").addEventListener("click", () => addHighlight(""));
+    $("#addHighlight").addEventListener("click", () => addHighlight("", true));
     addSpec("", "");
-    ["Armado y testeado en Argentina, listo para usar", "Soporte técnico directo durante toda la garantía"].forEach(addHighlight);
+    addHighlight("");
 
     // --- Vista previa (misma tarjeta que la tienda + descripción) ---
     function updatePreview() {
@@ -2016,6 +2246,13 @@ import {
       };
     }
 
+    // Ley 24.240 art. 11: 6 meses en productos nuevos, 3 en usados (la base
+    // tampoco deja guardar menos: migración 0031)
+    function warrantyOk(d) {
+      const months = d.warrantyUnit === "dias" ? d.warranty / 30 : d.warrantyUnit === "anios" ? d.warranty * 12 : d.warranty;
+      return months >= (d.condition === "nuevo" ? 6 : 3);
+    }
+
     function autoSku() {
       const c = { computadoras: "PC", notebooks: "NB", tablets: "TB", celulares: "CE", componentes: "CO", perifericos: "PE" }[cat.value] || "XX";
       const t = title.value.replace(/[^a-z0-9]/gi, "").slice(0, 6).toUpperCase() || "PROD";
@@ -2033,6 +2270,7 @@ import {
         ["Precio", d.price > 0, price.closest(".field"), price],
         ["Stock", stock.value !== "", stock.closest(".field"), stock],
         ["Peso", +d.weight > 0, $("#pWeight").closest(".field"), $("#pWeight")],
+        ["Garantía (mín. legal)", warrantyOk(d), $("#pWarranty").closest(".field"), $("#pWarranty")],
         ["Imágenes", d.images.length > 0, imgDrop, imgDrop],
         ["Especificaciones", d.specs.length > 0, specRows, specRows],
       ];
@@ -2064,7 +2302,22 @@ import {
     editBanner.style.cssText = "display:none;align-items:center;gap:12px;flex-direction:row;padding:14px 18px;border-color:var(--blue)";
     editBanner.innerHTML = `<svg style="width:18px;height:18px;fill:var(--blue)"><use href="" /></svg><span style="flex:1;font-size:13.5px" id="editingText"></span><button class="btn btn-ghost is-sm" type="button" id="editCancel"></button>`;
     form.querySelector(".upload-form").prepend(editBanner);
-    $("#editCancel").addEventListener("click", () => resetForm());
+    // Cambios sin guardar: se pregunta antes de descartarlos
+    let dirty = false;
+    form.addEventListener("input", () => (dirty = true));
+    form.addEventListener("change", () => (dirty = true));
+    window.addEventListener("beforeunload", (e) => {
+      if (!dirty) return;
+      e.preventDefault();
+      e.returnValue = "";
+    });
+    $("#editCancel").addEventListener("click", async () => {
+      if (dirty) {
+        const ok = await confirmModal({ title: "Descartar cambios", text: "Los cambios que hiciste en el formulario no se guardan.", okText: "Descartar", cancelText: "Seguir editando", danger: true });
+        if (!ok) return;
+      }
+      resetForm();
+    });
 
     // p = producto de referencia; copy = "publicar similar" (alta nueva a partir de p)
     function setEditing(p, copy) {
@@ -2081,10 +2334,14 @@ import {
     }
 
     // Carga un producto existente en el formulario (copy: sin imágenes ni SKU, se guarda como alta)
+    let loadedStock = null; // stock que mostraba el formulario al abrir el producto
+    let loadedImages = []; // imágenes que tenía el producto al abrirlo
     function loadIntoForm(p, copy) {
       const r = p.raw;
       resetForm(true);
       setEditing(p, copy);
+      loadedStock = copy ? null : r.stock;
+      loadedImages = copy ? [] : (r.images || []).slice();
       title.value = r.title;
       brand.value = r.brand;
       sku.value = copy ? "" : r.sku;
@@ -2120,12 +2377,14 @@ import {
       (r.specs || []).forEach((s) => addSpec(s.k, s.v));
       if (!specRows.children.length) addSpec("", "");
       highlightRows.innerHTML = "";
-      (r.highlights || []).forEach(addHighlight);
+      (r.highlights || []).forEach((h) => addHighlight(h));
+      if (!highlightRows.children.length) addHighlight("");
       updateMargin();
       updatePreview();
       updateSummary();
       $("#pTitleCount").textContent = `${title.value.length} / 120`;
       $("#pDescCount").textContent = `${desc.value.length} / 2000`;
+      dirty = false;
       form.scrollIntoView({ behavior: "smooth", block: "start" });
     }
     RENDERERS._editProduct = (id, copy) => {
@@ -2198,7 +2457,7 @@ import {
       const ok = await confirmModal({ title: "Eliminar producto", text: `Se quitará "${p.name}" del catálogo. Las órdenes anteriores conservan su detalle.`, okText: "Eliminar", danger: true });
       if (!ok) return;
       const { error } = await sb.from("products").delete().eq("id", p.id);
-      if (error) return toast(error.message, "bad");
+      if (error) return toast(errText(error, "No se pudo eliminar el producto"), "bad");
       // Imágenes del bucket
       const paths = (p.images || []).map((u) => (u.split("/products/")[1] || "")).filter(Boolean);
       if (paths.length) sb.storage.from("products").remove(paths).then(() => {});
@@ -2207,7 +2466,10 @@ import {
     });
     renderUploaded();
 
-    async function uploadImages(productId) {
+    // Ruta en el bucket a partir de la URL pública
+    const bucketPath = (u) => decodeURIComponent((String(u).split("/object/public/products/")[1] || "").split("?")[0]);
+
+    async function uploadImages(productId, uploaded) {
       const urls = [];
       for (let i = 0; i < images.length; i++) {
         const im = images[i];
@@ -2218,7 +2480,8 @@ import {
         const ext = (im.file.name.split(".").pop() || "jpg").toLowerCase();
         const path = `${productId}/${Date.now()}-${i}.${ext}`;
         const { error } = await sb.storage.from("products").upload(path, im.file, { contentType: im.file.type, upsert: false });
-        if (error) throw new Error(`No se pudo subir ${im.name}: ${error.message}`);
+        if (error) throw new Error(`No se pudo subir ${im.name}. Revisá que sea PNG, JPG o WEBP de hasta 5 MB.`);
+        uploaded.push(path);
         urls.push(sb.storage.from("products").getPublicUrl(path).data.publicUrl);
       }
       return urls;
@@ -2226,8 +2489,20 @@ import {
 
     async function save(statusOverride) {
       const d = collect();
+      // Validaciones que el borrador también necesita (no pasa por checkValidity)
+      if (!Number.isInteger(+stock.value) || +stock.value < 0) throw new Error("El stock tiene que ser un número entero de 0 en adelante.");
+      if (d.price < 0) throw new Error("El precio no puede ser negativo.");
+      if (!warrantyOk(d)) throw new Error(`La garantía no puede ser menor a ${d.condition === "nuevo" ? "6 meses en un producto nuevo" : "3 meses en un producto usado"} (Ley 24.240, art. 11).`);
       const productId = editingId || crypto.randomUUID();
-      const imageUrls = await uploadImages(productId);
+      const uploaded = []; // si algo falla, se borran (no quedan huérfanas en el bucket)
+      const cleanup = () => uploaded.length && sb.storage.from("products").remove(uploaded).then(() => {});
+      let imageUrls;
+      try {
+        imageUrls = await uploadImages(productId, uploaded);
+      } catch (err) {
+        cleanup();
+        throw err;
+      }
       const row = {
         id: productId,
         sku: d.sku,
@@ -2260,12 +2535,29 @@ import {
         highlights: d.highlights,
       };
       if (!editingId) row.created_by = USER.id;
+      if (editingId) {
+        // El stock no se manda con el resto: pisaría las ventas hechas mientras
+        // se editaba. Si se cambió, se ajusta con control de concurrencia.
+        delete row.stock;
+        if (loadedStock !== null && d.stock !== loadedStock) {
+          try {
+            await setProductStock(productId, loadedStock, d.stock);
+          } catch (err) {
+            cleanup();
+            throw new Error(errText(err));
+          }
+        }
+      }
       // insert / update (no upsert: leer excluded.cost exige SELECT sobre cost, que solo tiene admin_products)
       const { error } = editingId ? await sb.from("products").update(row).eq("id", productId) : await sb.from("products").insert(row);
       if (error) {
+        cleanup();
         if (/products_sku_key|duplicate key/i.test(error.message)) throw new Error(`Ya existe un producto con el SKU ${d.sku}`);
-        throw error;
+        throw new Error(errText(error, "No se pudo guardar el producto"));
       }
+      // Imágenes que se quitaron al editar: se borran del bucket (es público)
+      const removed = loadedImages.filter((u) => !imageUrls.includes(u)).map(bucketPath).filter(Boolean);
+      if (removed.length) sb.storage.from("products").remove(removed).then(() => {});
       await loadProducts();
       renderUploaded();
       return row;
@@ -2279,7 +2571,7 @@ import {
         toast(okMessage(row), "ok");
         resetForm();
       } catch (err) {
-        toast(err.message || "No se pudo guardar el producto", "bad");
+        toast(errText(err, "No se pudo guardar el producto"), "bad");
       } finally {
         btn.disabled = false;
       }
@@ -2313,7 +2605,12 @@ import {
     function resetForm(keepEditing) {
       form.reset();
       form.classList.remove("is-submitted");
-      if (!keepEditing) setEditing(null);
+      if (!keepEditing) {
+        setEditing(null);
+        loadedStock = null;
+        loadedImages = [];
+      }
+      dirty = false;
       tags = [];
       images.forEach((i) => !i.existing && URL.revokeObjectURL(i.url));
       images = [];
@@ -2322,6 +2619,7 @@ import {
       specRows.innerHTML = "";
       addSpec("", "");
       highlightRows.innerHTML = "";
+      addHighlight("");
       cat.dispatchEvent(new Event("change"));
       updateMargin();
       updatePreview();
@@ -2341,27 +2639,10 @@ import {
   //  PERFIL
   // =====================================================================
 
-  const DEFAULT_PREFS = {
-    lang: "es", currency: "ARS", tz: "America/Argentina/Buenos_Aires", dateFormat: "dd/mm/yyyy",
-    homeView: "dashboard", pageSize: "25", startCollapsed: false, reduceMotion: false,
-    twofa: false, dailyDigest: true, weeklyDigest: true, sound: false, dnd: false,
-  };
-  const NOTIF_EVENTS = [
-    ["venta", "Nueva venta", "Cada vez que se confirma una orden"],
-    ["reserva", "Nueva reserva", "Y avisos cuando está por vencer"],
-    ["pago", "Pago recibido", "Comprobantes de transferencia y acreditaciones"],
-    ["stock", "Stock bajo", "Cuando un producto llega al mínimo configurado"],
-    ["resena", "Nueva opinión", "Reseñas de clientes en los productos"],
-    ["sistema", "Avisos del sistema", "Actualizaciones y mantenimiento del panel"],
-  ];
-  const DEFAULT_MATRIX = {
-    venta: { panel: true, email: true, whatsapp: false },
-    reserva: { panel: true, email: true, whatsapp: true },
-    pago: { panel: true, email: true, whatsapp: false },
-    stock: { panel: true, email: false, whatsapp: false },
-    resena: { panel: true, email: false, whatsapp: false },
-    sistema: { panel: true, email: false, whatsapp: false },
-  };
+  // Preferencias del panel (solo las que algo usa: vista inicial, filas por
+  // página, menú colapsado y animaciones reducidas)
+  const DEFAULT_PREFS = { homeView: "dashboard", pageSize: "25", startCollapsed: false, reduceMotion: false };
+  const applyMotion = (reduce) => document.documentElement.classList.toggle("reduce-motion", !!reduce);
 
   function applyAvatar() {
     const html = USER.avatar ? `<img src="${escapeHtml(USER.avatar)}" alt="" referrerpolicy="no-referrer" />` : escapeHtml(initials(USER.name));
@@ -2389,31 +2670,131 @@ import {
 
   function renderProfile() {
     const prefs = Object.assign({}, DEFAULT_PREFS, store.get("prefs", {}));
+  applyMotion(prefs.reduceMotion);
 
-    // Avatar
+    // Avatar (bucket público: al cambiar o quitar se borran los archivos viejos)
+    const AVATAR_TYPES = { "image/png": "png", "image/jpeg": "jpg", "image/webp": "webp" };
+    const removeOldAvatars = async (keep) => {
+      const { data } = await sb.storage.from("avatars").list(USER.id, { limit: 100 });
+      const old = (data || []).map((f) => `${USER.id}/${f.name}`).filter((path) => path !== keep);
+      if (old.length) await sb.storage.from("avatars").remove(old);
+    };
     $("#avatarInput").addEventListener("change", () => {
       const f = $("#avatarInput").files[0];
+      $("#avatarInput").value = "";
       if (!f) return;
+      if (!AVATAR_TYPES[f.type]) return toast("La foto tiene que ser PNG, JPG o WEBP", "bad");
       if (f.size > 2 * 1024 * 1024) return toast("La imagen no puede superar 2 MB", "bad");
       (async () => {
-        const ext = (f.name.split(".").pop() || "jpg").toLowerCase();
-        const path = `${USER.id}/avatar-${Date.now()}.${ext}`;
-        const { error } = await sb.storage.from("avatars").upload(path, f, { upsert: true, contentType: f.type });
+        const path = `${USER.id}/avatar-${Date.now()}.${AVATAR_TYPES[f.type]}`;
+        const { error } = await sb.storage.from("avatars").upload(path, f, { contentType: f.type });
         if (error) return toast("No se pudo subir la foto", "bad");
         const url = sb.storage.from("avatars").getPublicUrl(path).data.publicUrl;
-        await sb.from("profiles").update({ avatar_url: url }).eq("id", USER.id);
+        const upd = await sb.from("profiles").update({ avatar_url: url }).eq("id", USER.id);
+        if (upd.error) return toast(errText(upd.error, "No se pudo guardar la foto"), "bad");
+        removeOldAvatars(path).catch(() => {});
         USER.avatar = url;
         applyAvatar();
         toast("Foto de perfil actualizada", "ok");
       })();
-      $("#avatarInput").value = "";
     });
     $("#avatarRemove").addEventListener("click", async () => {
-      await sb.from("profiles").update({ avatar_url: null }).eq("id", USER.id);
+      const { error } = await sb.from("profiles").update({ avatar_url: null }).eq("id", USER.id);
+      if (error) return toast(errText(error, "No se pudo quitar la foto"), "bad");
+      removeOldAvatars(null).catch(() => {});
       USER.avatar = "";
       applyAvatar();
       toast("Foto de perfil eliminada");
     });
+
+    // ---- Seguridad (acciones reales de Supabase Auth) ----
+    // Contraseña: por enlace al correo (con una sesión abierta ajena no alcanza)
+    $("#secPassword").addEventListener("click", async (e) => {
+      const b = e.currentTarget;
+      b.disabled = true;
+      const { error } = await sb.auth.resetPasswordForEmail(USER.email, { redirectTo: location.origin + location.pathname.replace(/[^/]*$/, "") + "login.html#nueva" });
+      b.disabled = false;
+      if (error) return toast(/seconds|rate/i.test(error.message) ? "Ya te mandamos un enlace hace instantes. Esperá un minuto." : "No pudimos enviar el correo. Probá de nuevo.", "bad");
+      toast(`Te mandamos un enlace a ${USER.email} para cambiar la contraseña`, "ok");
+    });
+
+    // Cerrar las demás sesiones (otros dispositivos); esta queda abierta
+    $("#secOthers").addEventListener("click", async (e) => {
+      const ok = await confirmModal({ title: "Cerrar otras sesiones", text: "Se cierra la sesión de tu cuenta en todos los demás dispositivos (panel y tienda). Esta sesión queda abierta.", okText: "Cerrar otras sesiones", danger: true });
+      if (!ok) return;
+      const { error } = await sb.auth.signOut({ scope: "others" });
+      if (error) return toast(errText(error, "No se pudieron cerrar las otras sesiones"), "bad");
+      toast("Listo: cerramos las sesiones en los demás dispositivos", "ok");
+    });
+
+    // Verificación en dos pasos (TOTP): estado real, alta con QR y baja
+    const mfaBtn = $("#secMfa"), mfaText = $("#secMfaText");
+    let mfaFactor = null;
+    async function renderMfa() {
+      const { data } = await sb.auth.mfa.listFactors();
+      mfaFactor = ((data && data.all) || []).find((f) => f.factor_type === "totp" && f.status === "verified") || null;
+      mfaText.textContent = mfaFactor
+        ? "Activada: al ingresar al panel te pedimos el código de tu app de autenticación."
+        : "Desactivada. Recomendado: con la contraseña sola no alcanza para entrar al panel.";
+      mfaBtn.textContent = mfaFactor ? "Desactivar" : "Activar";
+      mfaBtn.className = mfaFactor ? "btn btn-ghost is-sm" : "btn btn-secondary is-sm";
+      mfaBtn.disabled = false;
+    }
+    async function discardPending() {
+      const { data } = await sb.auth.mfa.listFactors();
+      for (const f of ((data && data.all) || []).filter((f) => f.factor_type === "totp" && f.status !== "verified")) await sb.auth.mfa.unenroll({ factorId: f.id });
+    }
+    mfaBtn.addEventListener("click", async () => {
+      mfaBtn.disabled = true;
+      if (mfaFactor) {
+        const ok = await confirmModal({ title: "Desactivar la verificación en dos pasos", text: "Para entrar al panel va a alcanzar con la contraseña. No es recomendable.", okText: "Desactivar", danger: true });
+        if (!ok) return renderMfa();
+        const { error } = await sb.auth.mfa.unenroll({ factorId: mfaFactor.id });
+        if (error) toast(/aal2|AAL2/i.test(error.message) ? "Para desactivarla, volvé a ingresar con el código de la app." : errText(error), "bad");
+        else toast("Desactivaste la verificación en dos pasos");
+        return renderMfa();
+      }
+      await discardPending();
+      const { data, error } = await sb.auth.mfa.enroll({ factorType: "totp", friendlyName: "ComputerSell " + new Date().toISOString().slice(0, 16) });
+      if (error) {
+        toast(errText(error, "No se pudo iniciar la activación"), "bad");
+        return renderMfa();
+      }
+      const qr = String(data.totp.qr_code || "");
+      openModal(`
+        <h3>Activar la verificación en dos pasos</h3>
+        <p>Escaneá el código con tu app de autenticación (Google Authenticator, Authy, 1Password…) y escribí el código de 6 dígitos que muestra.</p>
+        ${/^data:image\/svg\+xml|^data:image\/png/.test(qr) ? `<img src="${escapeHtml(qr)}" alt="Código QR para la app de autenticación" style="width:180px;height:180px;display:block;margin:12px auto;background:#fff;border-radius:12px;padding:8px" />` : ""}
+        <p style="font-size:12.5px;color:var(--ink-soft)">Si no podés escanearlo, cargá esta clave a mano: <code style="user-select:all">${escapeHtml(data.totp.secret)}</code></p>
+        <label class="field" style="margin-top:12px">
+          <span>Código</span>
+          <input type="text" id="mfaCode" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="123456" />
+        </label>
+        <div class="modal-actions">
+          <button class="btn btn-ghost" type="button" data-close>Cancelar</button>
+          <button class="btn btn-secondary" type="button" id="mfaVerify">Activar</button>
+        </div>`);
+      setTimeout(() => $("#mfaCode") && $("#mfaCode").focus(), 50);
+      $$("[data-close]", modal).forEach((b) => b.addEventListener("click", () => discardPending().then(renderMfa)));
+      $("#mfaVerify").addEventListener("click", async () => {
+        const code = $("#mfaCode").value.replace(/\D/g, "");
+        if (code.length !== 6) return toast("Escribí los 6 dígitos que muestra la app", "bad");
+        $("#mfaVerify").disabled = true;
+        const { error: err } = await sb.auth.mfa.challengeAndVerify({ factorId: data.id, code });
+        if (err) {
+          $("#mfaVerify").disabled = false;
+          $("#mfaCode").value = "";
+          return toast("El código no es correcto o ya cambió. Probá con el que muestra ahora.", "bad");
+        }
+        closeModal();
+        toast("Verificación en dos pasos activada", "ok");
+        renderMfa();
+      });
+    });
+    renderMfa();
+
+    // Entorno real (producción / local)
+    $("#aboutEnv").textContent = /localhost|127\.0\.0\.1/.test(location.hostname) ? "Desarrollo (local)" : "Producción";
 
     // Preferencias genéricas (data-pref)
     $$("[data-pref]").forEach((el) => {
@@ -2423,9 +2804,8 @@ import {
       el.addEventListener("change", () => {
         prefs[key] = el.type === "checkbox" ? el.checked : el.value;
         store.set("prefs", prefs);
-        if (key === "reduceMotion") document.documentElement.style.setProperty("--motion", el.checked ? "0" : "1");
-        if (key === "lang" && el.value !== "es") toast("La traducción del panel llega en una próxima versión");
-        else toast("Preferencia guardada", "ok");
+        if (key === "reduceMotion") applyMotion(el.checked);
+        toast("Preferencia guardada", "ok");
       });
     });
 
@@ -2438,23 +2818,6 @@ import {
         applyTheme(r.value);
         toast(`Tema: ${r.value === "dark" ? "oscuro" : r.value === "light" ? "claro" : "según el sistema"}`, "ok");
       });
-    });
-
-    // Matriz de notificaciones
-    const matrix = Object.assign({}, DEFAULT_MATRIX, store.get("notifMatrix", {}));
-    $("#notifMatrix tbody").innerHTML = NOTIF_EVENTS.map(
-      ([key, label, help]) => `
-      <tr>
-        <td><strong>${label}</strong><small>${help}</small></td>
-        ${["panel", "email", "whatsapp"].map((ch) => `<td><label class="switch is-sm"><input type="checkbox" data-ev="${key}" data-ch="${ch}" ${matrix[key][ch] ? "checked" : ""} /><span class="track"></span></label></td>`).join("")}
-      </tr>`,
-    ).join("");
-    $("#notifMatrix").addEventListener("change", (e) => {
-      const i = e.target;
-      if (!i.dataset.ev) return;
-      matrix[i.dataset.ev] = Object.assign({}, matrix[i.dataset.ev], { [i.dataset.ch]: i.checked });
-      store.set("notifMatrix", matrix);
-      toast("Preferencia guardada", "ok");
     });
   }
 
@@ -2473,14 +2836,14 @@ import {
   // Estado: sección abierta (null = raíz), ítems del panel activo, foco, query de la raíz
   const pal = { section: null, items: [], idx: 0, rootQuery: "" };
 
-  const NOTIF_TYPE_LABEL = { venta: "Venta", reserva: "Reserva", pago: "Pago", stock: "Stock", sistema: "Sistema" };
+  const NOTIF_TYPE_LABEL = { venta: "Venta", reserva: "Reserva", pago: "Pago", stock: "Stock", sistema: "Sistema", carrito: "Carrito" };
   const truncate = (t, n) => (t.length > n ? t.slice(0, n - 1) + "…" : t);
 
   // ---- Ítems reutilizables ----
   const itemOrder = (o) => ({
     icon: "shopping_cart",
     title: `${o.id} · ${o.customer.name}`,
-    sub: `${fmtDate(o.date)} · ${o.items[0].product.name}${o.items.length > 1 ? ` +${o.items.length - 1}` : ""}`,
+    sub: `${fmtDate(o.date)}${o.items[0] ? " · " + o.items[0].product.name : ""}${o.items.length > 1 ? ` +${o.items.length - 1}` : ""}`,
     right: `${badge(ORDER_STATUS, o.status)}<span class="meta">$${formatPrice(o.total)}</span>`,
     run: () => { showView("ordenes", { tab: "ventas" }); openOrderDrawer(o); },
   });
@@ -2519,11 +2882,19 @@ import {
     right: `<span class="meta">${formatPrice(p.price)}</span>${p.stock === 0 ? '<span class="badge is-bad">Sin stock</span>' : p.stock <= p.stockMin ? `<span class="badge is-warn">${p.stock} u.</span>` : `<span class="meta">${p.stock} u.</span>`}`,
     run: () => { showView("productos"); openProductDrawer(p); },
   });
+  const REV_LABEL = { recibida: "Recibida", en_curso: "En curso", reintegrada: "Reintegrada", rechazada: "Rechazada", desistida: "Desistida" };
+  const itemRevocation = (r) => ({
+    icon: "receipt_long",
+    title: `${r.code} · ${r.name || r.email}`,
+    sub: `${r.order ? r.order.id : ""} · ${fmtDate(r.date)}`,
+    right: `<span class="meta">${escapeHtml(REV_LABEL[r.status] || r.status)}</span>`,
+    run: () => { showView("arrepentimientos"); openRevocationDrawer(r); },
+  });
   const itemCustomer = (c) => ({
     icon: "person",
     title: c.name,
     sub: `${c.email} · ${c.phone}`,
-    right: `<span class="meta">${ORDERS.filter((o) => o.customer.id === c.id).length} órdenes</span>`,
+    right: `<span class="meta">${(() => { const n = ORDERS.filter((o) => o.customer.id === c.id).length; return `${n} ${n === 1 ? "orden" : "órdenes"}`; })()}</span>`,
     run: () => { showView("ordenes", { tab: "ventas" }); $("#ordersSearch").value = c.name; $("#ordersSearch").dispatchEvent(new Event("input")); },
   });
 
@@ -2532,8 +2903,8 @@ import {
   // ---- Secciones (las que tienen "browse" se abren adentro del cuadro) ----
   const PROFILE_TABS = [
     { tab: "perfil", icon: "person", label: "Perfil", sub: "Foto, datos de la cuenta y seguridad" },
-    { tab: "config", icon: "settings", label: "Configuración", sub: "Tema, idioma, región y preferencias" },
-    { tab: "notif", icon: "notifications_active", label: "Notificaciones", sub: "Qué recibís y por dónde" },
+    { tab: "config", icon: "settings", label: "Configuración", sub: "Tema y preferencias del panel" },
+    { tab: "notif", icon: "notifications_active", label: "Notificaciones", sub: "Qué avisos llegan y por dónde" },
     { tab: "about", icon: "info", label: "Acerca de", sub: "Versión, soporte y novedades" },
   ];
   const itemProfileTab = (t, prefix) => ({
@@ -2560,12 +2931,22 @@ import {
       ],
     },
     {
-      view: "facturas", icon: "receipt_long", label: "Facturas", sub: "Comprobantes emitidos y recibidos",
+      view: "facturas", icon: "receipt_long", label: "Facturas", sub: "Notas de venta y comprobantes recibidos",
       count: () => `${INVOICES.length} emitidas · ${RECEIPTS.length} recibidos`,
       browse: (q) => [
-        ["Facturas emitidas", INVOICES.filter((i) => matches(q, i.id, i.customer.name, i.order.id, INV_TYPE[i.type])).slice(0, q ? 40 : 20).map(itemInvoice)],
-        ["Comprobantes recibidos", RECEIPTS.filter((r) => matches(q, r.id, r.customer.name, r.order.id, r.bank, RECEIPT_STATUS[r.status].label)).map(itemReceipt)],
+        ["Notas de venta", INVOICES.filter((i) => matches(q, i.id, i.customer.name, i.order ? i.order.id : "", INV_TYPE[i.type], "notas de venta")).slice(0, q ? 40 : 20).map(itemInvoice)],
+        ["Comprobantes recibidos", RECEIPTS.filter((r) => matches(q, r.id, r.customer.name, r.order ? r.order.id : "", r.bank, RECEIPT_STATUS[r.status].label)).map(itemReceipt)],
       ],
+    },
+    {
+      view: "productos", icon: "inventory_2", label: "Productos", sub: "Catálogo publicado y stock",
+      count: () => `${PRODUCTS.length} productos`,
+      browse: (q) => [["Productos", PRODUCTS.filter((p) => matches(q, p.name, p.sku, p.brand, (CATEGORIES[p.cat] || { label: "" }).label)).slice(0, q ? 40 : 20).map(itemProduct)]],
+    },
+    {
+      view: "arrepentimientos", icon: "receipt_long", label: "Arrepentimientos", sub: "Solicitudes del Botón de arrepentimiento",
+      count: () => `${REVOCATIONS.filter((r) => ["recibida", "en_curso"].includes(r.status)).length} abiertas`,
+      browse: (q) => [["Solicitudes", REVOCATIONS.filter((r) => matches(q, r.code, r.name, r.email, r.order ? r.order.id : "")).map(itemRevocation)]],
     },
     { view: "cargas", icon: "upload", label: "Cargas", sub: "Publicar un producto" },
     {
@@ -2752,6 +3133,7 @@ import {
     ordenes: renderOrders,
     productos: renderProducts,
     facturas: renderInvoices,
+    arrepentimientos: renderRevocations,
     cargas: renderUpload,
     perfil: renderProfile,
   };
@@ -2762,6 +3144,8 @@ import {
   // Realtime: cada cambio en la base refresca la vista que corresponda
   onChange((what) => {
     updateNotifBadges();
+    updateRevBadge();
+    if (rendered.arrepentimientos && (what === "revocations" || what === "orders") && RENDERERS._redrawRevocations) RENDERERS._redrawRevocations();
     if (rendered.notificaciones && what === "notifs") renderNotifs();
     if (rendered.dashboard && what !== "notifs") renderDashboard();
     if (rendered.analiticas && (what === "orders" || what === "products" || what === "reservas")) renderAnalytics();
@@ -2781,6 +3165,10 @@ import {
         const o = ORDERS.find((x) => x.uuid === drawerOpen.uuid);
         o && openOrderDrawer(o);
       }
+      if (drawerOpen.type === "revocation" && (what === "revocations" || what === "orders")) {
+        const r = REVOCATIONS.find((x) => x.id === drawerOpen.uuid);
+        r && openRevocationDrawer(r);
+      }
       if (drawerOpen.type === "reserva" && what === "reservas") {
         const r = RESERVAS.find((x) => x.uuid === drawerOpen.uuid);
         r && openReservaDrawer(r);
@@ -2792,6 +3180,7 @@ import {
     }
   });
   startRealtime();
+  updateRevBadge();
   window.matchMedia("(prefers-color-scheme: light)").addEventListener("change", () => applyTheme(store.get("theme", "dark")));
   updateNotifBadges();
 

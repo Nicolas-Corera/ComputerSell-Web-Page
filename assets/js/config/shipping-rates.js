@@ -18,6 +18,15 @@
     // Tienen que coincidir con las opciones del selector de provincia del checkout.
     regionalProvinces: ["CABA", "Buenos Aires"],
 
+    // Provincias a las que se envía (mismas opciones que los selectores del
+    // checkout y del perfil). El backend rechaza cualquier otro valor.
+    provinces: [
+      "Buenos Aires", "CABA", "Catamarca", "Chaco", "Chubut", "Córdoba", "Corrientes", "Entre Ríos",
+      "Formosa", "Jujuy", "La Pampa", "La Rioja", "Mendoza", "Misiones", "Neuquén", "Río Negro",
+      "Salta", "San Juan", "San Luis", "Santa Cruz", "Santa Fe", "Santiago del Estero",
+      "Tierra del Fuego", "Tucumán",
+    ],
+
     ranges: [
       { maxKg: 1, regional: 19500, national: 26400 },
       { maxKg: 5, regional: 23100, national: 32000 },

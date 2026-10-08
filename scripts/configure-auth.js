@@ -12,8 +12,13 @@ const { authTemplateConfig } = require("./email-templates");
   const ref = projectRef(env);
   const site = (env.SITE_URL || "http://localhost:3000").replace(/\/$/, "");
   const extra = (env.EXTRA_REDIRECT_URLS || "").split(/[,\s]+/).filter(Boolean);
+  // Localhost solo en desarrollo (SITE_URL local o AUTH_ALLOW_LOCALHOST=true).
+  // En producción no: un enlace de recuperación o magic link pedido para otra
+  // persona con redirect_to=localhost llevaría su token a la PC de esa persona.
+  const allowLocal = env.AUTH_ALLOW_LOCALHOST === "true" || /^https?:\/\/(localhost|127\.0\.0\.1)/.test(site);
+  const local = allowLocal ? ["http://localhost:3000/**", "http://127.0.0.1:3000/**"] : [];
   const redirects = Array.from(
-    new Set([site + "/**", "http://localhost:3000/**", "http://127.0.0.1:3000/**", ...extra.map((u) => u.replace(/\/$/, "") + "/**")]),
+    new Set([site + "/**", ...local, ...extra.filter((u) => allowLocal || !/localhost|127\.0\.0\.1/.test(u)).map((u) => u.replace(/\/$/, "") + "/**")]),
   );
 
   const body = {
@@ -34,7 +39,18 @@ const { authTemplateConfig } = require("./email-templates");
     // Verificación en dos pasos con app (TOTP): obligatoria para el panel (is_admin() exige aal2)
     mfa_totp_enroll_enabled: true,
     mfa_totp_verify_enabled: true,
+    // Cambiar la contraseña con una sesión de más de 24 h pide reautenticación
+    // (código por correo): una sesión robada no alcanza para quedarse con la cuenta
+    security_update_password_require_reauthentication: true,
   };
+  // CAPTCHA (Cloudflare Turnstile o hCaptcha) en registro, login y recuperación.
+  // Con CAPTCHA_SECRET cargado se activa; el sitio manda el token si
+  // CAPTCHA_SITE_KEY está en el .env (assets/js/core/env.js).
+  if (env.CAPTCHA_SECRET && env.CAPTCHA_SITE_KEY) {
+    body.security_captcha_enabled = true;
+    body.security_captcha_provider = env.CAPTCHA_PROVIDER || "turnstile";
+    body.security_captcha_secret = env.CAPTCHA_SECRET;
+  }
 
   // SMTP propio con Resend. Sin esto Supabase solo manda correos a los miembros
   // del equipo del proyecto y como mucho 2 por hora: los clientes no reciben
@@ -69,6 +85,7 @@ const { authTemplateConfig } = require("./email-templates");
   console.log("[auth] Plantillas de correo:", smtp ? "ComputerSell (castellano)" : "las de Supabase (hace falta Resend)");
   console.log("[auth] SMTP:", smtp ? `Resend (${env.RESEND_FROM})` : "Supabase (pruebas)");
   console.log("[auth] Google:", body.external_google_enabled ? "habilitado" : "deshabilitado");
+  console.log("[auth] CAPTCHA:", body.security_captcha_enabled ? body.security_captcha_provider : "sin configurar (CAPTCHA_SITE_KEY / CAPTCHA_SECRET)");
   console.log("[auth] Callback para Google Cloud: https://" + ref + ".supabase.co/auth/v1/callback");
 })().catch((e) => {
   console.error(e.message);

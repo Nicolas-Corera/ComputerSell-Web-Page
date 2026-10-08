@@ -60,9 +60,16 @@ module.exports = handler(["POST"], async (req, res) => {
     items,
     installments: body.installments,
     customer,
+    expectedTotal: body.expected_total != null ? Number(body.expected_total) : null,
+    // Mismo intento de compra (reintento tras un corte): mismo pedido y, como la
+    // clave de idempotencia de MP es el id del pedido, nunca un segundo cobro
+    clientKey: typeof body.client_key === "string" ? body.client_key : null,
     beforeCreate: (q) => assertNoBuyerInterest(bin, q),
   });
   const installments = quote.installments;
+  if (order.status === "pagado") return send(res, 200, { result: "approved", order });
+  if (order.status !== "pendiente")
+    throw new HttpError(409, "Ese intento de pago ya terminó. Revisá tus pedidos o volvé a intentar la compra.", { order: { id: order.id, number: order.number } });
 
   // Detalle de la orden desde la base (precios reales) para informar los ítems a MP
   let orderDetail = null;
@@ -140,9 +147,11 @@ module.exports = handler(["POST"], async (req, res) => {
   try {
     mp = await mpFetch("/v1/orders", { method: "POST", body: mpBody, idempotencyKey: order.id });
   } catch (e) {
+    // Error de red / timeout: no se sabe si Mercado Pago cobró. No se cancela:
+    // queda pendiente (reserva de 48 h) y lo resuelve el webhook de MP.
     console.error("[mp] error de red", e);
-    await apply(order.id, "", "failed", "processing_error", { brand: str(card.brand, 20), last_four: digits(card.last_four).slice(-4) });
-    throw new HttpError(502, "No pudimos comunicarnos con Mercado Pago. Tu tarjeta no fue cobrada; volvé a intentar en unos minutos.", { order: { id: order.id, number: order.number } });
+    const applied = await apply(order.id, "", "processing", "network_error", { brand: str(card.brand, 20), last_four: digits(card.last_four).slice(-4) }).catch(() => order);
+    return send(res, 200, { result: "pending", order: applied || order, payment: { brand: str(card.brand, 20), last_four: digits(card.last_four).slice(-4) }, detail: "network_error" });
   }
 
   // ---------- 3. Resultado ----------
@@ -154,8 +163,22 @@ module.exports = handler(["POST"], async (req, res) => {
   const pending = ["processing", "action_required", "in_review", "created"];
 
   if (mp.ok && info.status === "processed") {
-    const applied = await apply(order.id, data.id, "processed", info.status_detail, snapshot);
+    // Cobrado: si falla la base, igual se responde aprobado (el webhook lo
+    // vuelve a aplicar) para que el cliente no reintente y pague dos veces
+    let applied = order;
+    try {
+      applied = await apply(order.id, data.id, "processed", info.status_detail, snapshot);
+    } catch (e) {
+      console.error("[mp] pago aprobado sin aplicar en la base (lo resuelve el webhook)", order.id, e.message);
+    }
     return send(res, 200, { result: "approved", order: applied, payment: publicPayment(snapshot) });
+  }
+
+  // 5xx de Mercado Pago: estado incierto, igual que un error de red
+  if (mp.status >= 500) {
+    console.warn("[mp] respuesta 5xx", mp.status, order.id);
+    const applied = await apply(order.id, data.id || "", "processing", "mp_5xx", snapshot).catch(() => order);
+    return send(res, 200, { result: "pending", order: applied || order, payment: publicPayment(snapshot), detail: "mp_5xx" });
   }
 
   if (mp.ok && pending.includes(info.status)) {
@@ -169,17 +192,9 @@ module.exports = handler(["POST"], async (req, res) => {
   console.warn("[mp] pago no aprobado", mp.status, order.id, JSON.stringify(raw).slice(0, 1200));
   await apply(order.id, data.id || "", "failed", detail, snapshot);
 
-  if (mp.status >= 500) {
-    throw new HttpError(502, "Mercado Pago no pudo procesar el pago. Tu tarjeta no fue cobrada; volvé a intentar en unos minutos.", { order: { id: order.id, number: order.number } });
-  }
-  const validation =
-    mp.status === 400 && errors.length
-      ? errors
-          .map((e) => (Array.isArray(e.details) && e.details.length ? e.details.join("; ") : e.message || e.code))
-          .filter(Boolean)
-          .join(". ")
-      : "";
-  throw new HttpError(402, validation ? `Mercado Pago rechazó los datos: ${validation}` : rejectionMessage(detail), {
+  // Los errores de validación de MP (en inglés) quedan en el log, no se muestran
+  const validation = mp.status === 400 && errors.length;
+  throw new HttpError(402, validation ? "Mercado Pago no aceptó los datos del pago. Revisá la tarjeta y tus datos e intentá de nuevo." : rejectionMessage(detail), {
     result: "rejected",
     detail,
     order: { id: order.id, number: order.number },

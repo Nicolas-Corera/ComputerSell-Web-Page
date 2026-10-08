@@ -12,8 +12,10 @@
 // y CVV son Secure Fields del SDK (iframes de MP: los datos nunca pasan por
 // acá). Al pagar se crea un token y se manda a /api/mp/pay, que crea la orden
 // (place_order valida stock y precios en la base) y cobra con la API de Orders.
-// Transferencia: /api/orders/transfer crea la orden y desde acá se sube el
-// comprobante para que el panel lo revise.
+// Transferencia: /api/orders/transfer crea el pedido ANTES de que el cliente
+// transfiera (reserva el stock y fija el total). Recién ahí se muestran los
+// datos de la cuenta (seller_private solo los da con un pedido pendiente) y se
+// sube el comprobante, acá o después desde el detalle del pedido.
 import {
   sb,
   requireAuth,
@@ -23,7 +25,8 @@ import {
   toCard,
 } from "../core/supabase.js";
 import { refreshCart } from "../core/catalog.js";
-import { saveCheckoutDraft } from "../core/notifications.js";
+import { saveCheckoutDraft, askPush } from "../core/notifications.js";
+import { uploadReceipt, receiptProblem } from "../core/receipts.js";
 
 loading(async function () {
   const { formatPrice, escapeHtml, toast } = window.CS;
@@ -42,41 +45,35 @@ loading(async function () {
   if (!user) return;
   const profile = await getProfile();
 
-  // Cuenta para la transferencia: no está en el HTML público, se pide con sesión
+  // Cuenta para la transferencia: no está en el HTML público. seller_private()
+  // la devuelve solo con un pedido por transferencia pendiente: se pide
+  // después de crear el pedido (showTransferNext).
   const COPYABLE = new Set(["cbu", "alias"]);
   const COPY_MSG = {
     cbu: "CBU copiado",
     alias: "Alias copiado",
   };
 
-  const bank = (await getSellerPrivate()).bank || {};
-
-  document.querySelectorAll("#bankData [data-bank]").forEach((dd) => {
-    const key = dd.dataset.bank;
-    const val = bank[key];
-    dd.textContent = val || "—";
-
-    if (val && COPYABLE.has(key)) {
-      dd.dataset.value = val;
-      dd.dataset.copy = "1";
-      dd.title = "Click para copiar";
-      dd.tabIndex = 0;
-
-      const btn = document.createElement("button");
-      btn.type = "button";
-      btn.className = "copyBtn";
-      btn.setAttribute("aria-label", "Copiar " + key.toUpperCase());
-      btn.innerHTML =
-        '<svg aria-hidden="true"><use href="#ic-content_copy" /></svg>';
-      dd.appendChild(btn);
-    }
-  });
-
-  if (!bank.cbu && !bank.alias)
-    toast(
-      "No pudimos cargar los datos de la cuenta. Recargá la página o escribinos por WhatsApp.",
-      "bad",
-    );
+  function fillBankData(bank, total) {
+    document.querySelectorAll("#bankData [data-bank]").forEach((dd) => {
+      const key = dd.dataset.bank;
+      const val = key === "amount" ? "$" + formatPrice(total) : bank[key];
+      dd.textContent = val || "—";
+      if (val && COPYABLE.has(key)) {
+        dd.dataset.value = val;
+        dd.dataset.copy = "1";
+        dd.title = "Click para copiar";
+        dd.tabIndex = 0;
+        dd.setAttribute("role", "button");
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "copyBtn";
+        btn.setAttribute("aria-label", "Copiar " + key.toUpperCase());
+        btn.innerHTML = '<svg aria-hidden="true"><use href="#ic-content_copy" /></svg>';
+        dd.appendChild(btn);
+      }
+    });
+  }
 
   const bankEl = document.getElementById("bankData");
 
@@ -91,8 +88,10 @@ loading(async function () {
     }
   });
   bankEl.addEventListener("keydown", (e) => {
-    if (e.key === "Enter" && e.target.matches("dd[data-copy]"))
+    if ((e.key === "Enter" || e.key === " ") && e.target.matches("dd[data-copy]")) {
+      e.preventDefault();
       e.target.click();
+    }
   });
   const cartRows = (await refreshCart()).map(toCard); // precio/stock del carrito al día (solo esos productos)
   // Entrega, peso, envío gratis y cuotas sin interés de cada producto (panel)
@@ -134,9 +133,13 @@ loading(async function () {
     const formats = { phone: CS.formatPhone, dni: CS.formatDni };
     Object.entries(fill).forEach(([k, v]) => {
       const el = form.elements[k];
-      if (el && !el.value && v)
-        el.value = formats[el.dataset.format]
-          ? formats[el.dataset.format](v)
+      if (!el || el.value || !v) return;
+      // La provincia del perfil solo se usa si es una de las opciones
+      if (el.tagName === "SELECT" && !Array.from(el.options).some((o) => o.value === v)) return;
+      el.value = formats[el.dataset.format]
+        ? formats[el.dataset.format](v)
+        : el.hasAttribute("data-titlecase")
+          ? titleCase(String(v))
           : v;
     });
   }
@@ -255,8 +258,9 @@ loading(async function () {
     sumCardLine.hidden = !PAYMENT[state.method].card;
     sumCard.textContent = formatPrice(t.cardSurcharge);
 
-    // Total final: ya incluye el recargo por cuotas, que no se muestra aparte
-    sumTotal.textContent = formatPrice(t.total);
+    // Total final: ya incluye el recargo por cuotas, que no se muestra aparte.
+    // Sin provincia no hay total (falta el envío)
+    sumTotal.textContent = noProvince ? "—" : formatPrice(t.total);
     bump(sumTotal);
 
     if (t.installments > 1) {
@@ -273,8 +277,10 @@ loading(async function () {
 
     if (!state.processing)
       payBtn.textContent = noProvince
-        ? "Pagar"
-        : `Pagar $${formatPrice(t.total)}`;
+        ? "Confirmar pedido"
+        : state.method === "transferencia"
+          ? `Confirmar pedido · $${formatPrice(t.total)}`
+          : `Pagar $${formatPrice(t.total)}`;
     updatePayButton();
     syncSummarySheet();
     if (
@@ -381,7 +387,6 @@ loading(async function () {
 
     cuotasField.hidden = method !== "credito";
     cuotasSelect.disabled = method !== "credito";
-    setReceipt(null);
     checkCardType();
     if (method === "credito" && state.bin) refreshInstallments();
     renderSummary();
@@ -755,7 +760,7 @@ loading(async function () {
   renderExpiry();
   renderCvv();
 
-  // ---------- Comprobante de transferencia ----------
+  // ---------- Comprobante de transferencia (después de crear el pedido) ----------
   const receiptInput = document.getElementById("receiptInput");
   const receiptDrop = document.getElementById("receiptDrop");
   const receiptFile = document.getElementById("receiptFile");
@@ -763,52 +768,35 @@ loading(async function () {
   const receiptRemove = document.getElementById("receiptRemove");
   const receiptPreview = document.getElementById("receiptPreview");
   const receiptError = document.getElementById("receiptError");
+  const receiptSend = document.getElementById("receiptSend");
+  const receiptDone = document.getElementById("receiptDone");
+  let receiptFileSel = null;
+  let placedOrder = null;
 
-  const RECEIPT_TYPES = ["application/pdf", "image/jpeg", "image/png"];
-  const RECEIPT_EXT = /\.(pdf|jpe?g|png)$/i;
-  const RECEIPT_MAX = 5 * 1024 * 1024;
-  let receiptOk = false;
-
-  function receiptProblem(file) {
-    if (!file) return "";
-    if (!RECEIPT_TYPES.includes(file.type) || !RECEIPT_EXT.test(file.name)) {
-      return "Solo se aceptan archivos PDF, JPG o PNG.";
-    }
-    if (file.size > RECEIPT_MAX) return "El archivo supera los 5 MB.";
-    return "";
-  }
-
-  function setReceipt(file) {
-    const problem = receiptProblem(file);
-    receiptOk = !!file && !problem;
-
+  async function setReceipt(file) {
+    const problem = file ? await receiptProblem(file) : "";
+    receiptFileSel = file && !problem ? file : null;
     receiptError.hidden = !problem;
     receiptError.textContent = problem;
-    receiptFile.hidden = !receiptOk;
-    receiptDrop.hidden = receiptOk;
-    if (receiptOk) receiptName.textContent = file.name;
-    if (!receiptOk) receiptInput.value = "";
-    receiptInput.setCustomValidity(
-      receiptOk ? "" : "Subí el comprobante de la transferencia",
-    );
-    updatePayButton();
+    receiptFile.hidden = !receiptFileSel;
+    receiptDrop.hidden = !!receiptFileSel;
+    if (receiptFileSel) receiptName.textContent = file.name;
+    // Se resetea siempre: elegir el mismo archivo otra vez vuelve a disparar change
+    receiptInput.value = "";
+    receiptSend.disabled = !receiptFileSel;
   }
 
-  receiptInput.addEventListener("change", () =>
-    setReceipt(receiptInput.files[0]),
-  );
+  receiptInput.addEventListener("change", () => setReceipt(receiptInput.files[0]));
   receiptRemove.addEventListener("click", () => setReceipt(null));
 
-  // Abre el comprobante elegido en otra pestaña para revisarlo antes de pagar
+  // Abre el comprobante elegido en otra pestaña para revisarlo antes de enviarlo
   receiptPreview.addEventListener("click", () => {
-    const file = receiptInput.files[0];
-    if (!file) return;
-    const url = URL.createObjectURL(file);
+    if (!receiptFileSel) return;
+    const url = URL.createObjectURL(receiptFileSel);
     window.open(url, "_blank", "noopener");
     setTimeout(() => URL.revokeObjectURL(url), 60000);
   });
 
-  // Arrastrar y soltar sobre la zona
   ["dragenter", "dragover"].forEach((ev) =>
     receiptDrop.addEventListener(ev, (e) => {
       e.preventDefault();
@@ -823,14 +811,37 @@ loading(async function () {
   );
   receiptDrop.addEventListener("drop", (e) => {
     const file = e.dataTransfer.files[0];
-    if (!file) return;
-    if (!receiptProblem(file)) {
-      const dt = new DataTransfer();
-      dt.items.add(file);
-      receiptInput.files = dt.files;
-    }
-    setReceipt(file);
+    if (file) setReceipt(file);
   });
+
+  receiptSend.addEventListener("click", async () => {
+    if (!receiptFileSel || !placedOrder) return;
+    receiptSend.disabled = true;
+    receiptSend.textContent = "Enviando…";
+    try {
+      await uploadReceipt({ userId: user.id, orderId: placedOrder.id, file: receiptFileSel });
+      document.querySelector("#transferNext .field").hidden = true;
+      receiptDone.hidden = false;
+      document.getElementById("orderSuccessNote").hidden = true;
+      toast("Comprobante enviado. Te avisamos cuando lo revisemos.", "ok");
+    } catch (err) {
+      receiptError.hidden = false;
+      receiptError.textContent = err.message;
+      receiptSend.disabled = false;
+    }
+    receiptSend.textContent = "Enviar comprobante";
+  });
+
+  // Datos de la cuenta, plazo y comprobante una vez creado el pedido
+  async function showTransferNext(order) {
+    placedOrder = order;
+    const seller = await getSellerPrivate(true);
+    const bank = seller.bank || {};
+    fillBankData(bank, order.total);
+    if (!bank.cbu && !bank.alias)
+      toast("No pudimos cargar los datos de la cuenta. Los ves en el detalle del pedido o escribinos por WhatsApp.", "bad");
+    document.getElementById("transferNext").hidden = false;
+  }
 
   // "Pagar" se deshabilita: transferencia sin comprobante, tarjeta sin SDK de
   // MP o cuando la tarjeta no coincide con la pestaña (crédito/débito)
@@ -854,7 +865,7 @@ loading(async function () {
 
   function updatePayButton() {
     if (state.processing) return (payBtn.disabled = true);
-    if (state.method === "transferencia") payBtn.disabled = !receiptOk;
+    if (state.method === "transferencia") payBtn.disabled = false;
     else payBtn.disabled = !mpReady || !typeWarn.hidden;
   }
 
@@ -909,12 +920,14 @@ loading(async function () {
     };
   }
 
-  // Guarda teléfono y dirección en el perfil para la próxima compra
+  // Guarda teléfono y dirección en el perfil para la próxima compra (sin
+  // perder lo que el perfil tenía y el checkout no pide, como el país)
   function saveProfile({ customer, address }) {
+    const prev = (profile && profile.address) || {};
     sb.from("profiles")
       .update({
         phone: customer.phone,
-        address: { dni: customer.dni, ...address },
+        address: { ...prev, dni: customer.dni, ...address },
       })
       .eq("id", user.id)
       .then(() => {});
@@ -971,7 +984,8 @@ loading(async function () {
     }
   }
 
-  function showSuccess(order, { methodLabel, note }) {
+  function showSuccess(order, { methodLabel, note, title }) {
+    if (title) document.getElementById("orderSuccessTitle").textContent = title;
     document.getElementById("orderNumber").textContent = "CS-" + order.number;
     // (transferencia y pago pendiente reemplazan el texto y estos spans ya no están)
     const methodEl = document.getElementById("orderMethod");
@@ -992,19 +1006,39 @@ loading(async function () {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
+  // Clave del intento de compra: si se corta la conexión y se reintenta, el
+  // servidor devuelve el mismo pedido en lugar de crear otro. Se renueva
+  // cuando el servidor respondió (el intento terminó, bien o mal).
+  const newKey = () =>
+    crypto.randomUUID
+      ? crypto.randomUUID()
+      : "10000000-1000-4000-8000-100000000000".replace(/[018]/g, (c) =>
+          (c ^ (crypto.getRandomValues(new Uint8Array(1))[0] & (15 >> (c / 4)))).toString(16),
+        );
+  let clientKey = newKey();
+
   // POST a /api/* con la sesión de Supabase -> {res, out}
   async function postApi(path, body) {
     const { data: sess } = await sb.auth.getSession();
     if (!sess || !sess.session)
       throw new Error("Tu sesión venció. Volvé a ingresar.");
-    const res = await fetch(path, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: "Bearer " + sess.session.access_token,
-      },
-      body: JSON.stringify(body),
-    });
+    let res;
+    try {
+      res = await fetch(path, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer " + sess.session.access_token,
+        },
+        body: JSON.stringify({ ...body, client_key: clientKey }),
+      });
+    } catch (e) {
+      // Sin respuesta: se conserva la clave para que el reintento no duplique
+      throw new Error(
+        "No pudimos conectarnos. Revisá tu conexión y volvé a intentar: si el pedido llegó a crearse, no se va a duplicar.",
+      );
+    }
+    clientKey = newKey();
     let out = {};
     try {
       out = await res.json();
@@ -1017,39 +1051,41 @@ loading(async function () {
   const cartItems = () =>
     store.getItems().map((it) => ({ product_id: it.id, qty: it.qty }));
 
-  // Transferencia: orden en el backend (calcula el envío) + comprobante al storage privado
+  // El precio o el envío cambiaron desde que se cargó la página: se actualiza
+  // el carrito y se le muestra el total nuevo antes de crear el pedido
+  async function onTotalChanged(out) {
+    const rows = (await refreshCart()).map(toCard);
+    cartRows.splice(0, cartRows.length, ...rows);
+    render();
+    throw new Error(out.error || "El total cambió. Revisá el resumen y confirmá de nuevo.");
+  }
+
+  // Transferencia: el pedido se crea en el backend (calcula el envío y reserva
+  // el stock). El comprobante se sube después, en la confirmación.
   async function payWithTransfer(data) {
     const { res, out } = await postApi("/api/orders/transfer", {
       items: cartItems(),
       customer: data.customer,
       address: data.address,
+      expected_total: totals().total,
     });
+    if (res.status === 409 && out.code === "total_changed") await onTotalChanged(out);
     if (!res.ok || !out.order)
-      throw new Error(out.error || "No pudimos crear el pedido");
+      throw new Error(out.error || "No pudimos crear el pedido. Probá de nuevo en unos minutos.");
     const order = out.order;
 
-    const file = receiptInput.files[0];
-    if (file) {
-      const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
-      const path = `${user.id}/${order.id}.${ext}`;
-      const up = await sb.storage
-        .from("receipts")
-        .upload(path, file, { upsert: true, contentType: file.type });
-      if (up.error) throw up.error;
-      const ins = await sb.from("payment_receipts").insert({
-        order_id: order.id,
-        user_id: user.id,
-        file_path: path,
-        amount: order.total,
-      });
-      if (ins.error) throw ins.error;
-    }
-
     saveProfile(data);
-    return () => {
+    return async () => {
+      const deadline = new Date(Date.now() + 48 * 3600 * 1000).toLocaleString("es-AR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
       document.getElementById("orderSuccessText").innerHTML =
-        `Recibimos tu comprobante. El pedido queda <strong>pendiente</strong> hasta que verifiquemos la transferencia de <strong>${formatPrice(order.total)}</strong>.`;
-      showSuccess(order, { methodLabel: "transferencia" });
+        `Reservamos tu pedido por <strong>$${formatPrice(order.total)}</strong>. Transferí ese monto a la cuenta de abajo y subí el comprobante <strong>antes del ${escapeHtml(deadline)} hs</strong>: si no lo recibimos, el pedido se cancela y el stock se libera.`;
+      showSuccess(order, {
+        methodLabel: "transferencia",
+        title: "¡Pedido reservado!",
+        note: "Si ahora no podés, subí el comprobante más tarde desde el detalle del pedido (Mi cuenta > Mis compras).",
+      });
+      await showTransferNext(order);
+      askPush(800);
     };
   }
 
@@ -1079,6 +1115,7 @@ loading(async function () {
 
     const pm = state.paymentMethod;
     const { res, out } = await postApi("/api/mp/pay", {
+      expected_total: totals().total,
       method: state.method,
       items: cartItems(),
       customer: data.customer,
@@ -1092,6 +1129,7 @@ loading(async function () {
         last_four: token.last_four_digits || "",
       },
     });
+    if (res.status === 409 && out.code === "total_changed") await onTotalChanged(out);
     if (!res.ok) {
       const err = new Error(out.error || "No pudimos procesar el pago");
       err.rejected = res.status === 402;
@@ -1119,13 +1157,9 @@ loading(async function () {
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
+    // Otro envío en curso (Enter repetido, requestSubmit, otra vía): se ignora
+    if (state.processing || state.completed) return;
     form.classList.add("is-submitted");
-    if (state.method === "transferencia" && !receiptOk) {
-      setReceipt(null);
-      receiptError.hidden = false;
-      receiptError.textContent = "Subí el comprobante para continuar.";
-      return;
-    }
     if (!form.checkValidity()) {
       form.reportValidity();
       return;
@@ -1140,7 +1174,9 @@ loading(async function () {
     payBtn.textContent = "Procesando pago…";
     updatePayButton();
     setFormLocked(true);
-    const minWait = new Promise((r) => setTimeout(r, 3000));
+    const minWait = new Promise((r) =>
+      setTimeout(r, state.method === "transferencia" ? 800 : 3000),
+    );
     try {
       const [finish] = await Promise.all([
         state.method === "transferencia"
@@ -1152,7 +1188,11 @@ loading(async function () {
     } catch (err) {
       console.error(err);
       await minWait;
-      toast(err.message || "No pudimos procesar el pedido", "bad");
+      // Nunca un error técnico en inglés ("Failed to fetch", errores de la base)
+      const msg = err && err.message && /[áéíóúñ¿¡]|^(Tu |No |El |La |Un |Ya |Hiciste |Sin |Podés |Revis|Ingres|Complet|Eleg)/.test(err.message)
+        ? err.message
+        : "No pudimos procesar el pedido. Probá de nuevo en unos minutos.";
+      toast(msg, "bad");
       // Si se llegó a crear (y cancelar) la orden, la compra vuelve a quedar pendiente
       syncDraft();
       state.processing = false;

@@ -8,6 +8,7 @@ import { CARD_COLUMNS } from "./catalog.js";
 const { productForButton, toast } = window.CS;
 const FAVORITES_URL = "/favoritos.html";
 const HEART_SELECTOR = ".actionsDestacados .btn-third:last-child, .purchase-row .btn-third";
+const PENDING_KEY = "cs_fav_pending"; // producto a guardar después del login (sessionStorage)
 
 // ---------- Store ----------
 let ids = new Set(); // product_id de los favoritos del usuario
@@ -31,6 +32,20 @@ async function load() {
   const { data } = await sb.from("favorites").select("product_id").eq("user_id", user.id);
   ids = new Set((data || []).map((r) => r.product_id));
   emit();
+  // Tocó el corazón sin sesión: al volver del login se guarda ese producto
+  let pending = null;
+  try {
+    pending = sessionStorage.getItem(PENDING_KEY);
+    sessionStorage.removeItem(PENDING_KEY);
+  } catch (e) {}
+  if (pending && /^[0-9a-f-]{36}$/i.test(pending) && !ids.has(pending)) {
+    const { error } = await sb.from("favorites").insert({ user_id: user.id, product_id: pending });
+    if (!error) {
+      ids.add(pending);
+      emit();
+      toast("Lo guardamos en tus favoritos", "ok");
+    }
+  }
   // Cambios desde otra pestaña/dispositivo
   unsubscribe = subscribe(
     "favorites",
@@ -52,6 +67,9 @@ const FavoritesStore = {
   async toggle(product) {
     if (!user) {
       toast("Iniciá sesión para guardar favoritos");
+      try {
+        if (product && product.id) sessionStorage.setItem(PENDING_KEY, product.id);
+      } catch (e) {}
       const next = encodeURIComponent(location.pathname + location.search);
       setTimeout(() => (location.href = `/acceso.html?next=${next}#login`), 600);
       return null;
@@ -94,6 +112,8 @@ const badge = document.getElementById("favBadge");
 
 function setHeartState(btn, active) {
   btn.classList.toggle("is-favorited", active);
+  btn.setAttribute("aria-pressed", String(active));
+  btn.setAttribute("aria-label", active ? "Quitar de favoritos" : "Agregar a favoritos");
   const icon = btn.querySelector(".favorite-icon");
   if (icon) icon.setAttribute("href", active ? "#ic-favorite-fill" : "#ic-favorite");
 }

@@ -47,7 +47,7 @@
           <span>•</span>
           <span class="marquee-item"
             ><svg class="ic-sm"><use href="#ic-shipping_truck" /></svg>Envíos
-            gratias en productos seleccionados</span
+            gratis en CABA y Bs. As. (productos seleccionados)</span
           >
           <span>•</span>
           <span class="marquee-item"
@@ -132,11 +132,11 @@
               >
                 <svg class="ic-sm"><use href="#ic-camera" /></svg>
               </button>
-              <input type="file" id="avatarInput" accept="image/*" hidden />
+              <input type="file" id="avatarInput" accept="image/png,image/jpeg,image/webp" hidden />
             </div>
             <h2 id="avatarName">Nombre Apellido</h2>
             <span class="avatar-email" id="avatarEmail">tu@email.com</span>
-            <button class="avatar-remove" id="avatarRemoveBtn" type="button">
+            <button class="avatar-remove" id="avatarRemoveBtn" type="button" hidden>
               <svg class="ic-sm"><use href="#ic-close" /></svg>
               Quitar foto
             </button>
@@ -166,11 +166,11 @@
                 <div class="form-grid">
                   <div class="field">
                     <label for="nombre">Nombre</label>
-                    <input type="text" id="nombre" placeholder="Juan" />
+                    <input type="text" id="nombre" placeholder="Juan" maxlength="60" autocomplete="given-name" required />
                   </div>
                   <div class="field">
                     <label for="apellido">Apellido</label>
-                    <input type="text" id="apellido" placeholder="Pérez" />
+                    <input type="text" id="apellido" placeholder="Pérez" maxlength="60" autocomplete="family-name" required />
                   </div>
                   <div class="field">
                     <label for="email">Email</label>
@@ -185,7 +185,8 @@
                       inputmode="numeric"
                       autocomplete="tel"
                       placeholder="11 2345-6789"
-                      pattern="[0-9]{2} [0-9]{4}-[0-9]{4}"
+                      pattern="[0-9]{2,4} [0-9]{2,4}-[0-9]{4}"
+                      title="Característica y número, por ejemplo 11 2345-6789 o 351 412-3456"
                     />
                   </div>
                 </div>
@@ -199,40 +200,58 @@
                 <div class="form-grid">
                   <div class="field">
                     <label for="calle">Calle</label>
-                    <input type="text" id="calle" placeholder="Av. Siempre Viva" autocomplete="address-line1" />
+                    <input type="text" id="calle" placeholder="Av. Siempre Viva" autocomplete="address-line1" maxlength="120" />
                   </div>
                   <div class="field">
                     <label for="numero">Número</label>
-                    <input type="text" id="numero" placeholder="742" inputmode="numeric" />
+                    <input type="text" id="numero" placeholder="742" maxlength="7" pattern="([0-9]{1,6}[A-Za-z]?|[Ss]/?[Nn])" title="Número de la calle (o S/N)" />
                   </div>
                   <div class="field">
                     <label for="piso">Piso / Depto (opcional)</label>
-                    <input type="text" id="piso" placeholder="3° B" />
+                    <input type="text" id="piso" placeholder="3° B" maxlength="60" />
                   </div>
                   <div class="field">
                     <label for="cp">Código postal</label>
-                    <input type="text" id="cp" placeholder="C1000" />
+                    <input type="text" id="cp" placeholder="1425" maxlength="8" autocomplete="postal-code" pattern="([0-9]{4}|[A-Za-z][0-9]{4}[A-Za-z]{3})" title="Código postal: 4 números (1425) o el formato nuevo (C1425ABC)" />
                   </div>
                   <div class="field">
                     <label for="ciudad">Ciudad</label>
-                    <input type="text" id="ciudad" placeholder="Buenos Aires" />
+                    <input type="text" id="ciudad" placeholder="Buenos Aires" maxlength="60" autocomplete="address-level2" />
                   </div>
                   <div class="field">
                     <label for="provincia">Provincia</label>
-                    <input
-                      type="text"
-                      id="provincia"
-                      placeholder="Buenos Aires"
-                    />
+                    <select id="provincia">
+                      <option value="">Seleccionar</option>
+                      <option>Buenos Aires</option>
+                      <option>CABA</option>
+                      <option>Catamarca</option>
+                      <option>Chaco</option>
+                      <option>Chubut</option>
+                      <option>Córdoba</option>
+                      <option>Corrientes</option>
+                      <option>Entre Ríos</option>
+                      <option>Formosa</option>
+                      <option>Jujuy</option>
+                      <option>La Pampa</option>
+                      <option>La Rioja</option>
+                      <option>Mendoza</option>
+                      <option>Misiones</option>
+                      <option>Neuquén</option>
+                      <option>Río Negro</option>
+                      <option>Salta</option>
+                      <option>San Juan</option>
+                      <option>San Luis</option>
+                      <option>Santa Cruz</option>
+                      <option>Santa Fe</option>
+                      <option>Santiago del Estero</option>
+                      <option>Tierra del Fuego</option>
+                      <option>Tucumán</option>
+                    </select>
                   </div>
                   <div class="field full">
                     <label for="pais">País</label>
-                    <select id="pais">
+                    <select id="pais" disabled title="Por ahora solo enviamos dentro de Argentina">
                       <option value="Argentina" selected>Argentina</option>
-                      <option value="Chile">Chile</option>
-                      <option value="Uruguay">Uruguay</option>
-                      <option value="Paraguay">Paraguay</option>
-                      <option value="Otro">Otro</option>
                     </select>
                   </div>
                 </div>
@@ -321,12 +340,6 @@
               justo.
             </p>
             <div class="footer-social">
-              <a href="#" aria-label="Instagram"
-                ><svg class="ic-sm"><use href="#ic-instagram" /></svg>
-              </a>
-              <a href="#" aria-label="Mercado Libre"
-                ><svg class="ic-sm"><use href="#ic-mercadolibre" /></svg>
-              </a>
               <a href="https://wa.me/5491140942695" target="_blank" rel="noopener" aria-label="WhatsApp"
                 ><svg class="ic-sm"><use href="#ic-whatsapp" /></svg>
               </a>
@@ -351,11 +364,11 @@
           <div class="footer-col">
             <h3>Ayuda</h3>
             <ul>
-              <li><a href="#">Preguntas frecuentes</a></li>
+              <li><a href="/informacion-legal#preguntas">Preguntas frecuentes</a></li>
               <li><a href="/envios">Envíos</a></li>
               <li><a href="/cambios-y-devoluciones">Cambios y devoluciones</a></li>
-              <li><a href="#">Garantía</a></li>
-              <li><a href="#">Métodos de pago</a></li>
+              <li><a href="/cambios-y-devoluciones#garantia">Garantía</a></li>
+              <li><a href="/politica-de-venta#pagos">Métodos de pago</a></li>
             </ul>
           </div>
 
@@ -418,6 +431,7 @@
     <script src="/assets/js/components/navbar.js"></script>
     <script src="/assets/js/components/menu.js"></script>
     <script type="module" src="/assets/js/components/footer-legal.js"></script>
+    <script type="module" src="/assets/js/components/empty-categories.js"></script>
     <script src="/assets/js/core/env.js"></script>
     <script src="/assets/js/core/utils.js"></script>
     <script type="module" src="/assets/js/pages/perfil.js"></script>

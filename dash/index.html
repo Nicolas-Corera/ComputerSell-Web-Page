@@ -26,7 +26,7 @@
     <script src="/dash/js/theme-init.js"></script>
   </head>
 
-  <body class="admin-body">
+  <body class="admin-body is-checking">
     <script src="/assets/js/sprites/sprite.js"></script>
     <script src="/assets/js/sprites/sprite-admin.js"></script>
 
@@ -119,6 +119,16 @@
           >
             <svg><use href="#ic-receipt_long" /></svg>
             <span class="sb-text">Facturas</span>
+          </button>
+          <button
+            class="sb-item"
+            type="button"
+            data-view="arrepentimientos"
+            data-tip="Arrepentimientos"
+          >
+            <svg><use href="#ic-description" /></svg>
+            <span class="sb-text">Arrepentimientos</span>
+            <span class="sb-badge" id="sbRevBadge"></span>
           </button>
           <button
             class="sb-item"
@@ -379,17 +389,13 @@
                 <div class="card-head">
                   <h2>
                     <svg><use href="#ic-query_stats" /></svg>
-                    Visitas vs. conversiones
+                    Ticket promedio por semana
                   </h2>
-                  <span class="hint">Últimas 8 semanas</span>
+                  <span class="hint">Últimas 8 semanas · pedidos pagados</span>
                 </div>
                 <div class="chart" id="conversionChart"></div>
                 <div class="chart-legend">
-                  <span><i style="background: var(--chart-1)"></i>Visitas</span>
-                  <span
-                    ><i style="background: var(--chart-3)"></i>Órdenes
-                    (x100)</span
-                  >
+                  <span><i style="background: var(--chart-1)"></i>Ticket promedio</span>
                 </div>
               </div>
             </div>
@@ -524,6 +530,34 @@
             </div>
             <div class="tableWrap">
               <table class="table" id="productsTable"></table>
+            </div>
+          </section>
+
+          <!-- ========== ARREPENTIMIENTOS ========== -->
+          <!-- Botón de arrepentimiento (art. 34 Ley 24.240, Disp. 954/2025):
+               solicitudes de los clientes y su estado -->
+          <section class="view" data-view="arrepentimientos">
+            <div class="toolbar">
+              <div class="searchBox">
+                <svg><use href="#ic-search" /></svg>
+                <input type="text" id="revSearch" placeholder="Buscar por código, cliente, email u orden" />
+              </div>
+              <label class="field">
+                <select id="revStatus" aria-label="Estado">
+                  <option value="">Todos los estados</option>
+                  <option value="abiertas" selected>Abiertas (recibidas y en curso)</option>
+                  <option value="recibida">Recibida</option>
+                  <option value="en_curso">En curso</option>
+                  <option value="reintegrada">Reintegrada</option>
+                  <option value="rechazada">Rechazada</option>
+                  <option value="desistida">Desistida</option>
+                </select>
+              </label>
+              <span class="spacer"></span>
+              <span class="count" id="revResult"></span>
+            </div>
+            <div class="tableWrap">
+              <table class="table" id="revocationsTable"></table>
             </div>
           </section>
 
@@ -775,13 +809,13 @@
                     <label class="field">
                       <span>Garantía</span>
                       <div class="input-unit">
-                        <input type="number" name="warranty" id="pWarranty" min="0" value="12" />
+                        <input type="number" name="warranty" id="pWarranty" min="1" step="1" value="12" />
                         <select name="warrantyUnit" id="pWarrantyUnit" aria-label="Unidad de garantía">
-                          <option value="dias">días</option>
                           <option value="meses" selected>meses</option>
                           <option value="anios">años</option>
                         </select>
                       </div>
+                      <span class="field-help">Mínimo legal: 6 meses en productos nuevos, 3 en usados (Ley 24.240, art. 11).</span>
                     </label>
                   </div>
 
@@ -1143,28 +1177,27 @@
                 <div class="settingRow">
                   <div class="text">
                     <strong>Contraseña</strong>
-                    <small>Última modificación hace 3 meses</small>
+                    <small>Se cambia con un enlace que te mandamos al correo de la cuenta</small>
                   </div>
-                  <button class="btn btn-ghost is-sm" type="button" data-toast="Te enviamos un correo para cambiar la contraseña">
+                  <button class="btn btn-ghost is-sm" type="button" id="secPassword">
                     Cambiar contraseña
                   </button>
                 </div>
                 <div class="settingRow">
                   <div class="text">
                     <strong>Verificación en dos pasos</strong>
-                    <small>Pide un código al iniciar sesión en un dispositivo nuevo</small>
+                    <small id="secMfaText">Revisando…</small>
                   </div>
-                  <label class="switch">
-                    <input type="checkbox" data-pref="twofa" />
-                    <span class="track"></span>
-                  </label>
+                  <button class="btn btn-ghost is-sm" type="button" id="secMfa" disabled>
+                    …
+                  </button>
                 </div>
                 <div class="settingRow">
                   <div class="text">
-                    <strong>Sesiones activas</strong>
-                    <small>Windows · Chrome · Buenos Aires (esta sesión)</small>
+                    <strong>Otras sesiones</strong>
+                    <small>Cierra la sesión de esta cuenta en todos los demás dispositivos (panel y tienda). Esta queda abierta.</small>
                   </div>
-                  <button class="btn btn-ghost is-sm" type="button" data-toast="Se cerraron las demás sesiones">
+                  <button class="btn btn-ghost is-sm" type="button" id="secOthers">
                     Cerrar otras sesiones
                   </button>
                 </div>
@@ -1214,65 +1247,6 @@
                       <svg><use href="#ic-settings" /></svg>
                       Según el sistema
                     </span>
-                  </label>
-                </div>
-              </div>
-
-              <div class="card">
-                <div class="card-head">
-                  <h2>
-                    <svg><use href="#ic-language" /></svg>
-                    Idioma y región
-                  </h2>
-                </div>
-                <div class="settingRow">
-                  <div class="text">
-                    <strong>Idioma del panel</strong>
-                    <small>Cambia los textos de la interfaz</small>
-                  </div>
-                  <label class="field">
-                    <select data-pref="lang">
-                      <option value="es">Español (Argentina)</option>
-                      <option value="en">English</option>
-                      <option value="pt">Português</option>
-                    </select>
-                  </label>
-                </div>
-                <div class="settingRow">
-                  <div class="text">
-                    <strong>Moneda</strong>
-                    <small>Formato de los montos</small>
-                  </div>
-                  <label class="field">
-                    <select data-pref="currency">
-                      <option value="ARS">Peso argentino (ARS)</option>
-                      <option value="USD">Dólar (USD)</option>
-                    </select>
-                  </label>
-                </div>
-                <div class="settingRow">
-                  <div class="text">
-                    <strong>Zona horaria</strong>
-                    <small>Usada en fechas de órdenes y reservas</small>
-                  </div>
-                  <label class="field">
-                    <select data-pref="tz">
-                      <option value="America/Argentina/Buenos_Aires">Buenos Aires (GMT-3)</option>
-                      <option value="America/Montevideo">Montevideo (GMT-3)</option>
-                      <option value="America/Santiago">Santiago (GMT-4)</option>
-                    </select>
-                  </label>
-                </div>
-                <div class="settingRow">
-                  <div class="text">
-                    <strong>Formato de fecha</strong>
-                  </div>
-                  <label class="field">
-                    <select data-pref="dateFormat">
-                      <option value="dd/mm/yyyy">15/09/2026</option>
-                      <option value="dd mmm yyyy">15 sep 2026</option>
-                      <option value="yyyy-mm-dd">2026-09-15</option>
-                    </select>
                   </label>
                 </div>
               </div>
@@ -1341,72 +1315,33 @@
                 <div class="card-head">
                   <h2>
                     <svg><use href="#ic-notifications_active" /></svg>
-                    Qué querés recibir y por dónde
+                    Qué avisos llegan y por dónde
                   </h2>
-                  <span class="hint">Los cambios se guardan automáticamente</span>
                 </div>
                 <div class="tableWrap" style="border: none; background: transparent">
-                  <table class="notifMatrix" id="notifMatrix">
+                  <table class="notifMatrix">
                     <thead>
                       <tr>
                         <th>Evento</th>
                         <th>Panel</th>
                         <th>Email</th>
-                        <th>WhatsApp</th>
                       </tr>
                     </thead>
-                    <tbody></tbody>
+                    <tbody>
+                      <tr><td><strong>Nueva venta</strong><small>Pedido por transferencia o pago con tarjeta acreditado</small></td><td>Sí</td><td>Sí</td></tr>
+                      <tr><td><strong>Comprobante recibido</strong><small>El cliente subió el comprobante de la transferencia</small></td><td>Sí</td><td>Sí</td></tr>
+                      <tr><td><strong>Arrepentimiento</strong><small>Solicitud desde el Botón de arrepentimiento</small></td><td>Sí</td><td>Sí</td></tr>
+                      <tr><td><strong>Stock bajo o sin stock</strong><small>Un producto publicado llega al mínimo configurado</small></td><td>Sí</td><td>No</td></tr>
+                      <tr><td><strong>Pedido cancelado por el cliente</strong><small>Antes de pagar, desde el detalle del pedido</small></td><td>Sí</td><td>No</td></tr>
+                    </tbody>
                   </table>
                 </div>
-              </div>
-
-              <div class="card">
-                <div class="card-head">
-                  <h2>
-                    <svg><use href="#ic-schedule" /></svg>
-                    Resúmenes y sonido
-                  </h2>
-                </div>
-                <div class="settingRow">
-                  <div class="text">
-                    <strong>Resumen diario por email</strong>
-                    <small>Ventas, reservas y stock del día, todos los días a las 20:00</small>
-                  </div>
-                  <label class="switch">
-                    <input type="checkbox" data-pref="dailyDigest" checked />
-                    <span class="track"></span>
-                  </label>
-                </div>
-                <div class="settingRow">
-                  <div class="text">
-                    <strong>Resumen semanal de analíticas</strong>
-                    <small>Los lunes a la mañana</small>
-                  </div>
-                  <label class="switch">
-                    <input type="checkbox" data-pref="weeklyDigest" checked />
-                    <span class="track"></span>
-                  </label>
-                </div>
-                <div class="settingRow">
-                  <div class="text">
-                    <strong>Sonido en el panel</strong>
-                    <small>Reproduce un aviso al llegar una notificación</small>
-                  </div>
-                  <label class="switch">
-                    <input type="checkbox" data-pref="sound" />
-                    <span class="track"></span>
-                  </label>
-                </div>
-                <div class="settingRow">
-                  <div class="text">
-                    <strong>No molestar</strong>
-                    <small>Silencia todo entre las 22:00 y las 08:00</small>
-                  </div>
-                  <label class="switch">
-                    <input type="checkbox" data-pref="dnd" />
-                    <span class="track"></span>
-                  </label>
-                </div>
+                <p style="color: var(--ink-soft); font-size: 13.5px; margin: 12px 0 0">
+                  Los correos llegan a la casilla de ventas configurada en el
+                  servidor (<code>NOTIFY_ADMIN_TO</code>), con un tope diario
+                  propio (<code>NOTIFY_ADMIN_DAILY_LIMIT</code>). Si se alcanza,
+                  los avisos siguen apareciendo acá.
+                </p>
               </div>
             </div>
 
@@ -1438,7 +1373,7 @@
                   </div>
                   <div class="about-stat">
                     <small>Entorno</small>
-                    <strong>Producción</strong>
+                    <strong id="aboutEnv">—</strong>
                   </div>
                   <div class="about-stat">
                     <small>Tienda</small>
@@ -1460,10 +1395,6 @@
                       <svg><use href="#ic-storefront" /></svg>
                       Ver la tienda
                     </a>
-                    <a href="#" data-toast="Próximamente: centro de ayuda">
-                      <svg><use href="#ic-help" /></svg>
-                      Centro de ayuda
-                    </a>
                     <a href="https://wa.me/5491140942695" target="_blank" rel="noopener">
                       <svg><use href="#ic-whatsapp" /></svg>
                       WhatsApp
@@ -1472,8 +1403,10 @@
                   <span class="sectionTitle">Tecnologías</span>
                   <p style="color: var(--ink-soft); font-size: 13.5px; margin: 0">
                     HTML, CSS y JavaScript sin frameworks · Tipografías Inter y
-                    Montserrat · Íconos Material Symbols (SVG) · Los datos de esta
-                    versión se guardan en el navegador (localStorage).
+                    Montserrat · Íconos Material Symbols (SVG) · Datos en Supabase
+                    (Postgres con seguridad por fila, Auth y Storage), actualizados
+                    en tiempo real. En el navegador solo quedan la sesión y las
+                    preferencias del panel.
                   </p>
                 </div>
 

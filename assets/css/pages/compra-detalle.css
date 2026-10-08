@@ -400,3 +400,50 @@
 .side-actions .btn {
   width: 100%;
 }
+
+/* ---- Transferencia pendiente: cuenta, plazo y comprobante ---- */
+.bankList {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 6px 12px;
+  margin: 0 0 12px;
+  font-size: 13.5px;
+}
+.bankList dt {
+  color: var(--ink-soft);
+}
+.bankList dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.copyValue {
+  background: none;
+  border: 0;
+  padding: 0;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  text-decoration: underline dotted;
+  overflow-wrap: anywhere;
+}
+.transferDeadline {
+  font-size: 13px;
+  color: var(--ink-soft);
+  margin: 0 0 12px;
+  line-height: 1.5;
+}
+.btn-link {
+  background: none;
+  border: 0;
+  padding: 0;
+  margin-left: 6px;
+  color: var(--blue);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  text-decoration: underline;
+}
+.btn.is-highlight {
+  box-shadow: 0 0 0 3px var(--blue);
+}

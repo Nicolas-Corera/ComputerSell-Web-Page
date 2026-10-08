@@ -1,6 +1,8 @@
 # Política de reporte de vulnerabilidades de ComputerSell (RFC 9116).
 # Si encontraste un problema de seguridad, escribinos sin hacerlo público:
 # respondemos y lo corregimos lo antes posible.
+# Mientras la casilla de contacto no recibe correos, el canal es WhatsApp.
+Contact: https://wa.me/5491140942695
 Contact: mailto:contacto@computersell.com.ar
 Expires: 2027-10-07T00:00:00.000Z
 Preferred-Languages: es, en

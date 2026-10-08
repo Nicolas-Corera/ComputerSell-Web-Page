@@ -19,7 +19,19 @@
     '<svg viewBox="0 -960 960 960"><path d="M240-80q-33 0-56.5-23.5T160-160v-480q0-33 23.5-56.5T240-720h80q0-66 47-113t113-47q66 0 113 47t47 113h80q33 0 56.5 23.5T800-640v480q0 33-23.5 56.5T720-80H240Zm0-80h480v-480h-80v80q0 17-11.5 28.5T600-520q-17 0-28.5-11.5T560-560v-80H400v80q0 17-11.5 28.5T360-520q-17 0-28.5-11.5T320-560v-80h-80v480Zm160-560h160q0-33-23.5-56.5T480-800q-33 0-56.5 23.5T400-720ZM240-160v-480 480Z"/></svg>';
 
   // ---------- Store ----------
-  let cart = loadList(STORAGE_KEY);
+  // Máximo por producto en un pedido (lo mismo exige el backend: api/_lib/checkout.js)
+  const MAX_QTY = 10;
+  const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  // localStorage lo puede modificar cualquiera (o venir de una versión vieja):
+  // se descartan entradas inválidas y las cantidades quedan enteras de 1 a MAX_QTY
+  let cart = loadList(STORAGE_KEY)
+    .filter((it) => it && typeof it === "object" && UUID_RE.test(String(it.id || "")))
+    .map((it) => ({
+      ...it,
+      qty: Math.min(MAX_QTY, Math.max(1, Math.floor(Number(it.qty)) || 1)),
+      price: Math.max(0, Math.round(Number(it.price)) || 0),
+      name: String(it.name || "").slice(0, 200),
+    }));
   const listeners = [];
 
   function commit() {
@@ -33,9 +45,13 @@
     totalPrice: () => cart.reduce((sum, it) => sum + it.price * it.qty, 0),
     // Devuelve false si no hay stock suficiente
     add(product) {
-      const qty = Math.max(1, product.qty || 1);
+      const qty = Math.max(1, Math.floor(product.qty) || 1);
       const existing = cart.find((it) => it.id === product.id);
       const wanted = (existing ? existing.qty : 0) + qty;
+      if (wanted > MAX_QTY) {
+        toast(`Podés comprar hasta ${MAX_QTY} unidades de cada producto por pedido. Si necesitás más, escribinos.`, "bad");
+        return false;
+      }
       if (typeof product.stock === "number" && wanted > product.stock) {
         toast(
           product.stock > 0
@@ -77,13 +93,26 @@
         }
       });
       const before = cart.length;
-      cart = cart.filter((it) => it.qty > 0 && (!validIds || validIds.includes(it.id)));
+      const gone = cart.filter((it) => it.qty <= 0 || (validIds && !validIds.includes(it.id)));
+      cart = cart.filter((it) => !gone.includes(it));
+      // Se avisa qué se quitó (despublicado o sin stock), no desaparece en silencio
+      if (gone.length)
+        toast(
+          gone.length === 1
+            ? `Quitamos "${gone[0].name}" del carrito: ya no está disponible.`
+            : `Quitamos ${gone.length} productos del carrito: ya no están disponibles.`,
+          "bad",
+        );
       if (changed || cart.length !== before) commit();
     },
     setQty(id, qty) {
       const item = cart.find((it) => it.id === id);
       if (!item) return;
       let q = Math.max(1, qty | 0);
+      if (q > MAX_QTY) {
+        q = MAX_QTY;
+        toast(`Podés comprar hasta ${MAX_QTY} unidades de cada producto por pedido`, "bad");
+      }
       if (typeof item.stock === "number" && q > item.stock) {
         q = Math.max(1, item.stock);
         toast(`Solo quedan ${item.stock} unidad${item.stock === 1 ? "" : "es"}`, "bad");

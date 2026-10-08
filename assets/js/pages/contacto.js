@@ -97,7 +97,7 @@ document.addEventListener("DOMContentLoaded", () => {
         elementos = crearInput(
           "motivoPedido",
           "Número de pedido",
-          "Ej: #A1023",
+          "Ej: CS-10486",
         );
         break;
       case "otro":

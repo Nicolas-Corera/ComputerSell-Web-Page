@@ -35,7 +35,8 @@ window.CS = (function () {
       .replace(/&/g, "&amp;")
       .replace(/</g, "&lt;")
       .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;");
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
   }
 
   // Persistencia simple en localStorage (devuelve [] si no hay nada o falla)
@@ -95,13 +96,13 @@ window.CS = (function () {
           ${p.image ? `<img src="${escapeHtml(p.image)}" alt="${escapeHtml(p.name)}" loading="lazy" />` : ""}
           ${p.oldPrice ? `<span class="cardBadge-sale">${Math.round((1 - p.price / p.oldPrice) * 100)}% OFF</span>` : ""}
           ${out ? `<span class="cardBadge-out">Sin stock</span>` : ""}
-          ${p.freeShipping ? `<span class="cardBadge-ship"><svg><use href="#ic-shipping_truck" /></svg>Envío gratis</span>` : ""}
+          ${p.freeShipping ? `<span class="cardBadge-ship" title="Envío gratis a CABA y Provincia de Buenos Aires. Al resto del país se cobra según el peso."><svg aria-hidden="true"><use href="#ic-shipping_truck" /></svg>Envío gratis CABA y Bs. As.</span>` : ""}
         </a>
         <div class="textCard">
           <span>${escapeHtml(p.name)}</span>
           <div class="prices">
-            ${p.oldPrice ? `<span class="dashed">$${formatPrice(p.oldPrice)}</span>` : ""}
-            <span class="priceNow">${formatPrice(p.price)}</span>
+            ${p.oldPrice ? `<del class="dashed"><span class="sr-only">Precio anterior: </span>$${formatPrice(p.oldPrice)}</del>` : ""}
+            <span class="priceNow"><span class="sr-only">${p.oldPrice ? "Precio actual: " : "Precio: "}</span>${formatPrice(p.price)}</span>
           </div>
           ${p.cuotas ? `<span class="cuotas">${escapeHtml(p.cuotas)}</span>` : ""}
         </div>
@@ -112,7 +113,7 @@ window.CS = (function () {
           <button class="btn btn-third" type="button" data-href="/detail.html?id=${escapeHtml(p.id)}" aria-label="Ver detalle">
             <svg class="ic-md"><use href="#ic-info" /></svg>
           </button>
-          <button class="btn btn-third" type="button" aria-label="Favorito">
+          <button class="btn btn-third" type="button" aria-label="Agregar a favoritos" aria-pressed="false" data-fav>
             <svg class="ic-md"><use class="favorite-icon" href="#ic-favorite" /></svg>
           </button>
         </div>
@@ -150,16 +151,20 @@ window.CS = (function () {
     toastEl._t = setTimeout(() => toastEl.classList.remove("is-visible"), 2600);
   }
 
-  // Teléfono a 10 dígitos -> "11 2345-6789" (descarta +54, el 9 y el 0 inicial)
+  // Teléfono a 10 dígitos (descarta +54, el 9 y el 0 inicial). La
+  // característica es de 2 dígitos en AMBA (11) y de 3 en el resto del país
+  // (la mayoría): "11 2345-6789", "351 412-3456". Los dígitos nunca se pierden.
   function formatPhone(value) {
     let d = String(value || "").replace(/\D/g, "");
     if (d.length > 10 && d.startsWith("54")) d = d.slice(2);
     if (d.length > 10 && d.startsWith("9")) d = d.slice(1);
     if (d.startsWith("0")) d = d.slice(1);
     d = d.slice(0, 10);
-    if (d.length <= 2) return d;
-    if (d.length <= 6) return `${d.slice(0, 2)} ${d.slice(2)}`;
-    return `${d.slice(0, 2)} ${d.slice(2, 6)}-${d.slice(6)}`;
+    const area = d.startsWith("11") ? 2 : 3;
+    if (d.length <= area) return d;
+    const rest = d.slice(area);
+    if (rest.length <= 4) return `${d.slice(0, area)} ${rest}`;
+    return `${d.slice(0, area)} ${rest.slice(0, rest.length - 4)}-${rest.slice(-4)}`;
   }
 
   // DNI de 7/8 dígitos -> "30.123.456"

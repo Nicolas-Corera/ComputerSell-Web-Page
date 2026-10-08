@@ -40,6 +40,10 @@ function render() {
   if (window.syncFavorites) window.syncFavorites();
 }
 
+// Banner de campaña con vigencia (data-until): vencido, no se muestra
+const promo = document.getElementById("promoBanner");
+if (promo && promo.dataset.until && Date.now() >= Date.parse(promo.dataset.until)) promo.remove();
+
 loading(load());
 refreshCart(); // precio/stock del carrito (solo esos productos)
 

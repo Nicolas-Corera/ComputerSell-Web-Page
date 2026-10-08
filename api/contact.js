@@ -34,6 +34,10 @@ function sameOrigin(req) {
 
 module.exports = handler(["POST"], async (req, res) => {
   if (!sameOrigin(req)) throw new HttpError(403, "Origen no permitido");
+  // Mientras los correos a la casilla de contacto estén pausados (el formulario
+  // abre WhatsApp, assets/js/config/legal.js: emailPausado) el endpoint queda
+  // cerrado: no tiene sentido aceptar envíos que nadie lee.
+  if (env().CONTACT_FORM_ENABLED !== "true") throw new HttpError(503, "Por ahora las consultas se responden por WhatsApp.");
 
   let body;
   try {
@@ -44,7 +48,7 @@ module.exports = handler(["POST"], async (req, res) => {
 
   // Bots: se responde "ok" para no darles pistas
   const elapsed = Date.now() - Number(body.t || 0);
-  if (str(body.website, 200) || !(elapsed >= MIN_FILL_MS)) return send(res, 200, { ok: true });
+  if (str(body.website, 200) || !(elapsed >= MIN_FILL_MS && elapsed <= 6 * 3600 * 1000)) return send(res, 200, { ok: true });
 
   const c = {
     nombre: line(body.nombre, 60),

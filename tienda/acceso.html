@@ -32,7 +32,7 @@
     data-title-registro="Crear una cuenta"
     data-sub-registro="Seguí tus pedidos, guardá favoritos y comprá más rápido la próxima vez."
     data-title-login="Iniciar sesión"
-    data-sub-login="Bienvenido de nuevo. Ingresá para ver tus pedidos, reservas y favoritos."
+    data-sub-login="Bienvenido de nuevo. Ingresá para ver tus pedidos y favoritos."
   >
     <script src="/assets/js/sprites/sprite.js"></script>
     <script src="/assets/js/sprites/sprite-admin.js"></script>
@@ -54,14 +54,14 @@
           <small>Con tu cuenta podés</small>
           <h2>Comprar más rápido y seguir cada pedido</h2>
           <p>
-            Guardá tus datos de envío, reservá equipos con seña y enterate
-            primero de las ofertas.
+            Guardá tus datos de envío, seguí tus pedidos y guardá tus
+            productos favoritos.
           </p>
           <ul class="auth-perks">
-            <li><svg><use href="#ic-check" /></svg> Seguimiento de pedidos y reservas</li>
+            <li><svg><use href="#ic-check" /></svg> Seguimiento de tus pedidos</li>
             <li><svg><use href="#ic-check" /></svg> Favoritos sincronizados en todos tus dispositivos</li>
             <li><svg><use href="#ic-check" /></svg> Checkout con tus datos ya cargados</li>
-            <li><svg><use href="#ic-check" /></svg> Facturas y garantías siempre a mano</li>
+            <li><svg><use href="#ic-check" /></svg> Notas de venta siempre a mano</li>
           </ul>
         </div>
       </aside>
@@ -88,15 +88,19 @@
           <div class="auth-stage">
             <!-- Crear cuenta -->
             <form class="auth-form" data-panel="registro" novalidate>
+              <div class="auth-alert" role="alert" aria-live="assertive">
+                <svg><use href="#ic-error" /></svg>
+                <span></span>
+              </div>
               <div class="formGrid">
                 <label class="field">
                   <span>Nombre</span>
-                  <input type="text" name="nombre" autocomplete="given-name" placeholder="Martín" required />
+                  <input type="text" name="nombre" autocomplete="given-name" placeholder="Martín" maxlength="60" required />
                   <span class="field-error"></span>
                 </label>
                 <label class="field">
                   <span>Apellido</span>
-                  <input type="text" name="apellido" autocomplete="family-name" placeholder="González" required />
+                  <input type="text" name="apellido" autocomplete="family-name" placeholder="González" maxlength="60" required />
                   <span class="field-error"></span>
                 </label>
                 <label class="field">
@@ -106,7 +110,7 @@
                 </label>
                 <label class="field">
                   <span>Teléfono <em>(opcional)</em></span>
-                  <input type="tel" name="telefono" data-format="phone" inputmode="numeric" autocomplete="tel" placeholder="11 2345-6789" pattern="[0-9]{2} [0-9]{4}-[0-9]{4}" data-pattern-msg="Usá el formato 11 2345-6789" />
+                  <input type="tel" name="telefono" data-format="phone" inputmode="numeric" autocomplete="tel" placeholder="11 2345-6789" pattern="[0-9]{2,4} [0-9]{2,4}-[0-9]{4}" data-pattern-msg="Usá característica y número, por ejemplo 11 2345-6789" />
                   <span class="field-error"></span>
                 </label>
               </div>
@@ -136,6 +140,7 @@
                 acceder a tus datos, corregirlos o pedir que los eliminemos cuando quieras.
                 <a href="/privacidad" target="_blank" rel="noopener">Más información</a>.
               </p>
+              <div class="auth-captcha" hidden></div>
               <button class="btn btn-secondary auth-submit" type="submit">Crear cuenta</button>
 
               <div class="auth-or">o</div>
@@ -156,7 +161,7 @@
 
             <!-- Iniciar sesión -->
             <form class="auth-form" data-panel="login" novalidate>
-              <div class="auth-alert">
+              <div class="auth-alert" role="alert" aria-live="assertive">
                 <svg><use href="#ic-error" /></svg>
                 <span></span>
               </div>
@@ -176,13 +181,9 @@
                 <span class="field-error"></span>
               </label>
               <div class="auth-row">
-                <label class="checkOption">
-                  <input type="checkbox" name="recordar" checked />
-                  <span class="checkbox"><svg><use href="#ic-check" /></svg></span>
-                  <span>Recordarme</span>
-                </label>
                 <button class="auth-link" type="button" data-go="recuperar">¿Olvidaste tu contraseña?</button>
               </div>
+              <div class="auth-captcha" hidden></div>
               <button class="btn btn-secondary auth-submit" type="submit">Iniciar sesión</button>
 
               <div class="auth-or">o</div>
@@ -207,7 +208,7 @@
                 <svg><use href="#ic-arrow_back" /></svg>
                 Volver a iniciar sesión
               </button>
-              <div class="auth-alert">
+              <div class="auth-alert" role="alert" aria-live="assertive">
                 <svg><use href="#ic-error" /></svg>
                 <span></span>
               </div>
@@ -217,7 +218,8 @@
                   <input type="email" name="email" autocomplete="email" placeholder="nombre@email.com" required />
                   <span class="field-error"></span>
                 </label>
-                <button class="btn btn-secondary auth-submit" type="submit">Enviar enlace</button>
+                <div class="auth-captcha" hidden></div>
+              <button class="btn btn-secondary auth-submit" type="submit">Enviar enlace</button>
               </div>
               <div class="auth-success" hidden>
                 <span class="check"><svg><use href="#ic-check" /></svg></span>
@@ -228,7 +230,7 @@
 
             <!-- Nueva contraseña (llega desde el enlace de recuperación) -->
             <form class="auth-form" data-panel="nueva" novalidate>
-              <div class="auth-alert">
+              <div class="auth-alert" role="alert" aria-live="assertive">
                 <svg><use href="#ic-error" /></svg>
                 <span></span>
               </div>
@@ -259,6 +261,10 @@
                 <span class="field-error"></span>
               </label>
               <button class="btn btn-secondary auth-submit" type="submit">Guardar contraseña</button>
+              <p class="auth-foot">
+                ¿No es tu cuenta o querés hacerlo después?
+                <button class="auth-link auth-nueva-logout" type="button">Cerrar sesión</button>
+              </p>
             </form>
           </div>
         </div>

@@ -86,7 +86,7 @@
           <div class="auth-stage">
             <!-- Iniciar sesión -->
             <form class="auth-form" data-panel="login" novalidate>
-              <div class="auth-alert">
+              <div class="auth-alert" role="alert" aria-live="assertive">
                 <svg><use href="#ic-error" /></svg>
                 <span></span>
               </div>
@@ -106,13 +106,9 @@
                 <span class="field-error"></span>
               </label>
               <div class="auth-row">
-                <label class="checkOption">
-                  <input type="checkbox" name="recordar" checked />
-                  <span class="checkbox"><svg><use href="#ic-check" /></svg></span>
-                  <span>Recordarme en este equipo</span>
-                </label>
                 <button class="auth-link" type="button" data-go="recuperar">¿Olvidaste tu contraseña?</button>
               </div>
+              <div class="auth-captcha" hidden></div>
               <button class="btn btn-secondary auth-submit" type="submit">Ingresar al panel</button>
 
               <div class="auth-or">o</div>
@@ -128,6 +124,10 @@
 
             <!-- Crear cuenta -->
             <form class="auth-form" data-panel="registro" novalidate>
+              <div class="auth-alert" role="alert" aria-live="assertive">
+                <svg><use href="#ic-error" /></svg>
+                <span></span>
+              </div>
               <div class="formGrid">
                 <label class="field">
                   <span>Nombre completo</span>
@@ -144,8 +144,9 @@
               <label class="checkOption">
                 <input type="checkbox" name="terminos" required />
                 <span class="checkbox"><svg><use href="#ic-check" /></svg></span>
-                <span>Acepto las <a href="#">políticas de uso del panel</a> y el tratamiento de los datos de la tienda.</span>
+                <span>Acepto los <a href="/terminos" data-store="/terminos" target="_blank" rel="noopener">términos de uso</a> y el tratamiento de los datos de la tienda según la <a href="/privacidad" data-store="/privacidad" target="_blank" rel="noopener">política de privacidad</a>.</span>
               </label>
+              <div class="auth-captcha" hidden></div>
               <button class="btn btn-secondary auth-submit" type="submit">Crear cuenta</button>
               <div class="auth-or">o</div>
               <button class="auth-google" type="button" data-provider="Google">
@@ -164,7 +165,7 @@
                 <svg><use href="#ic-arrow_back" /></svg>
                 Volver a iniciar sesión
               </button>
-              <div class="auth-alert">
+              <div class="auth-alert" role="alert" aria-live="assertive">
                 <svg><use href="#ic-error" /></svg>
                 <span></span>
               </div>
@@ -174,7 +175,8 @@
                   <input type="email" name="email" autocomplete="email" placeholder="nombre@computersell.com.ar" required />
                   <span class="field-error"></span>
                 </label>
-                <button class="btn btn-secondary auth-submit" type="submit">Enviar enlace</button>
+                <div class="auth-captcha" hidden></div>
+              <button class="btn btn-secondary auth-submit" type="submit">Enviar enlace</button>
               </div>
               <div class="auth-success" hidden>
                 <span class="check"><svg><use href="#ic-check" /></svg></span>
@@ -185,7 +187,7 @@
 
             <!-- Nueva contraseña (llega desde el enlace de recuperación) -->
             <form class="auth-form" data-panel="nueva" novalidate>
-              <div class="auth-alert">
+              <div class="auth-alert" role="alert" aria-live="assertive">
                 <svg><use href="#ic-error" /></svg>
                 <span></span>
               </div>
@@ -216,11 +218,15 @@
                 <span class="field-error"></span>
               </label>
               <button class="btn btn-secondary auth-submit" type="submit">Guardar contraseña</button>
+              <p class="auth-foot">
+                ¿No es tu cuenta o querés hacerlo después?
+                <button class="auth-link auth-nueva-logout" type="button">Cerrar sesión</button>
+              </p>
             </form>
 
             <!-- Verificación en dos pasos: alta (primera vez) -->
             <form class="auth-form" data-panel="mfa-alta" novalidate>
-              <div class="auth-alert">
+              <div class="auth-alert" role="alert" aria-live="assertive">
                 <svg><use href="#ic-error" /></svg>
                 <span></span>
               </div>
@@ -241,7 +247,7 @@
 
             <!-- Verificación en dos pasos: código -->
             <form class="auth-form" data-panel="mfa" novalidate>
-              <div class="auth-alert">
+              <div class="auth-alert" role="alert" aria-live="assertive">
                 <svg><use href="#ic-error" /></svg>
                 <span></span>
               </div>

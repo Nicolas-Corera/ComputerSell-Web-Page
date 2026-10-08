@@ -73,8 +73,8 @@ Comandos sueltos: `npm run db:push`, `npm run admins:sync`, `npm run seller:sync
 | `tienda/plantilla-legal.html` | Plantilla para un documento nuevo (`tienda/<slug>.html` → `/<slug>`) |
 
 Los textos no llevan datos escritos a mano: `<span data-legal="emailContacto"></span>`. Lo que falta completar aparece
-como `[COMPLETAR: …]`, resaltado en la página y listado en la consola. Las páginas tienen `noindex` hasta que el texto
-esté aprobado.
+como `[COMPLETAR: …]`, resaltado en la página y listado en la consola. Las páginas legales son indexables y están en
+el sitemap (`api/sitemap.js`); `plantilla-legal.html` no se publica (`scripts/build.js`).
 
 ## Envío y recargos del checkout
 

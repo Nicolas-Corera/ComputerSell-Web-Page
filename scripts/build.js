@@ -10,12 +10,16 @@ const { ROOT } = require("./lib");
 execFileSync(process.execPath, [path.join(__dirname, "build-env.js")], { stdio: "inherit" });
 
 const OUT = path.join(ROOT, "public");
+// Nunca se publican aunque estén en la carpeta: la firma manuscrita del
+// vendedor (se sube al bucket privado con `npm run firma`) y la plantilla
+// interna de documentos legales.
+const PRIVATE = [/^firma\./i, /^plantilla-legal\.html$/i];
 fs.rmSync(OUT, { recursive: true, force: true });
 for (const dir of ["assets", "dash", "tienda"]) {
   fs.cpSync(path.join(ROOT, dir), path.join(OUT, dir), {
     recursive: true,
-    // Nada que empiece con "." (.DS_Store, .gitkeep...)
-    filter: (src) => !path.basename(src).startsWith("."),
+    // Nada que empiece con "." (.DS_Store, .gitkeep...) ni archivos privados
+    filter: (src) => !path.basename(src).startsWith(".") && !PRIVATE.some((re) => re.test(path.basename(src))),
   });
 }
 fs.copyFileSync(path.join(ROOT, "404.html"), path.join(OUT, "404.html"));
