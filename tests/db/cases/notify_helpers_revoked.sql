@@ -43,6 +43,6 @@ select sandbox.as_anon();
 select * from public.request_revocation(:order_a_number, 'customer-a@example.test');
 
 select sandbox.as_operator();
-select test.ok((select count(*) from public.notifications) - (select c from n0) = 7,
-  'receipt(1) + set_order_status(1) + mp_apply_payment(2) + request_revocation(2) + stock bajo(1) = 7 avisos nuevos');
+select test.ok((select count(*) from public.notifications) - (select c from n0) = 8,
+  'receipt(1) + set_order_status(2: pago confirmado + nueva venta) + mp_apply_payment(2) + request_revocation(2) + stock bajo(1) = 8 avisos nuevos');
 select test.ok(exists (select 1 from public.invoices where order_id = test.fx('order_a') and type = 'NV'), 'set_order_status sigue emitiendo la nota de venta');

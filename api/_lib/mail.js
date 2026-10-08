@@ -139,6 +139,14 @@ const templates = {
   notification(n, site) {
     const hi = n.name ? `Hola ${esc(n.name)}, ` : "";
     const body = n.body ? nl2br(n.body) : "Hay una novedad en tu cuenta.";
+    const admin = n.audience === "admin";
+    // Por correo solo salen el pago (confirmado o comprobante rechazado) y el
+    // despacho: el resto del seguimiento llega como notificación del navegador
+    const avisos = site ? `${site}/perfil#avisos` : "";
+    const pushNote = `<strong style="color:${INK}">Activá las notificaciones</strong> para seguir tu pedido al instante: por correo solo te avisamos lo importante del pago y cuando despachamos. Las activás desde ${
+      avisos ? `<a href="${esc(avisos)}" style="color:${BLUE}">Mi cuenta &gt; Avisos</a>` : "Mi cuenta &gt; Avisos"
+    }, donde también ves todas las novedades.`;
+    const pushText = `Activá las notificaciones para seguir tu pedido al instante: por correo solo te avisamos lo importante del pago y cuando despachamos. Las activás desde Mi cuenta > Avisos${avisos ? " (" + avisos + ")" : ""}.`;
     return {
       subject: `${n.title} · ComputerSell`.slice(0, 150),
       html: layout({
@@ -146,11 +154,11 @@ const templates = {
         title: n.title,
         intro: hi + body,
         button: n.button,
-        note: n.audience === "admin" ? "Aviso automático del panel de ComputerSell." : "Te escribimos porque hay una novedad en tu pedido. También la ves en Avisos, dentro de Mi cuenta en la tienda.",
+        note: admin ? "Aviso automático del panel de ComputerSell." : pushNote,
         site,
-        whatsapp: n.audience !== "admin",
+        whatsapp: !admin,
       }),
-      text: `${n.title}\n\n${n.body || ""}${n.button ? "\n\n" + n.button.href : ""}${n.audience !== "admin" ? "\n\n" + WHATSAPP_TEXT : ""}`,
+      text: `${n.title}\n\n${n.body || ""}${n.button ? "\n\n" + n.button.href : ""}${admin ? "" : "\n\n" + pushText + "\n\n" + WHATSAPP_TEXT}`,
     };
   },
 };

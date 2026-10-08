@@ -335,12 +335,12 @@ loading(async () => {
     pushBtn.className = on ? "btn btn-third" : "btn btn-secondary";
     pushHint.textContent =
       perm === "unsupported"
-        ? "Este navegador no admite notificaciones. Los avisos te siguen llegando por correo y los ves acá."
+        ? "Este navegador no admite notificaciones. Los avisos los ves acá; por correo te llegan los avisos del pago y el despacho."
         : perm === "denied"
           ? "Están bloqueadas para este sitio. Para recibirlas, permití las notificaciones desde la configuración del navegador (ícono del candado junto a la dirección)."
           : on
             ? "Activadas: te avisamos al instante cuando se confirme tu pago o cambie el estado de tus pedidos."
-            : "Te avisamos al instante cuando se confirme tu pago o cambie el estado de tus pedidos, aunque no tengas la página abierta. Los avisos también te llegan por correo.";
+            : "Te avisamos al instante cuando se confirme tu pago o cambie el estado de tus pedidos, aunque no tengas la página abierta. Por correo solo te llegan los avisos del pago y el despacho: activalas para no perderte el resto.";
   }
   pushBtn.addEventListener("click", async () => {
     pushBtn.disabled = true;

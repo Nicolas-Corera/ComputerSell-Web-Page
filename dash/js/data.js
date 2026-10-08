@@ -140,6 +140,7 @@ export function normOrder(o) {
     status: o.status,
     installments: o.installments,
     tracking: o.tracking || "",
+    deliverBy: o.deliver_by ? new Date(o.deliver_by) : null, // despachado: pasa solo a "entregado" en esta fecha
     events: (o.order_events || []).slice().sort((a, b) => new Date(a.created_at) - new Date(b.created_at)),
     note: o.note,
   };

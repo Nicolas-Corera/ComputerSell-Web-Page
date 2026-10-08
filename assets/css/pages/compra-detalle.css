@@ -447,3 +447,107 @@
 .btn.is-highlight {
   box-shadow: 0 0 0 3px var(--blue);
 }
+
+/* Comprobante de la transferencia en un modal */
+.receiptDialog {
+  width: min(720px, calc(100vw - 32px));
+  max-height: calc(100dvh - 32px);
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--bg-1);
+  color: var(--ink);
+  box-shadow: var(--shadow-lift);
+  overflow: hidden;
+}
+.receiptDialog[open] {
+  display: flex;
+  flex-direction: column;
+}
+.receiptDialog::backdrop {
+  background: rgba(6, 8, 11, 0.72);
+  backdrop-filter: blur(3px);
+}
+.receiptDialog-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--line);
+}
+.receiptDialog-head h3 {
+  min-width: 0;
+  margin: 0 auto 0 0;
+  overflow: hidden;
+  font-family: var(--font-display);
+  font-size: 17px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.receiptDialog-close {
+  display: inline-flex;
+  padding: 6px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+.receiptDialog-close:hover,
+.receiptDialog-close:focus-visible {
+  background: var(--bg-2);
+  color: var(--ink);
+}
+.receiptDialog-body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 16px;
+  background: var(--bg-0);
+}
+.receiptDialog-body img {
+  display: block;
+  max-width: 100%;
+  margin: 0 auto;
+  border-radius: var(--radius-sm);
+}
+.receiptDialog-body iframe {
+  display: block;
+  width: 100%;
+  height: min(70dvh, 640px);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: #fff;
+}
+@media (max-width: 520px) {
+  .receiptDialog-head {
+    gap: 6px;
+    padding: 12px;
+  }
+  .receiptDialog-head h3 {
+    font-size: 15px;
+  }
+  .receiptDialog-head .btn {
+    flex-shrink: 0;
+    padding: 8px 10px;
+    font-size: 13px;
+  }
+  .receiptDialog-close {
+    padding: 4px;
+  }
+  .receiptDialog-body {
+    padding: 12px;
+  }
+}
+
+/* Invitación a activar las notificaciones del navegador */
+.pushCard p {
+  margin: 0 0 14px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--ink-soft);
+}
+.pushCard .pushCard-soft {
+  font-size: 13px;
+  margin: 0;
+}

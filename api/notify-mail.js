@@ -2,8 +2,10 @@
 // con {id} de la notificación y la clave x-hook-secret (NOTIFY_HOOK_SECRET).
 // La notificación y el correo del cliente se leen acá con el service role:
 // del body solo se usa el id.
-// Los avisos del cliente salen por correo y, si aceptó notificaciones en algún
-// navegador (push_subscriptions, migración 0029), también como push.
+// Push: todos los avisos del cliente, si aceptó notificaciones en algún
+// navegador (push_subscriptions, migración 0029). Correo: solo los marcados con
+// notifications.mail (migración 0032: pago confirmado, comprobante rechazado y
+// despacho para el cliente; comprobante recibido y nueva venta para el panel).
 //
 // Respuestas: 200 {ok}, 4xx/5xx {error}.
 const crypto = require("crypto");
@@ -45,7 +47,7 @@ module.exports = handler(["POST"], async (req, res) => {
   const id = String(body.id || "");
   if (!UUID_RE.test(id)) throw new HttpError(400, "id inválido");
 
-  const rows = await sbFetch(`/rest/v1/notifications?id=eq.${id}&select=id,audience,user_id,type,title,body,target`, { secret: true });
+  const rows = await sbFetch(`/rest/v1/notifications?id=eq.${id}&select=id,audience,user_id,type,title,body,target,mail`, { secret: true });
   const n = Array.isArray(rows) ? rows[0] : null;
   if (!n) return send(res, 200, { ok: true, ignored: "inexistente" });
 
@@ -55,6 +57,7 @@ module.exports = handler(["POST"], async (req, res) => {
 
   if (n.audience === "user") {
     if (n.user_id) await pushToUser(n, orderId);
+    if (!n.mail) return send(res, 200, { ok: true, ignored: "solo push" });
     const profiles = n.user_id ? await sbFetch(`/rest/v1/profiles?id=eq.${n.user_id}&select=email,first_name`, { secret: true }) : [];
     const p = Array.isArray(profiles) ? profiles[0] : null;
     if (!p || !p.email) return send(res, 200, { ok: true, ignored: "sin correo" });
@@ -63,7 +66,7 @@ module.exports = handler(["POST"], async (req, res) => {
     button = orderId
       ? { href: `${site}/compra-detalle?id=${orderId}`, label: n.type === "pago" && /rechazado/i.test(n.title) ? "Subir comprobante" : "Ver mi pedido" }
       : { href: `${site}/perfil`, label: "Ir a mi cuenta" };
-  } else if (n.audience === "admin" && ["venta", "pago"].includes(n.type)) {
+  } else if (n.audience === "admin" && n.mail) {
     to = env().NOTIFY_ADMIN_TO;
     button = { href: site.replace(/^(https?:\/\/)(www\.)?/, "$1dash."), label: "Abrir el panel" };
   } else {

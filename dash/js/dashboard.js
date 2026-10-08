@@ -1221,8 +1221,10 @@ import {
   $("#drawerClose").addEventListener("click", closeDrawer);
   drawerBackdrop.addEventListener("click", closeDrawer);
 
-  const NEXT_STATUS = { pendiente: "pagado", pagado: "preparando", preparando: "enviado", enviado: "entregado" };
-  const NEXT_LABEL = { pendiente: "Marcar como pagado", pagado: "Pasar a preparación", preparando: "Marcar como despachado", enviado: "Marcar como entregado" };
+  // "Entregado" no se marca a mano: la base lo pone sola al cumplirse el plazo
+  // máximo de entrega desde el despacho (orders.deliver_by, migración 0032)
+  const NEXT_STATUS = { pendiente: "pagado", pagado: "preparando", preparando: "enviado" };
+  const NEXT_LABEL = { pendiente: "Marcar como pagado", pagado: "Pasar a preparación", preparando: "Marcar como despachado" };
 
   // Pide el código de seguimiento del correo antes de marcar como despachado
   function trackingModal(o) {
@@ -1321,6 +1323,7 @@ import {
           <dt>Envío</dt><dd>${o.shipping ? "$" + formatPrice(o.shipping) : "Gratis"}</dd>
           ${o.surcharge ? `<dt>Recargo</dt><dd>$${formatPrice(o.surcharge)}</dd>` : ""}
           <dt><strong>Total</strong></dt><dd><strong style="font-family:var(--font-display);font-size:16px">$${formatPrice(o.total)}</strong></dd>
+          ${o.status === "enviado" && o.deliverBy ? `<dt>Entrega estimada</dt><dd>Hasta el ${fmtDateTime(o.deliverBy)} <small class="muted">(ese día pasa solo a "Entregado")</small></dd>` : ""}
           ${o.status === "enviado" || o.status === "entregado" ? `<dt>Seguimiento</dt><dd>${o.tracking ? `<span class="mono">${escapeHtml(o.tracking)}</span>` : '<span class="muted">Sin código</span>'} <button class="btn-text" type="button" id="editTracking" style="margin-left:6px">Editar</button></dd>` : ""}
         </dl>
       </div>
@@ -1358,10 +1361,6 @@ import {
               : `No hay un comprobante aprobado para este pedido. Marcalo como pagado solo si verificaste que recibiste $${formatPrice(o.total)}. Se emite la nota de venta y se avisa al cliente por correo.`,
             okText: "Marcar como pagado",
           });
-          if (!ok) return;
-        }
-        if (next === "entregado") {
-          const ok = await confirmModal({ title: `Marcar ${o.id} como entregado`, text: "El cliente recibió el pedido. Se le avisa y desde esa fecha corren los 10 días para el arrepentimiento.", okText: "Marcar como entregado" });
           if (!ok) return;
         }
         adv.disabled = true;

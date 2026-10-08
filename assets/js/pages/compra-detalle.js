@@ -9,6 +9,7 @@ import { sb, requireAuth, subscribe, loading, getSellerPrivate } from "../core/s
 import { printSaleNote } from "../core/sale-note.js";
 import { whatsappUrl } from "../core/legal.js";
 import { uploadReceipt, RECEIPT_ACCEPT } from "../core/receipts.js";
+import { push } from "../core/notifications.js";
 
 const { formatPrice, escapeHtml, toast } = window.CS;
 const $ = (s) => document.querySelector(s);
@@ -43,6 +44,7 @@ const REVOCATION = {
 };
 const fmtDate = (d) => new Date(d).toLocaleDateString("es-AR", { day: "2-digit", month: "short", year: "numeric" });
 const fmtDateTime = (d) => new Date(d).toLocaleString("es-AR", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" });
+const fmtDay = (d) => new Date(d).toLocaleDateString("es-AR", { day: "2-digit", month: "short" });
 
 let order = null;
 let userId = null;
@@ -67,7 +69,14 @@ function renderStepper(o, events) {
     // Fecha del paso: el primer evento con ese estado
     const ev = events.find((e) => e.status === key);
     const cls = i < current || (i === current && i === last) || (i === 0 && current > 0) ? "is-done" : i === current ? "is-current" : "";
-    const sub = ev ? fmtDateTime(ev.created_at) : i === current + 1 && o.status === "pendiente" ? "Esperando el pago" : "";
+    // Despachado: "entregado" se marca solo al cumplirse el plazo máximo (deliver_by)
+    const sub = ev
+      ? fmtDateTime(ev.created_at)
+      : i === current + 1 && o.status === "pendiente"
+        ? "Esperando el pago"
+        : key === "entregado" && o.status === "enviado" && o.deliver_by
+          ? "Llega hasta el " + fmtDay(o.deliver_by)
+          : "";
     return `
       <div class="step ${cls}">
         <div class="step-icon"><svg class="ic-md"><use href="${icon}"/></svg></div>
@@ -151,6 +160,7 @@ function render(o) {
   $("#supportBtn").href = whatsappUrl(`Hola, tengo una consulta sobre mi pedido CS-${o.number}.`);
 
   renderTransfer(o);
+  renderPushCard();
 }
 
 function sideCard(boxId) {
@@ -235,17 +245,7 @@ async function renderTransfer(o) {
   );
 
   const view = el.querySelector("#viewReceipt");
-  if (view)
-    view.addEventListener("click", async () => {
-      const w = window.open("", "_blank", "noopener");
-      const { data, error } = await sb.storage.from("receipts").createSignedUrl(last.file_path, 120);
-      if (error || !data) {
-        if (w) w.close();
-        return toast("No pudimos abrir el comprobante", "bad");
-      }
-      if (w) w.location.href = data.signedUrl;
-      else location.href = data.signedUrl;
-    });
+  if (view) view.addEventListener("click", () => showReceipt(last));
 
   const input = el.querySelector("#receiptUpload");
   const uploadBtn = el.querySelector("#receiptUploadBtn");
@@ -281,6 +281,74 @@ async function renderTransfer(o) {
       }
       toast("Pedido cancelado", "ok");
       load();
+    });
+}
+
+// Comprobante subido: se ve en un modal (imagen o PDF) sin salir del pedido,
+// con la opción de abrirlo en otra pestaña
+async function showReceipt(r) {
+  const { data, error } = await sb.storage.from("receipts").createSignedUrl(r.file_path, 600);
+  if (error || !data) return toast("No pudimos abrir el comprobante", "bad");
+  const url = escapeHtml(data.signedUrl);
+  let dlg = document.getElementById("receiptDialog");
+  if (!dlg) {
+    dlg = document.createElement("dialog");
+    dlg.id = "receiptDialog";
+    dlg.className = "receiptDialog";
+    dlg.setAttribute("aria-label", "Comprobante de la transferencia");
+    // Click en el fondo (fuera del contenido) cierra
+    dlg.addEventListener("click", (e) => e.target === dlg && dlg.close());
+    dlg.addEventListener("close", () => (dlg.innerHTML = ""));
+    document.body.append(dlg);
+  }
+  dlg.innerHTML = `
+    <div class="receiptDialog-head">
+      <h3>Comprobante</h3>
+      <a class="btn btn-third" href="${url}" target="_blank" rel="noopener">Abrir en otra pestaña</a>
+      <button class="receiptDialog-close" type="button" aria-label="Cerrar"><svg class="ic-md"><use href="#ic-close" /></svg></button>
+    </div>
+    <div class="receiptDialog-body">
+      ${/\.pdf$/i.test(r.file_path) ? `<iframe src="${url}" title="Comprobante en PDF"></iframe>` : `<img src="${url}" alt="Comprobante de la transferencia" />`}
+    </div>`;
+  dlg.querySelector(".receiptDialog-close").addEventListener("click", () => dlg.close());
+  dlg.showModal();
+}
+
+// Notificaciones del navegador: por correo solo salen el pago confirmado y el
+// despacho, así que en el pedido se invita a activarlas para seguir el resto
+async function renderPushCard() {
+  const existing = $("#pushBox");
+  const perm = push.permission();
+  const show = push.configured && perm !== "unsupported" && order && order.status !== "cancelado" && !(await push.enabled());
+  if (!show) return existing && existing.remove();
+  let box = existing;
+  if (!box) {
+    box = document.createElement("div");
+    box.id = "pushBox";
+    box.className = "card pushCard";
+    $(".detail-side .help-card").before(box);
+  }
+  const denied = perm === "denied";
+  box.innerHTML = `
+    <h3><svg><use href="#ic-notifications" /></svg>Seguí tu pedido al instante</h3>
+    <p>Activá las notificaciones y te avisamos apenas revisemos tu comprobante, preparemos tu compra o la despachemos. Por correo solo te llegan los avisos del pago y el despacho.</p>
+    ${
+      denied
+        ? `<p class="pushCard-soft">Están bloqueadas para este sitio: permitilas desde la configuración del navegador (ícono del candado junto a la dirección).</p>`
+        : `<button class="btn btn-secondary" type="button" id="pushEnableBtn" style="width:100%;justify-content:center">Activar notificaciones</button>`
+    }`;
+  const btn = box.querySelector("#pushEnableBtn");
+  if (btn)
+    btn.addEventListener("click", async () => {
+      btn.disabled = true;
+      try {
+        if (await push.enable()) toast("Listo: te vamos a avisar por notificación", "ok");
+      } catch (e) {
+        console.error("[push]", e);
+        toast("No pudimos activar las notificaciones. Probá de nuevo desde Mi cuenta > Avisos.", "bad");
+      }
+      btn.disabled = false;
+      renderPushCard();
     });
 }
 

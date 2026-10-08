@@ -307,7 +307,7 @@ export function askPush(delay = 4000) {
     floatingCard({
       icon: "notifications",
       title: "¿Querés recibir notificaciones?",
-      text: "Te avisamos al instante cuando se confirme tu pago o cambie el estado de tu pedido, aunque no tengas la página abierta.",
+      text: "Te avisamos al instante cuando revisemos tu comprobante, se confirme el pago o cambie el estado de tu pedido, aunque no tengas la página abierta. Por correo solo te llegan los avisos del pago y el despacho.",
       onClose: later,
       actions: [
         { label: "Ahora no", onClick: later },
