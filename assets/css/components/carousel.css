@@ -35,6 +35,9 @@
 }
 
 .listCarousel {
+  /* Contenedor de los .sr-only (absolute) de las tarjetas: sin esto escapan del
+     recorte del scroll y generan scroll horizontal en toda la página */
+  position: relative;
   padding: 2rem 0;
   display: flex;
   /* Pisa el centrado de .listDestacados (centrado, lo que desborda a la izquierda no se alcanza) */
