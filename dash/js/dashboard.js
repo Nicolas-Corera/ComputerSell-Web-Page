@@ -2301,11 +2301,9 @@ import {
       };
     }
 
-    // Ley 24.240 art. 11: 6 meses en productos nuevos, 3 en usados (la base
-    // tampoco deja guardar menos: migración 0031)
+    // Garantía del vendedor: días, meses o años, sin mínimo (al menos 1)
     function warrantyOk(d) {
-      const months = d.warrantyUnit === "dias" ? d.warranty / 30 : d.warrantyUnit === "anios" ? d.warranty * 12 : d.warranty;
-      return months >= (d.condition === "nuevo" ? 6 : 3);
+      return Number.isInteger(d.warranty) && d.warranty >= 1 && ["dias", "meses", "anios"].includes(d.warrantyUnit);
     }
 
     function autoSku() {
@@ -2325,7 +2323,7 @@ import {
         ["Precio", d.price > 0, price.closest(".field"), price],
         ["Stock", stock.value !== "", stock.closest(".field"), stock],
         ["Peso", +d.weight > 0, $("#pWeight").closest(".field"), $("#pWeight")],
-        ["Garantía (mín. legal)", warrantyOk(d), $("#pWarranty").closest(".field"), $("#pWarranty")],
+        ["Garantía", warrantyOk(d), $("#pWarranty").closest(".field"), $("#pWarranty")],
         ["Imágenes", d.images.length > 0, imgDrop, imgDrop],
         ["Especificaciones", d.specs.length > 0, specRows, specRows],
       ];
@@ -2547,7 +2545,7 @@ import {
       // Validaciones que el borrador también necesita (no pasa por checkValidity)
       if (!Number.isInteger(+stock.value) || +stock.value < 0) throw new Error("El stock tiene que ser un número entero de 0 en adelante.");
       if (d.price < 0) throw new Error("El precio no puede ser negativo.");
-      if (!warrantyOk(d)) throw new Error(`La garantía no puede ser menor a ${d.condition === "nuevo" ? "6 meses en un producto nuevo" : "3 meses en un producto usado"} (Ley 24.240, art. 11).`);
+      if (!warrantyOk(d)) throw new Error("Cargá la garantía: un número entero de 1 en adelante (días, meses o años).");
       const productId = editingId || crypto.randomUUID();
       const uploaded = []; // si algo falla, se borran (no quedan huérfanas en el bucket)
       const cleanup = () => uploaded.length && sb.storage.from("products").remove(uploaded).then(() => {});

@@ -128,12 +128,19 @@
 
         <section class="product-detail" id="productDetail">
           <div class="gallery">
-            <div class="gallery-main">
+            <div class="gallery-main" id="galleryMain" role="region" aria-roledescription="carrusel" aria-label="Imágenes del producto" tabindex="0">
               <span class="discount-badge" id="discountBadge" hidden>
                 <svg class="ic-sm"><use href="#ic-sell_tag" /></svg>
                 <span></span>
               </span>
-              <img id="mainImage" src="" alt="" />
+              <div class="gallery-track" id="galleryTrack"></div>
+              <button type="button" class="gallery-nav is-prev" id="galleryPrev" aria-label="Imagen anterior" hidden>
+                <svg><use href="#ic-chevron_left" /></svg>
+              </button>
+              <button type="button" class="gallery-nav is-next" id="galleryNext" aria-label="Imagen siguiente" hidden>
+                <svg><use href="#ic-chevron_right" /></svg>
+              </button>
+              <div class="gallery-dots" id="galleryDots" hidden></div>
             </div>
             <div class="gallery-thumbs" id="galleryThumbs"></div>
           </div>

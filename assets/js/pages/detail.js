@@ -12,12 +12,83 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 const detail = $("#productDetail");
 let product = null;
 
-// ---------- Helpers globales usados por los onclick del HTML ----------
-window.setMainImage = function (el, src) {
-  $("#mainImage").src = src;
-  document.querySelectorAll(".thumb").forEach((t) => t.classList.remove("is-active"));
-  el.classList.add("is-active");
-};
+// ---------- Galería: carrusel ----------
+// La imagen grande es un carrusel: flechas, puntos, miniaturas, deslizar con
+// el dedo (scroll-snap) y flechas del teclado. Al llegar a una punta, la
+// flecha da la vuelta.
+const track = $("#galleryTrack");
+let galleryImgs = [];
+let slide = 0;
+
+function syncGallery() {
+  document.querySelectorAll("#galleryThumbs .thumb").forEach((t, i) => t.classList.toggle("is-active", i === slide));
+  document.querySelectorAll("#galleryDots button").forEach((d, i) => d.setAttribute("aria-current", i === slide ? "true" : "false"));
+}
+
+function goTo(i, smooth = true) {
+  const n = galleryImgs.length;
+  if (!n) return;
+  slide = ((i % n) + n) % n;
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  track.scrollTo({ left: slide * track.clientWidth, behavior: smooth && !reduce ? "smooth" : "auto" });
+  syncGallery();
+}
+
+// Al deslizar con el dedo o el trackpad: la imagen visible pasa a ser la actual
+let scrollTimer = null;
+track.addEventListener("scroll", () => {
+  clearTimeout(scrollTimer);
+  scrollTimer = setTimeout(() => {
+    const i = Math.round(track.scrollLeft / Math.max(1, track.clientWidth));
+    if (i !== slide && i >= 0 && i < galleryImgs.length) {
+      slide = i;
+      syncGallery();
+    }
+  }, 80);
+});
+// Si cambia el ancho (rotar el celular), se queda en la misma imagen
+window.addEventListener("resize", () => goTo(slide, false));
+// Anterior / siguiente; al dar la vuelta (de la última a la primera) salta sin animar
+const prev = () => goTo(slide - 1, slide > 0);
+const next = () => goTo(slide + 1, slide < galleryImgs.length - 1);
+$("#galleryPrev").addEventListener("click", prev);
+$("#galleryNext").addEventListener("click", next);
+$("#galleryDots").addEventListener("click", (e) => {
+  const dot = e.target.closest("[data-slide]");
+  if (dot) goTo(Number(dot.dataset.slide));
+});
+$("#galleryMain").addEventListener("keydown", (e) => {
+  if (e.key === "ArrowLeft") (e.preventDefault(), prev());
+  if (e.key === "ArrowRight") (e.preventDefault(), next());
+});
+
+function renderGallery(imgs, title) {
+  const current = galleryImgs[slide];
+  galleryImgs = imgs;
+  // En vivo (cambio de imágenes desde el panel): se queda en la que estaba viendo
+  slide = Math.max(0, imgs.indexOf(current));
+  const many = imgs.length > 1;
+  track.innerHTML = imgs
+    .map(
+      (src, i) =>
+        `<div class="gallery-slide" role="group" aria-roledescription="imagen" aria-label="${i + 1} de ${imgs.length}"><img src="${escapeHtml(src)}" alt="${escapeHtml(title)}${many ? ` (imagen ${i + 1})` : ""}" ${i ? 'loading="lazy"' : ""} draggable="false" /></div>`,
+    )
+    .join("");
+  $("#galleryPrev").hidden = $("#galleryNext").hidden = $("#galleryDots").hidden = !many;
+  $("#galleryDots").innerHTML = many
+    ? imgs.map((_, i) => `<button type="button" data-slide="${i}" aria-label="Ver imagen ${i + 1} de ${imgs.length}"></button>`).join("")
+    : "";
+  // Miniaturas como botones: se pueden elegir con el teclado
+  $("#galleryThumbs").innerHTML = many
+    ? imgs
+        .map(
+          (src, i) =>
+            `<button type="button" class="thumb" data-slide="${i}" aria-label="Ver imagen ${i + 1} de ${imgs.length}"><img src="${escapeHtml(src)}" alt="" /></button>`,
+        )
+        .join("")
+    : "";
+  goTo(slide, false);
+}
 
 // La cantidad real vive en data-qty; el input muestra "99+" a partir de 100
 window.changeQty = function (delta) {
@@ -47,10 +118,10 @@ window.switchTab = function (btn, panelId) {
   document.getElementById(panelId).classList.add("is-active");
 };
 
-// Miniaturas de la galería (se renderizan después): data-main-src
-document.addEventListener("click", (e) => {
-  const thumb = e.target.closest("[data-main-src]");
-  if (thumb) window.setMainImage(thumb, thumb.dataset.mainSrc);
+// Miniaturas de la galería (se renderizan después): data-slide
+$("#galleryThumbs").addEventListener("click", (e) => {
+  const thumb = e.target.closest("[data-slide]");
+  if (thumb) goTo(Number(thumb.dataset.slide));
 });
 
 // Pestañas y cantidad: declarados con data-* en detail.html (sin onclick inline)
@@ -71,17 +142,7 @@ function render(p) {
   $("#crumbTitle").textContent = p.title;
 
   // Galería
-  const imgs = p.images && p.images.length ? p.images : [];
-  const main = $("#mainImage");
-  if (!imgs.includes(main.getAttribute("src"))) main.src = imgs[0] || "";
-  main.alt = p.title;
-  // Miniaturas como botones: se pueden elegir con el teclado
-  $("#galleryThumbs").innerHTML = imgs
-    .map(
-      (src, i) =>
-        `<button type="button" class="thumb ${src === main.getAttribute("src") || (!main.getAttribute("src") && i === 0) ? "is-active" : ""}" data-main-src="${escapeHtml(src)}" aria-label="Ver imagen ${i + 1} de ${imgs.length}"><img src="${escapeHtml(src)}" alt="" /></button>`,
-    )
-    .join("");
+  renderGallery(p.images && p.images.length ? p.images : [], p.title);
   const badge = $("#discountBadge");
   badge.hidden = !card.oldPrice;
   if (card.oldPrice) badge.querySelector("span").textContent = `${Math.round((1 - p.price / card.oldPrice) * 100)}% OFF`;
@@ -113,15 +174,11 @@ function render(p) {
   $("#shipLine span").innerHTML = p.free_shipping
     ? "<strong>Envío gratis</strong> solo para CABA y Provincia de Buenos Aires"
     : "<strong>Envío a domicilio</strong> a todo el país";
-  // Garantía del vendedor; nunca menos que la legal (6 meses nuevo, 3 usado:
-  // Ley 24.240 art. 11). La base ya no deja cargar menos (migración 0031).
+  // Garantía del vendedor: la que se cargó en el panel (días, meses o años)
   const UNIT = { dias: ["día", "días"], meses: ["mes", "meses"], anios: ["año", "años"] };
-  const legalMonths = (p.condition || "nuevo") === "nuevo" ? 6 : 3;
-  const months = { dias: (p.warranty || 0) / 30, anios: (p.warranty || 0) * 12 }[p.warranty_unit] ?? (p.warranty || 0);
-  const warranty =
-    p.warranty && months >= legalMonths
-      ? `${p.warranty} ${(UNIT[p.warranty_unit] || UNIT.meses)[p.warranty === 1 ? 0 : 1]} de garantía`
-      : `${legalMonths} meses de garantía`;
+  const warranty = p.warranty
+    ? `${p.warranty} ${(UNIT[p.warranty_unit] || UNIT.meses)[p.warranty === 1 ? 0 : 1]} de garantía`
+    : "Garantía a consultar";
   $("#warrantyLine").innerHTML = `<strong>${escapeHtml(warranty)}</strong> del vendedor (ComputerSell)`;
 
   // Descripción / especificaciones

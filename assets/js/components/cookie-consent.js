@@ -167,7 +167,9 @@ function buildBanner() {
   document.body.prepend(banner);
 
   // Deja lugar abajo para que el banner no tape botones (pagar, iniciar sesión)
-  const pad = () => document.body.style.setProperty("--cc-banner-h", banner.offsetHeight + "px");
+  // (el observador avisa una última vez al sacar el banner: ahí ya no hay nada que medir)
+  const el = banner;
+  const pad = () => el.isConnected && document.body.style.setProperty("--cc-banner-h", el.offsetHeight + "px");
   if ("ResizeObserver" in window) new ResizeObserver(pad).observe(banner);
   pad();
   document.body.classList.add("has-cc-banner");
