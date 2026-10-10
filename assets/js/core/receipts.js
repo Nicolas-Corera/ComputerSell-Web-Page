@@ -2,7 +2,9 @@
 // Lo usan la confirmación del pago (pago.js) y el detalle del pedido
 // (compra-detalle.js). La base fija el monto (total del pedido), exige que el
 // archivo exista en el bucket con el nombre <user>/<pedido>-<timestamp>.<ext>
-// y limita la cantidad de archivos por pedido (migración 0030).
+// y limita la cantidad de archivos por pedido (migración 0030). La revisión
+// de acá es solo para avisar rápido: la que vale es la del servidor
+// (api/orders/receipt), sin la cual la base no registra el comprobante (0033).
 import { sb } from "./supabase.js";
 
 export const RECEIPT_ACCEPT = ".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png";
@@ -46,13 +48,26 @@ export async function uploadReceipt({ userId, orderId, file }) {
         : "No pudimos subir el archivo. Revisá tu conexión y probá de nuevo.",
     );
   }
-  const ins = await sb.from("payment_receipts").insert({ order_id: orderId, user_id: userId, file_path: path });
-  if (ins.error) {
-    console.error("[comprobante] registro", ins.error);
-    throw new Error(
-      /row-level security|violates/i.test(ins.error.message || "")
-        ? "Este pedido ya tiene un comprobante en revisión o ya no está pendiente de pago. Recargá la página."
-        : "Subimos el archivo pero no pudimos registrarlo. Probá de nuevo en unos minutos.",
-    );
+  // El servidor revisa el contenido real del archivo (no solo los primeros
+  // bytes) y recién ahí registra el comprobante: si no pasa, lo borra
+  const { data: sess } = await sb.auth.getSession();
+  if (!sess || !sess.session) throw new Error("Tu sesión venció. Volvé a ingresar.");
+  let res;
+  try {
+    res = await fetch("/api/orders/receipt", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: "Bearer " + sess.session.access_token },
+      body: JSON.stringify({ order_id: orderId, file_path: path }),
+    });
+  } catch (e) {
+    throw new Error("Subimos el archivo pero no pudimos registrarlo. Revisá tu conexión y probá de nuevo.");
+  }
+  if (!res.ok) {
+    let out = {};
+    try {
+      out = await res.json();
+    } catch (e) {}
+    console.error("[comprobante] registro", res.status, out);
+    throw new Error(out.error || "Subimos el archivo pero no pudimos registrarlo. Probá de nuevo en unos minutos.");
   }
 }

@@ -12,6 +12,8 @@ export const NOTIFS = [];
 export const CUSTOMERS = [];
 export const REVOCATIONS = [];
 export let USER = { id: null, name: "", email: "", avatar: "" };
+// Estado de la tienda (public.store_settings): modo mantenimiento
+export const STORE = { loaded: false, maintenance: false, updatedAt: null, updatedBy: "" };
 
 const listeners = [];
 export function onChange(fn) {
@@ -235,10 +237,32 @@ export async function loadRevocations() {
   );
 }
 
+export async function loadStore() {
+  const { data, error } = await sb.from("store_settings").select("maintenance, updated_at, updated_by").eq("id", true).maybeSingle();
+  if (error) console.error("[tienda]", error);
+  STORE.loaded = !error && !!data;
+  STORE.maintenance = !!(data && data.maintenance);
+  STORE.updatedAt = data && data.updated_at ? new Date(data.updated_at) : null;
+  STORE.updatedBy = "";
+  if (data && data.updated_by) {
+    const { data: p } = await sb.from("profiles").select("first_name, last_name, email").eq("id", data.updated_by).maybeSingle();
+    if (p) STORE.updatedBy = [p.first_name, p.last_name].filter(Boolean).join(" ") || p.email || "";
+  }
+}
+
 export async function loadAll() {
   await loadProducts();
   await loadOrders();
-  await Promise.all([loadInvoices(), loadReceipts(), loadReservas(), loadNotifs(), loadRevocations()]);
+  await Promise.all([loadInvoices(), loadReceipts(), loadReservas(), loadNotifs(), loadRevocations(), loadStore()]);
+}
+
+// Activa o desactiva el modo mantenimiento (la base solo lo permite a admins)
+export async function setMaintenance(on) {
+  const { data, error } = await sb.from("store_settings").update({ maintenance: !!on }).eq("id", true).select("maintenance");
+  if (error) throw error;
+  if (!data || !data.length) throw new Error("No tenés permiso para cambiar el estado de la tienda.");
+  await loadStore();
+  emit("store");
 }
 
 // ---------- Acciones (RPC) ----------
@@ -305,4 +329,5 @@ export function startRealtime() {
   // Sin DELETE: realtime los manda sin filtrar (los avisos "carrito" de los clientes)
   subscribe("notifications", () => debounced("notifs", async () => (await loadNotifs(), emit("notifs"))), null, ["INSERT", "UPDATE"]);
   subscribe("revocation_requests", () => debounced("revocations", async () => (await loadRevocations(), emit("revocations"))));
+  subscribe("store_settings", () => debounced("store", async () => (await loadStore(), emit("store"))), null, ["UPDATE"]);
 }

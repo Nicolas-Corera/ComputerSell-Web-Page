@@ -9,7 +9,7 @@ import { saleNoteHtml, printSaleNote, loadSignature } from "/assets/js/core/sale
 import {
   PRODUCTS, ORDERS, RESERVAS, INVOICES, RECEIPTS, NOTIFS, CUSTOMERS, REVOCATIONS, USER,
   requireAdmin, loadAll, onChange, startRealtime, setOrderStatus, reviewReceipt, markRead, receiptUrl, loadProducts,
-  setProductStock, setRevocationStatus,
+  setProductStock, setRevocationStatus, STORE, setMaintenance,
 } from "./data.js";
 
 (async function () {
@@ -236,6 +236,7 @@ import {
     facturas: ["Facturas", "Comprobantes emitidos y recibidos"],
     arrepentimientos: ["Arrepentimientos", "Solicitudes del Botón de arrepentimiento"],
     cargas: ["Cargas", "Publicá un producto nuevo en el catálogo"],
+    tienda: ["Tienda", "Estado de la tienda online"],
     perfil: ["Mi perfil", USER.email],
   };
 
@@ -1492,6 +1493,61 @@ import {
     const n = openRevocations().length;
     const el = $("#sbRevBadge");
     if (el) el.textContent = n ? String(n) : "";
+  }
+
+  // =====================================================================
+  //  TIENDA (modo mantenimiento)
+  // =====================================================================
+  function updateStoreBadge() {
+    const el = $("#sbStoreBadge");
+    if (el) el.textContent = STORE.maintenance ? "!" : "";
+  }
+
+  function drawStore() {
+    const input = $("#storeMaintenance");
+    const badge = $("#storeStatusBadge");
+    if (!input) return;
+    input.checked = STORE.maintenance;
+    input.disabled = !STORE.loaded;
+    badge.className = "badge " + (!STORE.loaded ? "is-muted" : STORE.maintenance ? "is-warn" : "is-ok");
+    badge.textContent = !STORE.loaded ? "Sin datos" : STORE.maintenance ? "En mantenimiento" : "Abierta";
+    $("#storeUpdated").textContent = STORE.updatedAt
+      ? fmtDateTime(STORE.updatedAt) + (STORE.updatedBy ? " · " + STORE.updatedBy : "")
+      : "Sin cambios todavía";
+  }
+
+  function renderStore() {
+    const input = $("#storeMaintenance");
+    drawStore();
+    input.addEventListener("change", async () => {
+      const on = input.checked;
+      input.checked = !on; // hasta confirmar y guardar, el switch muestra el estado real
+      const ok = await confirmModal(
+        on
+          ? {
+              title: "Activar modo mantenimiento",
+              text: "Nadie va a poder entrar a la tienda: cualquier página o URL muestra la página de mantenimiento y no se aceptan pedidos. Quien la tenga abierta sale al instante. El panel sigue funcionando.",
+              okText: "Activar mantenimiento",
+              danger: true,
+            }
+          : {
+              title: "Abrir la tienda",
+              text: "La tienda vuelve a estar disponible para todos.",
+              okText: "Abrir tienda",
+            },
+      );
+      if (!ok) return;
+      input.disabled = true;
+      try {
+        await setMaintenance(on);
+        toast(on ? "Tienda en modo mantenimiento" : "La tienda volvió a estar abierta", "ok");
+      } catch (e) {
+        console.error("[tienda]", e);
+        toast(e.message || "No se pudo cambiar el estado de la tienda", "bad");
+      }
+      drawStore();
+      updateStoreBadge();
+    });
   }
 
   function renderRevocations() {
@@ -3134,6 +3190,7 @@ import {
     facturas: renderInvoices,
     arrepentimientos: renderRevocations,
     cargas: renderUpload,
+    tienda: renderStore,
     perfil: renderProfile,
   };
 
@@ -3144,6 +3201,10 @@ import {
   onChange((what) => {
     updateNotifBadges();
     updateRevBadge();
+    if (what === "store") {
+      updateStoreBadge();
+      if (rendered.tienda) drawStore();
+    }
     if (rendered.arrepentimientos && (what === "revocations" || what === "orders") && RENDERERS._redrawRevocations) RENDERERS._redrawRevocations();
     if (rendered.notificaciones && what === "notifs") renderNotifs();
     if (rendered.dashboard && what !== "notifs") renderDashboard();
@@ -3180,6 +3241,7 @@ import {
   });
   startRealtime();
   updateRevBadge();
+  updateStoreBadge();
   window.matchMedia("(prefers-color-scheme: light)").addEventListener("change", () => applyTheme(store.get("theme", "dark")));
   updateNotifBadges();
 

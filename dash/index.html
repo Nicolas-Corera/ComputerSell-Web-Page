@@ -139,6 +139,16 @@
             <svg><use href="#ic-upload" /></svg>
             <span class="sb-text">Cargas</span>
           </button>
+          <button
+            class="sb-item"
+            type="button"
+            data-view="tienda"
+            data-tip="Tienda"
+          >
+            <svg><use href="#ic-storefront" /></svg>
+            <span class="sb-text">Tienda</span>
+            <span class="sb-badge" id="sbStoreBadge"></span>
+          </button>
         </nav>
 
         <div class="sidebar-profile">
@@ -1092,6 +1102,43 @@
                 </div>
               </aside>
             </form>
+          </section>
+
+          <!-- ========== TIENDA ========== -->
+          <section class="view" data-view="tienda">
+            <div class="card">
+              <div class="card-head">
+                <h2>
+                  <svg><use href="#ic-storefront" /></svg>
+                  Estado de la tienda
+                </h2>
+                <span class="badge is-plain" id="storeStatusBadge">Revisando…</span>
+              </div>
+              <div class="settingRow">
+                <div class="text">
+                  <strong>Modo mantenimiento</strong>
+                  <small>
+                    Con esto activo, cualquier página de la tienda (inicio, productos, carrito, cualquier
+                    URL o parámetro) muestra la página de mantenimiento. No se pueden hacer pedidos.
+                    Quien la tenga abierta pasa a mantenimiento al instante. Este panel sigue funcionando.
+                  </small>
+                </div>
+                <label class="switch">
+                  <input type="checkbox" id="storeMaintenance" disabled />
+                  <span class="track"></span>
+                </label>
+              </div>
+              <div class="settingRow">
+                <div class="text">
+                  <strong>Último cambio</strong>
+                  <small id="storeUpdated">—</small>
+                </div>
+                <a class="btn btn-ghost is-sm" href="/" data-store="/" target="_blank" rel="noopener">
+                  <svg><use href="#ic-open_in_new" /></svg>
+                  Ver tienda
+                </a>
+              </div>
+            </div>
           </section>
 
           <!-- ========== PERFIL ========== -->

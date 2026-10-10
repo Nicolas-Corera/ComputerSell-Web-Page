@@ -120,7 +120,7 @@ El cobro es transparente: el comprador nunca sale del sitio.
    (idempotente: acreditaciones tardías, reembolsos desde Mercado Pago → `cancelado` sin comprobante, contracargos → aviso al panel).
 
 Las órdenes con tarjeta nacen `pendiente` y las confirma el backend; la transferencia crea la orden con
-`POST /api/orders/transfer` y después el navegador sube el comprobante (revisión en el panel). En `orders` quedan `mp_order_id` y `payment` (marca, últimos 4, ids y estado de MP).
+`POST /api/orders/transfer` y después el navegador sube el comprobante al bucket y lo registra con `POST /api/orders/receipt`, que revisa el contenido real del archivo antes de aceptarlo (revisión en el panel). En `orders` quedan `mp_order_id` y `payment` (marca, últimos 4, ids y estado de MP).
 
 Configuración en Mercado Pago (Tus integraciones → aplicación):
 
@@ -170,6 +170,9 @@ la orden nace pendiente), `mp_apply_payment`
 - **Librerías externas con versión exacta** (y `integrity` en los `<script src>`): una versión flotante cargaría código nuevo sin revisarlo.
 - **Stock**: máximo 2 pedidos por transferencia pendientes por cliente (evita que una cuenta reserve todo el catálogo sin pagar).
 - **API**: un error interno (500) no le muestra el detalle al navegador; queda en los logs de Vercel.
+- **Modo mantenimiento** (panel → Tienda): `middleware.ts` corre en Vercel antes que cualquier archivo y, con el modo activo, manda **cualquier** URL del dominio de la tienda (rutas, `.html`, `/tienda/...`, `/dash/...`, parámetros) a `/mantenimiento`; las APIs responden 503 y la base rechaza pedidos nuevos (trigger en `orders`). Quien tenía la tienda abierta sale al instante (realtime). `dash.<dominio>` sigue andando. El estado vive en `public.store_settings` (solo un admin lo cambia). `npm run dev` no ejecuta el middleware: la página se ve en `/mantenimiento`.
+- **Rutas con `../`** (o `%2e%2e`, `%252e`, `..%2f`, bytes nulos, barras invertidas), en el camino o en los parámetros: `middleware.ts` responde 400.
+- **Comprobantes revisados en el servidor** (`api/_lib/receipt-check.js`): además de nombre, tipo y tamaño (bucket), se recorre el archivo completo. PNG: chunks con CRC, IDAT que descomprime al tamaño exacto, nada después de IEND. JPG: segmentos hasta EOI. PDF: sin `/JavaScript`, `/Launch`, archivos embebidos, formularios que envían datos (también ofuscados o dentro de object streams comprimidos). En ninguno, código (HTML, scripts, PHP) ni ejecutables/ZIP escondidos en metadatos o al final. Si no pasa, el archivo se borra del bucket. `payment_receipts` solo acepta archivos revisados (migración `0034`).
 - **Reportes de vulnerabilidades**: `/.well-known/security.txt` (renovar `Expires` cada año; el test avisa).
 - Lo que **no** se puede automatizar y conviene tener: 2FA en GitHub, Vercel, Supabase, Resend y Google Cloud; y CAPTCHA (Cloudflare Turnstile) en registro/login si aparecen bots.
 

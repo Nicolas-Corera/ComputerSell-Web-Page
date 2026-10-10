@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0d0f12" />
+    <!-- Se recarga sola: cuando termina el mantenimiento el servidor la manda al inicio -->
+    <meta http-equiv="refresh" content="60" />
+    <meta name="robots" content="noindex" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/images/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/assets/images/favicon-16x16.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/assets/images/favicon-192x192.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/images/apple-touch-icon.png" />
+    <title>En mantenimiento | ComputerSell</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@600;800&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet" />
+    <!-- Sin JavaScript ni otros archivos de la tienda: durante el mantenimiento
+         el servidor (middleware.ts) solo deja pasar estilos e imágenes -->
+    <style>
+      :root {
+        --bg-0: #0d0f12;
+        --bg-1: #14161c;
+        --line: rgba(255, 255, 255, 0.12);
+        --blue: #3b82f6;
+        --ink: #f2f4f6;
+        --ink-soft: #a0a5ac;
+        --font-display: "Inter", sans-serif;
+        --font-body: "Montserrat", sans-serif;
+      }
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem 1rem;
+        font-family: var(--font-body);
+        color: var(--ink);
+        background: radial-gradient(60rem 30rem at 50% -10%, rgba(59, 130, 246, 0.18), transparent 70%), var(--bg-0);
+        -webkit-font-smoothing: antialiased;
+        text-align: center;
+      }
+      main {
+        width: 100%;
+        max-width: 34rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1.25rem;
+      }
+      .logo {
+        width: 96px;
+        height: 96px;
+        border-radius: 22px;
+        border: 1px solid var(--line);
+      }
+      h1 {
+        margin: 0.5rem 0 0;
+        font-family: var(--font-display);
+        font-weight: 800;
+        font-size: clamp(1.8rem, 6vw, 2.6rem);
+        line-height: 1.15;
+      }
+      p {
+        margin: 0;
+        color: var(--ink-soft);
+        line-height: 1.6;
+        font-size: 1rem;
+      }
+      .bar {
+        width: 100%;
+        max-width: 16rem;
+        height: 4px;
+        border-radius: 4px;
+        background: var(--bg-1);
+        overflow: hidden;
+        margin-top: 0.5rem;
+      }
+      .bar span {
+        display: block;
+        width: 35%;
+        height: 100%;
+        border-radius: inherit;
+        background: var(--blue);
+        animation: slide 1.6s ease-in-out infinite;
+      }
+      @keyframes slide {
+        from {
+          transform: translateX(-110%);
+        }
+        to {
+          transform: translateX(310%);
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .bar span {
+          animation: none;
+          width: 100%;
+        }
+      }
+      .contact {
+        margin-top: 0.75rem;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 0.75rem;
+      }
+      .contact a {
+        color: var(--ink);
+        text-decoration: none;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        padding: 0.7rem 1.25rem;
+        font-weight: 500;
+        font-size: 0.95rem;
+        transition: border-color 0.15s ease, background-color 0.15s ease;
+      }
+      .contact a:hover {
+        border-color: var(--blue);
+        background: rgba(59, 130, 246, 0.12);
+      }
+      footer {
+        margin-top: 3rem;
+        font-size: 0.85rem;
+        color: var(--ink-soft);
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <img class="logo" src="/assets/images/isotipo-dark.png" width="96" height="96" alt="ComputerSell" />
+      <h1>Estamos haciendo mejoras</h1>
+      <p>La tienda está en mantenimiento por unos minutos. Volvé a entrar en un rato: esta página se actualiza sola cuando volvemos.</p>
+      <div class="bar" aria-hidden="true"><span></span></div>
+      <div class="contact">
+        <a href="https://wa.me/5491140942695" rel="noopener noreferrer" target="_blank">WhatsApp</a>
+        <a href="mailto:contacto@computersell.com.ar">contacto@computersell.com.ar</a>
+      </div>
+    </main>
+    <footer>ComputerSell</footer>
+  </body>
+</html>

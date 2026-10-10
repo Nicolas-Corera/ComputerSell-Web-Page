@@ -253,3 +253,19 @@ export const PRODUCT_COLUMNS =
   "id,sku,title,brand,category,subcategory,description,tags,price,old_price,on_sale,stock,stock_min,status," +
   "warranty,warranty_unit,featured,installments,free_shipping,delivery,weight,weight_unit,dimensions,dimensions_unit," +
   "condition,images,specs,highlights,created_at,updated_at";
+
+// ---------- Modo mantenimiento ----------
+// El servidor ya no deja entrar a la tienda (middleware.ts). Esto saca al
+// momento a quien la tenía abierta cuando se activó desde el panel (o vuelve
+// a una pestaña vieja). En el panel no corre.
+if (!/^dash\./i.test(location.hostname) && !location.pathname.startsWith("/dash")) {
+  const toMaintenance = (row) => {
+    if (row && row.maintenance === true) location.replace("/mantenimiento");
+  };
+  sb.from("store_settings")
+    .select("maintenance")
+    .eq("id", true)
+    .maybeSingle()
+    .then(({ data }) => toMaintenance(data), () => {});
+  subscribe("store_settings", (p) => toMaintenance(p.new), null, ["UPDATE"]);
+}
