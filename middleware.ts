@@ -6,7 +6,7 @@
 // 2) Modo mantenimiento (panel -> Tienda; public.store_settings.maintenance):
 //    en el dominio de la tienda TODO pedido termina en /mantenimiento, sea la
 //    ruta que sea (/productos, /tienda/carrito.html, /dash/..., ?id=...). Solo
-//    pasan los estilos e imágenes que usa esa página y el aviso interno de la
+//    pasan los estilos, imágenes y el script que usa esa página y el aviso interno de la
 //    base (/api/notify-mail, con clave). El panel (dash.<dominio>) sigue
 //    funcionando para poder desactivarlo, pero ahí tampoco se sirven páginas
 //    de la tienda. Con el modo apagado, /mantenimiento vuelve al inicio.
@@ -85,7 +85,7 @@ function redirect(location: string, status = 302): Response {
 
 // Lo único que se sirve en la tienda durante el mantenimiento
 const MAINTENANCE_PAGE = /^\/(mantenimiento|mantenimiento\.html|tienda\/mantenimiento(\.html)?)$/;
-const ALWAYS_OPEN = /^\/(assets\/(css|images|icons|fonts)\/[^?]*|favicon\.ico|robots\.txt|tienda\/(favicon\.ico|robots\.txt)|\.well-known\/security\.txt|api\/notify-mail)$/;
+const ALWAYS_OPEN = /^\/(assets\/(css|images|icons|fonts)\/[^?]*|assets\/js\/pages\/mantenimiento\.js|favicon\.ico|robots\.txt|tienda\/(favicon\.ico|robots\.txt)|\.well-known\/security\.txt|api\/notify-mail)$/;
 
 export default async function middleware(request: Request): Promise<Response | undefined> {
   const url = new URL(request.url);

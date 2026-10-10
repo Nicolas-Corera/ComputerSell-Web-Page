@@ -58,7 +58,7 @@ test("con mantenimiento TODA ruta de la tienda va a /mantenimiento", async () =>
     assert.match(r.headers.get("cache-control"), /no-store/, p);
   }
   // La página en sí, sus estilos e imágenes, y el aviso interno de la base
-  for (const p of ["/mantenimiento", "/assets/css/base.css", "/assets/images/isotipo-dark.png", "/favicon.ico", "/robots.txt", "/api/notify-mail"]) {
+  for (const p of ["/mantenimiento", "/assets/css/base.css", "/assets/images/isotipo-dark.png", "/assets/js/pages/mantenimiento.js", "/favicon.ico", "/robots.txt", "/api/notify-mail"]) {
     assert.strictEqual(await mw(req(STORE + p)), undefined, p);
   }
   // Variantes de la misma página -> siempre /mantenimiento

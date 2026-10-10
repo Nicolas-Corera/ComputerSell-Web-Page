@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#0d0f12" />
-    <!-- Se recarga sola: cuando termina el mantenimiento el servidor la manda al inicio -->
+    <!-- Respaldo sin JavaScript: se recarga sola y, si terminó el mantenimiento, el servidor la manda al inicio -->
     <meta http-equiv="refresh" content="60" />
     <meta name="robots" content="noindex" />
     <link rel="icon" type="image/png" sizes="32x32" href="/assets/images/favicon-32x32.png" />
@@ -15,8 +15,9 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@600;800&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet" />
-    <!-- Sin JavaScript ni otros archivos de la tienda: durante el mantenimiento
-         el servidor (middleware.ts) solo deja pasar estilos e imágenes -->
+    <!-- Durante el mantenimiento el servidor (middleware.ts) solo deja pasar
+         estilos, imágenes y mantenimiento.js (vuelve al inicio apenas termina) -->
+    <script type="module" src="/assets/js/pages/mantenimiento.js"></script>
     <style>
       :root {
         --bg-0: #0d0f12;
@@ -137,11 +138,10 @@
     <main>
       <img class="logo" src="/assets/images/isotipo-dark.png" width="96" height="96" alt="ComputerSell" />
       <h1>Estamos haciendo mejoras</h1>
-      <p>La tienda está en mantenimiento por unos minutos. Volvé a entrar en un rato: esta página se actualiza sola cuando volvemos.</p>
+      <p>La tienda está en mantenimiento por unos minutos. Volvé a entrar en un rato: apenas volvemos, esta página te lleva a la tienda sola.</p>
       <div class="bar" aria-hidden="true"><span></span></div>
       <div class="contact">
-        <a href="https://wa.me/5491140942695" rel="noopener noreferrer" target="_blank">WhatsApp</a>
-        <a href="mailto:contacto@computersell.com.ar">contacto@computersell.com.ar</a>
+        <a href="https://wa.me/5491140942695" rel="noopener noreferrer" target="_blank">Escribinos por WhatsApp</a>
       </div>
     </main>
     <footer>ComputerSell</footer>
