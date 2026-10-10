@@ -13,44 +13,86 @@ const detail = $("#productDetail");
 let product = null;
 
 // ---------- Galería: carrusel ----------
-// La imagen grande es un carrusel: flechas, puntos, miniaturas, deslizar con
-// el dedo (scroll-snap) y flechas del teclado. Al llegar a una punta, la
-// flecha da la vuelta.
+// La imagen grande es un carrusel infinito: flechas, puntos, miniaturas,
+// deslizar con el dedo (scroll-snap) y flechas del teclado. Para que siga de la
+// última a la primera (y al revés) sin "rebobinar", el track tiene una copia
+// de la última imagen al principio y una de la primera al final:
+//   [copia última] [1] [2] … [n] [copia primera]
+// Al quedar parado sobre una copia, salta sin animar a la imagen real igual.
 const track = $("#galleryTrack");
 let galleryImgs = [];
-let slide = 0;
+let slide = 0; // imagen real (0..n-1)
+const loops = () => galleryImgs.length > 1;
+// Ancho real (con decimales): clientWidth redondea y las posiciones se corren
+const width = () => Math.max(1, track.getBoundingClientRect().width);
+// Posición en el track de la imagen i (con copias, la real i está en i + 1)
+const posOf = (i) => (loops() ? i + 1 : i);
 
 function syncGallery() {
   document.querySelectorAll("#galleryThumbs .thumb").forEach((t, i) => t.classList.toggle("is-active", i === slide));
   document.querySelectorAll("#galleryDots button").forEach((d, i) => d.setAttribute("aria-current", i === slide ? "true" : "false"));
 }
 
-function goTo(i, smooth = true) {
-  const n = galleryImgs.length;
-  if (!n) return;
-  slide = ((i % n) + n) % n;
-  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  track.scrollTo({ left: slide * track.clientWidth, behavior: smooth && !reduce ? "smooth" : "auto" });
-  syncGallery();
+function jumpTo(pos) {
+  track.scrollTo({ left: pos * width(), behavior: "instant" });
 }
 
-// Al deslizar con el dedo o el trackpad: la imagen visible pasa a ser la actual
+// Si está sobre (o yendo hacia) una copia, pasa a la imagen real equivalente
+function normalize() {
+  if (!loops()) return;
+  const n = galleryImgs.length;
+  const at = track.scrollLeft / width();
+  // Entre la última real (n) y la copia de la primera (n + 1) se ve lo mismo
+  // que entre la copia de la última (0) y la primera real (1)
+  if (at > n) jumpTo(at - n);
+  else if (at < 1) jumpTo(at + n);
+}
+
+// i puede ser -1 o n: anterior a la primera / siguiente a la última.
+// dir (1 = siguiente, -1 = anterior): con clics rápidos que cruzan la punta,
+// sigue en el mismo sentido en lugar de volver para atrás
+function goTo(i, smooth = true, dir = 0) {
+  const n = galleryImgs.length;
+  if (!n) return;
+  if (!loops()) i = 0;
+  slide = ((i % n) + n) % n;
+  syncGallery();
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (!smooth || reduce) return jumpTo(posOf(slide));
+  normalize();
+  const target = Math.max(0, Math.min(n + 1, i + 1)); // puede ser una copia
+  const at = track.scrollLeft / width();
+  if (dir > 0 && target < at && at - n > -0.05) jumpTo(Math.max(0, at - n));
+  if (dir < 0 && target > at && at + n < n + 1.05) jumpTo(Math.min(n + 1, at + n));
+  track.scrollTo({ left: target * width(), behavior: "smooth" });
+}
+
+// Cuando el carrusel se detiene (flecha, dedo o trackpad): imagen actual y,
+// si quedó en una copia, salto a la real
+function settle() {
+  const n = galleryImgs.length;
+  if (!n) return;
+  const pos = Math.round(track.scrollLeft / width());
+  if (loops() && pos === 0) {
+    slide = n - 1;
+    jumpTo(n);
+  } else if (loops() && pos === n + 1) {
+    slide = 0;
+    jumpTo(1);
+  } else {
+    slide = Math.min(n - 1, Math.max(0, loops() ? pos - 1 : pos));
+  }
+  syncGallery();
+}
 let scrollTimer = null;
 track.addEventListener("scroll", () => {
   clearTimeout(scrollTimer);
-  scrollTimer = setTimeout(() => {
-    const i = Math.round(track.scrollLeft / Math.max(1, track.clientWidth));
-    if (i !== slide && i >= 0 && i < galleryImgs.length) {
-      slide = i;
-      syncGallery();
-    }
-  }, 80);
+  scrollTimer = setTimeout(settle, 120);
 });
 // Si cambia el ancho (rotar el celular), se queda en la misma imagen
 window.addEventListener("resize", () => goTo(slide, false));
-// Anterior / siguiente; al dar la vuelta (de la última a la primera) salta sin animar
-const prev = () => goTo(slide - 1, slide > 0);
-const next = () => goTo(slide + 1, slide < galleryImgs.length - 1);
+const prev = () => goTo(slide - 1, true, -1);
+const next = () => goTo(slide + 1, true, 1);
 $("#galleryPrev").addEventListener("click", prev);
 $("#galleryNext").addEventListener("click", next);
 $("#galleryDots").addEventListener("click", (e) => {
@@ -68,12 +110,12 @@ function renderGallery(imgs, title) {
   // En vivo (cambio de imágenes desde el panel): se queda en la que estaba viendo
   slide = Math.max(0, imgs.indexOf(current));
   const many = imgs.length > 1;
-  track.innerHTML = imgs
-    .map(
-      (src, i) =>
-        `<div class="gallery-slide" role="group" aria-roledescription="imagen" aria-label="${i + 1} de ${imgs.length}"><img src="${escapeHtml(src)}" alt="${escapeHtml(title)}${many ? ` (imagen ${i + 1})` : ""}" ${i ? 'loading="lazy"' : ""} draggable="false" /></div>`,
-    )
-    .join("");
+  const slideHtml = (src, i) =>
+    `<div class="gallery-slide" role="group" aria-roledescription="imagen" aria-label="${i + 1} de ${imgs.length}"><img src="${escapeHtml(src)}" alt="${escapeHtml(title)}${many ? ` (imagen ${i + 1})` : ""}" ${i ? 'loading="lazy"' : ""} draggable="false" /></div>`;
+  // Copias de los extremos: solo para el efecto de bucle (ocultas para lectores de pantalla)
+  const cloneHtml = (src) =>
+    `<div class="gallery-slide" aria-hidden="true"><img src="${escapeHtml(src)}" alt="" loading="lazy" draggable="false" /></div>`;
+  track.innerHTML = (many ? cloneHtml(imgs[imgs.length - 1]) : "") + imgs.map(slideHtml).join("") + (many ? cloneHtml(imgs[0]) : "");
   $("#galleryPrev").hidden = $("#galleryNext").hidden = $("#galleryDots").hidden = !many;
   $("#galleryDots").innerHTML = many
     ? imgs.map((_, i) => `<button type="button" data-slide="${i}" aria-label="Ver imagen ${i + 1} de ${imgs.length}"></button>`).join("")
