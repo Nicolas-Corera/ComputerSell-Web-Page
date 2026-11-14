@@ -12,8 +12,9 @@
 // límite de consultas por usuario y por IP (429).
 //
 // Body: { items: [{product_id, qty}] }
-// Respuesta: 200 { regional: T, national: T } con T = { credito: {1, 3, 6}, debito: {1} }
-const { handler, send, readJson, requireUser, HttpError } = require("../_lib/mp");
+// Respuesta: 200 { regional: T, national: T, testMode } con T = { credito: {1, 3, 6}, debito: {1} }
+// testMode: las credenciales son de un usuario de prueba de Mercado Pago
+const { handler, send, readJson, requireUser, HttpError, isTestAccount } = require("../_lib/mp");
 const { rateLimit, clientIp } = require("../_lib/mail");
 const { parseItems, buildQuote } = require("../_lib/checkout");
 
@@ -24,14 +25,15 @@ module.exports = handler(["POST"], async (req, res) => {
   // Un cliente real consulta una vez por carrito: estos topes no lo afectan,
   // pero cortan un barrido de productos. Corre en paralelo con el cálculo.
   const ip = clientIp(req);
-  const [allowed, result] = await Promise.all([
+  const [allowed, result, testMode] = await Promise.all([
     rateLimit([
       { key: "quote:u10m:" + user.id, limit: 40, window: 600 },
       { key: "quote:uday:" + user.id, limit: 400, window: 86400 },
       { key: "quote:ip10m:" + ip, limit: 120, window: 600 },
     ]),
     buildQuote({ token, items, method: "transferencia", installments: 1, withZones: true }),
+    isTestAccount(),
   ]);
   if (!allowed) throw new HttpError(429, "Hiciste muchas consultas seguidas. Esperá unos minutos y volvé a intentar.");
-  send(res, 200, result.zones);
+  send(res, 200, { ...result.zones, testMode });
 });
