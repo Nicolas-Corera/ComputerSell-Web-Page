@@ -168,6 +168,7 @@ loading(async function () {
     // Tarjeta detectada por Mercado Pago a partir del BIN
     bin: "",
     paymentMethod: null, // {id, name, payment_type_id, settings...}
+    testMode: false, // credenciales de prueba de Mercado Pago: se muestran cuotas aunque tengan interés
     cardTables: null, // recargo de cada opción con tarjeta, envío regional y nacional (lo calcula el servidor)
     cardKey: "", // carrito para el que se calcularon
     cardAsked: "", // ... y el de la consulta en curso
@@ -254,7 +255,10 @@ loading(async function () {
           body: JSON.stringify({ items: cartItems() }),
         });
         const out = await res.json().catch(() => ({}));
-        if (res.ok && out.regional && out.national) tables = out;
+        if (res.ok && out.regional && out.national) {
+          tables = out;
+          state.testMode = !!out.testMode;
+        }
         else console.error("[quote]", res.status, out.error);
       } catch (e) {
         console.error("[quote]", e);
@@ -721,9 +725,11 @@ loading(async function () {
     const current = parseInt(cuotasSelect.value, 10) || 1;
     const items = pricingItems();
     const max = Pricing.maxInstallments(items);
-    const supported = state.installmentPlans
-      .filter((p) => !p.installment_rate)
-      .map((p) => p.installments);
+    const supported = state.testMode
+      ? []
+      : state.installmentPlans
+          .filter((p) => !p.installment_rate)
+          .map((p) => p.installments);
     const list = Pricing.installmentOptions(max).filter(
       (n) => n === 1 || !supported.length || supported.includes(n),
     );
@@ -750,9 +756,11 @@ loading(async function () {
     cuotasHint.textContent =
       supported.length && list.length === 1
         ? "Esta tarjeta no tiene cuotas disponibles para este pedido"
-        : max > 1
-          ? `Hasta ${max} cuotas`
-          : "";
+        : state.testMode && max > 1
+          ? `Modo de prueba · hasta ${max} cuotas`
+          : max > 1
+            ? `Hasta ${max} cuotas`
+            : "";
     cuotasHint.hidden = !cuotasHint.textContent;
   }
 

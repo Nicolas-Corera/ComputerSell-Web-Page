@@ -12,7 +12,7 @@
 //
 // Respuestas: 200 {result:'approved'|'pending', order}, 402 {error, order}
 // cuando la tarjeta rechazó, 4xx/5xx {error} en el resto.
-const { handler, HttpError, send, readJson, requireUser, rpc, sbFetch, mpFetch, rejectionMessage, summarizeOrder } = require("../_lib/mp");
+const { handler, HttpError, send, readJson, requireUser, rpc, sbFetch, mpFetch, isTestAccount, rejectionMessage, summarizeOrder } = require("../_lib/mp");
 const { parseItems, parseCustomer, placeOrder } = require("../_lib/checkout");
 
 const CARD_TYPES = { credito: "credit_card", debito: "debit_card" };
@@ -206,6 +206,7 @@ module.exports = handler(["POST"], async (req, res) => {
 // cuotas sin interés para la tarjeta), pagaría más de lo que vio: no se cobra.
 async function assertNoBuyerInterest(bin, quote) {
   if (quote.installments <= 1) return;
+  if (await isTestAccount()) return; // cuenta de prueba: sin cuotas sin interés, se permite para probar
   const unavailable = new HttpError(400, "Tu tarjeta no admite esa cantidad de cuotas para este pedido. Elegí otra cantidad.");
   if (bin.length < 6) throw unavailable;
   const r = await mpFetch(`/v1/payment_methods/installments?amount=${quote.base}&bin=${bin}&payment_type_id=credit_card`);

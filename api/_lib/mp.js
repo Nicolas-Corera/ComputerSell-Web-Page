@@ -195,6 +195,31 @@ async function mpFetch(route, { method = "GET", body, idempotencyKey } = {}) {
   return { ok: res.ok, status: res.status, data };
 }
 
+// ¿Las credenciales son de un usuario de prueba de Mercado Pago? Solo en ese caso
+// se permite ofrecer cuotas aunque Mercado Pago cobre interés al comprador (la
+// cuenta de prueba no tiene las cuotas sin interés): así se prueba el flujo de
+// punta a punta. Con credenciales de una cuenta real da siempre false, así que
+// no puede quedar activado en producción. Se consulta una vez por instancia.
+let testAccount = null;
+function isTestAccount() {
+  if (!testAccount) {
+    testAccount = (async () => {
+      try {
+        const r = await mpFetch("/users/me");
+        if (!r.ok) {
+          testAccount = null; // no se guarda un error: se vuelve a consultar
+          return false;
+        }
+        return !!(r.data && Array.isArray(r.data.tags) && r.data.tags.includes("test_user"));
+      } catch (e) {
+        testAccount = null;
+        return false;
+      }
+    })();
+  }
+  return testAccount;
+}
+
 // Mensajes para el comprador según status_detail (transacción u order)
 const REJECTION = {
   bad_filled_card_data: "Revisá los datos de la tarjeta: hay algún dato incorrecto.",
@@ -253,4 +278,4 @@ function summarizeOrder(mpOrder) {
   };
 }
 
-module.exports = { env, HttpError, send, readJson, query, header, handler, sbFetch, requireUser, rpc, mpFetch, rejectionMessage, summarizeOrder };
+module.exports = { env, HttpError, send, readJson, query, header, handler, sbFetch, requireUser, rpc, mpFetch, isTestAccount, rejectionMessage, summarizeOrder };
