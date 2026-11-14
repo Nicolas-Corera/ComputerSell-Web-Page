@@ -2,11 +2,13 @@
 // tarjeta animada y resumen lateral con envío + recargo + total.
 // Requiere sesión.
 //
-// Envío (por peso y provincia), recargo por tarjeta y recargo por cuotas se
-// calculan con window.CSPricing (assets/js/core/pricing.js, tarifas en
-// assets/js/config/). El backend usa el mismo código para crear la orden, así
-// que lo que se ve acá es lo que se cobra. Se recalcula al cambiar provincia,
-// medio de pago o cuotas.
+// El envío (por peso y provincia) se calcula con window.CSPricing
+// (assets/js/core/pricing.js, tarifas en assets/js/config/). El recargo de la
+// tarjeta depende del costo y del margen de cada producto, que el navegador no
+// ve: lo calcula el servidor (POST /api/orders/quote) para cada opción de pago
+// y cuotas. El backend usa el mismo código para crear la orden, así que lo que
+// se ve acá es lo que se cobra. Se recalcula al cambiar provincia, medio de
+// pago o cuotas.
 //
 // Tarjeta (crédito/débito): Mercado Pago Checkout API. El número, vencimiento
 // y CVV son Secure Fields del SDK (iframes de MP: los datos nunca pasan por
@@ -35,11 +37,9 @@ loading(async function () {
   const Pricing = window.CSPricing;
   // Medios de pago y su recargo (assets/js/config/payment-rates.js)
   const PAYMENT = Pricing.PAYMENT;
-  // Pago con tarjeta (Mercado Pago) desactivado: solo transferencia.
-  // Para reactivarlo: true acá, api/_mp -> api/mp, el SDK en pago.html (con
-  // versión fija) y sumar https://sdk.mercadopago.com (script-src) y los
-  // dominios de Mercado Pago (connect-src, frame-src) a la CSP de vercel.json.
-  const CARD_ENABLED = false;
+  // Pago con tarjeta (Mercado Pago). Para apagarlo: false acá, api/mp -> api/_mp
+  // y el SDK comentado en pago.html (solo transferencia).
+  const CARD_ENABLED = true;
 
   const user = await requireAuth();
   if (!user) return;
@@ -154,6 +154,7 @@ loading(async function () {
   const sumTotal = document.getElementById("sumTotal");
   const sumCuotas = document.getElementById("sumCuotas");
   const payBtn = document.getElementById("payBtn");
+  const transferSteps = document.getElementById("transferSteps");
 
   const tabs = Array.from(document.querySelectorAll(".payTab"));
   const panels = Array.from(document.querySelectorAll(".payPanel"));
@@ -167,6 +168,9 @@ loading(async function () {
     // Tarjeta detectada por Mercado Pago a partir del BIN
     bin: "",
     paymentMethod: null, // {id, name, payment_type_id, settings...}
+    cardTable: null, // recargo de cada opción con tarjeta (lo calcula el servidor)
+    cardKey: "", // carrito + provincia para los que se calculó cardTable
+    cardAsked: "", // ... y el de la consulta en curso
     installmentPlans: [], // payer_costs de MP para el BIN y el monto actual
     installmentsAmount: 0, // monto con el que se pidieron las cuotas
     fields: { number: false, expiry: false, cvv: false }, // validez de los secure fields
@@ -211,7 +215,56 @@ loading(async function () {
       province: provinceSelect.value,
       method: state.method,
       installments: selectedInstallments(),
+      card: state.cardKey === cardKey() ? state.cardTable : null,
     });
+  }
+
+  // ---------- Recargo de la tarjeta (lo calcula el servidor) ----------
+  // Cambia con el carrito y la provincia (envío); no con el medio de pago ni
+  // las cuotas: la respuesta trae todas las opciones.
+  const cardKey = () =>
+    provinceSelect.value
+      ? JSON.stringify([
+          provinceSelect.value,
+          store.getItems().map((it) => [it.id, it.qty]),
+        ])
+      : "";
+
+  let cardTimer = null;
+  function refreshCardTable() {
+    const key = cardKey();
+    if (!key || key === state.cardKey || key === state.cardAsked) return;
+    state.cardAsked = key;
+    clearTimeout(cardTimer);
+    cardTimer = setTimeout(async () => {
+      let table = null;
+      try {
+        const { data: sess } = await sb.auth.getSession();
+        if (!sess || !sess.session) throw new Error("sin sesión");
+        const res = await fetch("/api/orders/quote", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: "Bearer " + sess.session.access_token,
+          },
+          body: JSON.stringify({
+            items: cartItems(),
+            province: provinceSelect.value,
+          }),
+        });
+        const out = await res.json().catch(() => ({}));
+        if (res.ok && out.card) table = out.card;
+        else console.error("[quote]", res.status, out.error);
+      } catch (e) {
+        console.error("[quote]", e);
+      }
+      if (state.cardAsked !== key) return; // mientras tanto cambió el carrito
+      state.cardAsked = "";
+      state.cardKey = table ? key : "";
+      state.cardTable = table;
+      if (!table) toast("No pudimos calcular el total con tarjeta. Probá de nuevo.", "bad");
+      renderSummary();
+    }, 200);
   }
 
   function bump(el) {
@@ -254,29 +307,27 @@ loading(async function () {
     sumShipping.textContent = shippingText;
     shippingHint.textContent = `Envío a domicilio · ${deliveryInfo().label} · ${noProvince ? "Elegí tu provincia para calcular el costo" : t.shipping ? "$" + shippingText : "Gratis"}`;
 
-    // Recargo por tarjeta (crédito y débito)
+    // Recargo de la tarjeta (un solo renglón: ya incluye todo, también las cuotas)
     sumCardLine.hidden = !PAYMENT[state.method].card;
-    sumCard.textContent = formatPrice(t.cardSurcharge);
+    sumCard.textContent = t.pending ? "—" : formatPrice(t.cardSurcharge);
 
-    // Total final: ya incluye el recargo por cuotas, que no se muestra aparte.
-    // Sin provincia no hay total (falta el envío)
-    sumTotal.textContent = noProvince ? "—" : formatPrice(t.total);
+    // Total final. Sin provincia no hay total (falta el envío); con tarjeta,
+    // hasta que llega el recargo del servidor tampoco
+    const noTotal = noProvince || t.pending;
+    sumTotal.textContent = noTotal ? "—" : formatPrice(t.total);
     bump(sumTotal);
 
-    if (t.installments > 1) {
-      const plan = Pricing.installmentPlan(
-        t.base,
-        t.installments,
-        t.freeInstallments,
-      );
+    if (t.installments > 1 && !noTotal) {
       sumCuotas.hidden = false;
-      sumCuotas.textContent = `${t.installments}x $${formatPrice(plan.each)}${plan.free ? " sin interés" : ""}`;
+      sumCuotas.textContent = `${t.installments}x $${formatPrice(Math.round(t.total / t.installments))}`;
     } else {
       sumCuotas.hidden = true;
     }
 
+    if (PAYMENT[state.method].card && !noProvince) refreshCardTable();
+
     if (!state.processing)
-      payBtn.textContent = noProvince
+      payBtn.textContent = noTotal
         ? "Confirmar pedido"
         : state.method === "transferencia"
           ? `Confirmar pedido · $${formatPrice(t.total)}`
@@ -385,6 +436,7 @@ loading(async function () {
       });
     });
 
+    transferSteps.hidden = isCard;
     cuotasField.hidden = method !== "credito";
     cuotasSelect.disabled = method !== "credito";
     checkCardType();
@@ -398,31 +450,22 @@ loading(async function () {
   cuotasSelect.addEventListener("change", renderSummary);
   provinceSelect.addEventListener("change", renderSummary);
 
-  // Bajada de cada pestaña según la configuración de recargos y las cuotas del carrito
+  // Bajada de cada pestaña: solo las cuotas que admite el carrito (sin porcentajes)
   function renderTabs() {
     if (!CARD_ENABLED) {
       // Solo transferencia: sin pestañas, el medio de pago va como texto
-      const only = document.getElementById("payMethodOnly");
-      const pay = PAYMENT.transferencia;
-      only.querySelector("small").textContent = pay.surcharge
-        ? `+${Math.round(pay.surcharge * 100)}%`
-        : "Sin recargo";
-      only.hidden = false;
+      document.getElementById("payMethodOnly").hidden = false;
       document.querySelector(".payTabs").hidden = true;
       return;
     }
     const maxCuotas = Math.max(
-      ...Pricing.installmentOptions(Pricing.freeInstallments(pricingItems())),
+      ...Pricing.installmentOptions(Pricing.maxInstallments(pricingItems())),
     );
     tabs.forEach((tab) => {
-      const pay = PAYMENT[tab.dataset.method];
-      const text = pay.surcharge
-        ? `+${Math.round(pay.surcharge * 100)}%`
-        : "Sin recargo";
       tab.querySelector("small").textContent =
         tab.dataset.method === "credito" && maxCuotas > 1
-          ? `${text} · hasta ${maxCuotas} cuotas`
-          : text;
+          ? `hasta ${maxCuotas} cuotas`
+          : "";
     });
   }
 
@@ -667,47 +710,47 @@ loading(async function () {
   }
 
   // Opciones de cuotas (estilo Mercado Libre): valor de cada cuota y total,
-  // con el recargo ya incluido; nunca el porcentaje. Hasta las cuotas sin
-  // interés de los productos del carrito van sin recargo; el resto con el de
-  // assets/js/config/installment-rates.js.
+  // con el recargo ya incluido; nunca el porcentaje ni cómo se compone.
+  // Las cuotas que se ofrecen son las que admiten los productos del carrito
+  // (check del panel), hasta el máximo de assets/js/config/installment-rates.js.
   // Si ya se conoce la tarjeta, quedan solo las cuotas que Mercado Pago admite
   // para ese BIN sin sumarle interés propio al comprador (si no, pagaría más
   // de lo que se le muestra acá).
   function setInstallmentOptions() {
     const current = parseInt(cuotasSelect.value, 10) || 1;
     const items = pricingItems();
-    const base = Pricing.quote({
-      items,
-      province: provinceSelect.value,
-      method: "credito",
-      installments: 1,
-    }).base;
-    const freeMax = Pricing.freeInstallments(items);
+    const max = Pricing.maxInstallments(items);
     const supported = state.installmentPlans
       .filter((p) => !p.installment_rate)
       .map((p) => p.installments);
-    const list = Pricing.installmentOptions(freeMax).filter(
+    const list = Pricing.installmentOptions(max).filter(
       (n) => n === 1 || !supported.length || supported.includes(n),
     );
+    const card = state.cardKey === cardKey() ? state.cardTable : null;
     cuotasSelect.innerHTML = "";
     list.forEach((n) => {
-      const plan = Pricing.installmentPlan(base, n, freeMax);
+      const q = Pricing.quote({
+        items,
+        province: provinceSelect.value,
+        method: "credito",
+        installments: n,
+        card,
+      });
       const opt = document.createElement("option");
       opt.value = String(n);
-      opt.textContent =
-        n === 1
-          ? `1x $${formatPrice(plan.total)}`
-          : plan.free
-            ? `${n}x $${formatPrice(plan.each)} sin interés`
-            : `${n}x $${formatPrice(plan.each)} → Total $${formatPrice(plan.total)}`;
+      opt.textContent = q.pending
+        ? `${n}x`
+        : n === 1
+          ? `1x $${formatPrice(q.total)}`
+          : `${n}x $${formatPrice(Math.round(q.total / n))} → Total $${formatPrice(q.total)}`;
       cuotasSelect.appendChild(opt);
     });
     cuotasSelect.value = list.includes(current) ? String(current) : "1";
     cuotasHint.textContent =
       supported.length && list.length === 1
         ? "Tu tarjeta no admite cuotas para este pedido"
-        : freeMax > 1
-          ? `Hasta ${freeMax} cuotas sin interés`
+        : max > 1
+          ? `Hasta ${max} cuotas`
           : "";
     cuotasHint.hidden = !cuotasHint.textContent;
   }
@@ -866,7 +909,11 @@ loading(async function () {
   function updatePayButton() {
     if (state.processing) return (payBtn.disabled = true);
     if (state.method === "transferencia") payBtn.disabled = false;
-    else payBtn.disabled = !mpReady || !typeWarn.hidden;
+    else
+      payBtn.disabled =
+        !mpReady ||
+        !typeWarn.hidden ||
+        (!!provinceSelect.value && totals().pending);
   }
 
   // ---------- Validación de tarjeta ----------
@@ -1056,6 +1103,7 @@ loading(async function () {
   async function onTotalChanged(out) {
     const rows = (await refreshCart()).map(toCard);
     cartRows.splice(0, cartRows.length, ...rows);
+    state.cardKey = ""; // el recargo también puede haber cambiado
     render();
     throw new Error(out.error || "El total cambió. Revisá el resumen y confirmá de nuevo.");
   }

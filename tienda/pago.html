@@ -40,8 +40,8 @@
       integrity="sha384-XmJ9SoHtVOHoQUcKvFAzVXwdkKo1Ie3bhmSoIAkcdsHGaIrVJIkmozyq0FJeb/Ly"
       crossorigin="anonymous"
     ></script>
-    <!-- SDK de Mercado Pago desactivado (pago con tarjeta oculto, ver api/_mp):
-    <script src="https://sdk.mercadopago.com/js/v2"></script> -->
+    <!-- SDK de Mercado Pago: tokeniza la tarjeta en el navegador (Secure Fields) -->
+    <script src="https://sdk.mercadopago.com/js/v2"></script>
     <link rel="stylesheet" href="/assets/css/base.css" />
     <link rel="stylesheet" href="/assets/css/components/cookie-consent.css" />
     <link rel="stylesheet" href="/assets/css/loader.css" />
@@ -81,7 +81,7 @@
           <span class="marquee-item"
             ><svg class="ic-sm">
               <use href="#ic-sell_tag" /></svg
-            >Pagá por transferencia bancaria sin recargo</span
+            >Pagá con tarjeta en cuotas o por transferencia bancaria</span
           >
         </div>
       </div>
@@ -311,7 +311,27 @@
               <p class="payMethodOnly" id="payMethodOnly" hidden>
                 Transferencia bancaria<small></small>
               </p>
-              <div class="paymentText">
+              <div class="payTabs" role="tablist">
+                <button
+                  class="payTab is-active"
+                  type="button"
+                  data-method="credito"
+                >
+                  Tarjeta de crédito<small></small>
+                </button>
+                <button class="payTab" type="button" data-method="debito">
+                  Tarjeta de débito<small></small>
+                </button>
+                <button
+                  class="payTab"
+                  type="button"
+                  data-method="transferencia"
+                >
+                  Transferencia<small></small>
+                </button>
+              </div>
+
+              <div class="paymentText" id="transferSteps" hidden>
                 <span>Para confirmar tu compra:</span>
                 <ol class="transferSteps">
                   <li>
@@ -336,34 +356,8 @@
                   </li>
                 </ol>
               </div>
-              <div class="payTabs" role="tablist">
-                <button
-                  class="payTab"
-                  type="button"
-                  data-method="credito"
-                  hidden
-                >
-                  Tarjeta de crédito<small></small>
-                </button>
-                <button
-                  class="payTab"
-                  type="button"
-                  data-method="debito"
-                  hidden
-                >
-                  Tarjeta de débito<small></small>
-                </button>
-                <button
-                  class="payTab is-active"
-                  type="button"
-                  data-method="transferencia"
-                >
-                  Transferencia<small></small>
-                </button>
-              </div>
-
               <!-- Panel tarjeta (crédito y débito) -->
-              <div class="payPanel" data-panel="card" hidden>
+              <div class="payPanel is-active" data-panel="card">
                 <div class="cardLayout">
                   <div class="cardPreview" id="cardPreview" aria-hidden="true">
                     <div class="cardPreview-inner">
@@ -463,7 +457,7 @@
               </div>
 
               <!-- Panel transferencia -->
-              <div class="payPanel is-active" data-panel="transferencia">
+              <div class="payPanel" data-panel="transferencia">
                 <p class="transferNote">
                   Los datos de la cuenta (CBU y alias) aparecen al confirmar el
                   pedido, junto con el lugar para subir el comprobante.
@@ -494,7 +488,7 @@
                 <span>Envío</span>
                 <strong id="sumShipping">0</strong>
               </div>
-              <div class="summaryLine" id="sumCardLine" hidden>
+              <div class="summaryLine" id="sumCardLine">
                 <span>Recargo por tarjeta</span>
                 <strong id="sumCard">0</strong>
               </div>
@@ -506,7 +500,7 @@
             <span class="summaryCuotas" id="sumCuotas" hidden></span>
 
             <span class="checkout-secure">
-              Compra protegida · Pago por transferencia bancaria
+              Compra protegida · Pagos con tarjeta procesados por Mercado Pago
             </span>
           </aside>
         </div>
@@ -786,7 +780,7 @@
               Configurar cookies
             </button>
           </div>
-          <div class="footer-payments">Pago por transferencia bancaria</div>
+          <div class="footer-payments">Visa · Mastercard · Mercado Pago</div>
         </div>
 
         <div class="footer-credit">

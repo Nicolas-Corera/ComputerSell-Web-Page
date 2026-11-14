@@ -197,9 +197,9 @@ function render(p) {
   $("#pOld").textContent = card.oldPrice ? `$${formatPrice(card.oldPrice)}` : "";
   $("#pPrice").textContent = formatPrice(p.price);
   const cuotas = $("#pCuotas");
-  // Cuotas sin interés ocultas: solo se paga por transferencia
-  cuotas.hidden = true;
-  if (p.installments) cuotas.textContent = `${p.installments} cuotas sin interés de $${formatPrice(Math.round(p.price / p.installments))}`;
+  cuotas.hidden = !p.installments;
+  // Hasta N cuotas con tarjeta (6 como máximo, config/installment-rates.js). Sin montos: el recargo se ve en el checkout
+  if (p.installments) cuotas.textContent = `Pagá hasta en ${Math.min(p.installments, 6)} cuotas con tarjeta`;
 
   const DELIVERY = { "24-48hs": "Envío en 24/48 hs", "3-5": "Envío en 3 a 5 días hábiles", "7-10": "Envío en 7 a 10 días hábiles", "a-pedido": "A pedido (consultar)" };
   const out = p.stock <= 0;

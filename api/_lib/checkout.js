@@ -6,6 +6,7 @@
 // place_order valida stock y vuelve a sumar el subtotal bloqueando las filas:
 // nunca se usa un monto que venga del navegador.
 const pricing = require("../../assets/js/core/pricing.js");
+const cardPricing = require("./card-pricing");
 const { HttpError, rpc, sbFetch } = require("./mp");
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -79,26 +80,47 @@ function parseCustomer(body, user) {
   return { customer, address };
 }
 
-// Calcula el total y crea la orden. Devuelve {order, quote}.
+// Costo de cada producto (solo servidor): products.cost no es legible desde la
+// tienda, el service role lo obtiene con la RPC quote_product_costs (0037).
+async function loadCosts(ids) {
+  const rows = await rpc("quote_product_costs", { p_ids: ids }, { secret: true });
+  return new Map((Array.isArray(rows) ? rows : []).map((r) => [r.id, Number(r.cost) || 0]));
+}
+
+// Productos del pedido + cálculo del total con el mismo código que el checkout.
+// Con tarjeta (o si se pide la tabla de recargos) el recargo sale del costo y
+// el margen de cada producto (api/_lib/card-pricing.js).
 // Los productos se leen con la sesión del comprador (token): el service role
 // de este proyecto solo ejecuta RPCs, no tiene permisos sobre las tablas.
-// beforeCreate(quote): validación extra antes de crear la orden (puede tirar).
-async function placeOrder({ user, token, method, items, installments, customer, beforeCreate, expectedTotal, clientKey }) {
+async function buildQuote({ token, items, province, method, installments, withTable }) {
   const ids = items.map((it) => it.product_id);
   const rows = await sbFetch(`/rest/v1/products?id=in.(${ids.join(",")})&status=eq.publicado&select=id,price,weight,weight_unit,free_shipping,installments`, { token });
   const byId = new Map((rows || []).map((r) => [r.id, r]));
   if (ids.some((id) => !byId.has(id))) throw new HttpError(409, "Un producto del carrito ya no está disponible");
 
-  const quote = pricing.quote({
-    items: items.map((it) => {
-      const p = byId.get(it.product_id);
-      return { price: p.price, qty: it.qty, weight: p.weight, weightUnit: p.weight_unit, freeShipping: p.free_shipping, installments: p.installments };
-    }),
-    province: customer.province,
-    method,
-    installments,
+  const pricingItems = items.map((it) => {
+    const p = byId.get(it.product_id);
+    return { price: p.price, qty: it.qty, weight: p.weight, weightUnit: p.weight_unit, freeShipping: p.free_shipping, installments: p.installments };
   });
+  let card = null;
+  if (withTable || (pricing.PAYMENT[method] && pricing.PAYMENT[method].card)) {
+    const costs = await loadCosts(ids);
+    const shipping = pricing.quote({ items: pricingItems, province, method: "transferencia" }).shipping || 0;
+    card = cardPricing.surchargeTable({
+      lines: items.map((it, i) => ({ price: pricingItems[i].price, qty: it.qty, cost: costs.get(it.product_id) || 0 })),
+      shipping,
+    });
+  }
+  const quote = pricing.quote({ items: pricingItems, province, method, installments, card });
+  return { quote, card };
+}
+
+// Calcula el total y crea la orden. Devuelve {order, quote}.
+// beforeCreate(quote): validación extra antes de crear la orden (puede tirar).
+async function placeOrder({ user, token, method, items, installments, customer, beforeCreate, expectedTotal, clientKey }) {
+  const { quote } = await buildQuote({ token, items, province: customer.province, method, installments });
   if (!quote.valid) throw new HttpError(400, "Esa cantidad de cuotas no está disponible para este pedido");
+  if (quote.pending) throw new HttpError(500, "No pudimos calcular el total con tarjeta");
   // El precio cambió entre que el cliente vio el total y confirmó: se avisa
   // en lugar de cobrar otro monto (el navegador manda el total que mostró)
   if (expectedTotal != null && Number(expectedTotal) !== quote.total)
@@ -117,7 +139,7 @@ async function placeOrder({ user, token, method, items, installments, customer, 
         p_installments: quote.installments,
         p_subtotal: quote.subtotal,
         p_shipping_cost: quote.shipping,
-        p_surcharge: quote.cardSurcharge + quote.installmentSurcharge,
+        p_surcharge: quote.cardSurcharge,
         p_note: "",
         p_client_key: clientKey && UUID.test(clientKey) ? clientKey : null,
       },
@@ -138,4 +160,4 @@ async function placeOrder({ user, token, method, items, installments, customer, 
   return { order, quote };
 }
 
-module.exports = { pricing, parseItems, parseCustomer, placeOrder, UUID };
+module.exports = { pricing, parseItems, parseCustomer, placeOrder, buildQuote, UUID };

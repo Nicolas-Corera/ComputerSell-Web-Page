@@ -1156,6 +1156,7 @@ import {
           ${r.on_sale && r.old_price ? `<dt>Antes</dt><dd><s>$${formatPrice(r.old_price)}</s> · ${Math.round((1 - p.price / r.old_price) * 100)}% off</dd>` : ""}
           <dt>Costo</dt><dd>${p.cost ? "$" + formatPrice(p.cost) : "—"}</dd>
           <dt>Margen</dt><dd>${p.cost && p.price ? Math.round((1 - p.cost / p.price) * 100) + "%" : "—"}</dd>
+          <dt>Cuotas</dt><dd>${r.installments ? `Hasta ${Math.min(r.installments, 6)}` : "No"}</dd>
         </dl>
       </div>
       <div>
@@ -2235,8 +2236,8 @@ import {
       pvBadge.hidden = !onSale;
       pvBadge.textContent = onSale ? `${Math.round((1 - p / o) * 100)}% OFF` : "";
       const pvC = $("#pvCuotas");
-      pvC.hidden = true; // cuotas sin interés ocultas: solo se paga por transferencia
-      pvC.textContent = `${cuotasN.value} cuotas sin interés`;
+      pvC.hidden = !cuotas.checked;
+      pvC.textContent = `Hasta ${cuotasN.value} cuotas con tarjeta`;
 
       const pvImage = $("#pvImage"), pvImg = $("#pvImage img");
       pvImage.classList.toggle("is-empty", !images.length);
@@ -2418,7 +2419,7 @@ import {
       discount.value = r.on_sale && r.old_price > r.price ? Math.round((1 - r.price / r.old_price) * 100) : "";
       $("#pFeatured").checked = r.featured;
       cuotas.checked = r.installments > 0;
-      if (r.installments) cuotasN.value = String(r.installments);
+      if (r.installments) cuotasN.value = String(Math.min(r.installments, 6)); // máximo que se ofrece (6)
       freeShip.checked = r.free_shipping;
       $("#pDelivery").value = r.delivery;
       $("#pWeight").value = r.weight || "";
