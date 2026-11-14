@@ -756,11 +756,9 @@ loading(async function () {
     cuotasHint.textContent =
       supported.length && list.length === 1
         ? "Esta tarjeta no tiene cuotas disponibles para este pedido"
-        : state.testMode && max > 1
-          ? `Modo de prueba · hasta ${max} cuotas`
-          : max > 1
-            ? `Hasta ${max} cuotas`
-            : "";
+        : max > 1
+          ? `Hasta ${max} cuotas`
+          : "";
     cuotasHint.hidden = !cuotasHint.textContent;
   }
 
