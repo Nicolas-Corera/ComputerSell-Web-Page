@@ -36,7 +36,12 @@ function verifySignature(req, dataId) {
   const a = Buffer.from(expected);
   const b = Buffer.from(String(parts.v1));
   if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) return { ok: false, reason: "firma inválida" };
-  if (Math.abs(Date.now() - Number(parts.ts)) > TOLERANCE_MS) return { ok: false, reason: "firma vencida" };
+  // El ts del header puede venir en segundos (10 dígitos) o en milisegundos (13):
+  // se normaliza a milisegundos solo para medir la antigüedad. El manifest firmado
+  // usa el ts tal cual llegó.
+  const tsNum = Number(parts.ts);
+  const tsMs = tsNum < 1e12 ? tsNum * 1000 : tsNum;
+  if (!Number.isFinite(tsMs) || Math.abs(Date.now() - tsMs) > TOLERANCE_MS) return { ok: false, reason: "firma vencida" };
   return { ok: true };
 }
 
