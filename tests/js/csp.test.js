@@ -66,6 +66,8 @@ test("[MEDIUM] los scripts externos van con versión exacta y huella de integrid
   const bad = [];
   for (const f of HTML) {
     for (const m of read(f).matchAll(/<script\b[^>]*\bsrc="(https?:[^"]+)"[^>]*>/gi)) {
+      // El SDK de Mercado Pago solo se publica en esa URL (sin versión ni SRI posibles)
+      if (m[1] === "https://sdk.mercadopago.com/js/v2") continue;
       if (!/@\d+\.\d+\.\d+\//.test(m[1])) bad.push(`${f}: versión no exacta en ${m[1]}`);
       if (!/\bintegrity="sha(256|384|512)-/.test(m[0])) bad.push(`${f}: sin integrity en ${m[1]}`);
     }
@@ -85,4 +87,13 @@ test("cada host externo que usa el sitio está permitido en la CSP", () => {
     for (const m of read(f).matchAll(/<script\b[^>]*\bsrc="(https?:[^"]+)"/gi)) assert.ok(allowed("script-src", m[1]), `${f}: ${m[1]} no está en script-src`);
   }
   assert.ok(allowed("connect-src", "https://api.pwnedpasswords.com/range/ABCDE"), "auth.js consulta HaveIBeenPwned: falta en connect-src");
+});
+
+test("el checkout con tarjeta puede cargar y usar Mercado Pago (CSP)", () => {
+  const p = csp();
+  const has = (dir, origin) => (p[dir] || []).includes(origin);
+  assert.ok(has("script-src", "https://sdk.mercadopago.com"), "falta el SDK de Mercado Pago en script-src");
+  assert.ok(has("connect-src", "https://*.mercadopago.com"), "falta Mercado Pago en connect-src");
+  assert.ok(has("frame-src", "https://*.mercadopago.com"), "faltan los Secure Fields de Mercado Pago en frame-src");
+  assert.ok(!(p["script-src"] || []).some((s) => s.includes("*")), "script-src no admite comodines");
 });

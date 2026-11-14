@@ -460,10 +460,10 @@
                 <label class="field">
                   <select id="ordersPayment">
                     <option value="">Todos los medios</option>
-                    <option value="credito" hidden>Tarjeta de crédito</option>
-                    <option value="debito" hidden>Tarjeta de débito</option>
+                    <option value="credito">Tarjeta de crédito</option>
+                    <option value="debito">Tarjeta de débito</option>
                     <option value="transferencia">Transferencia</option>
-                    <option value="mercadopago" hidden>Mercado Pago</option>
+                    <option value="mercadopago">Mercado Pago</option>
                   </select>
                 </label>
                 <span class="spacer"></span>
@@ -888,23 +888,21 @@
                     <h2><span class="step">3</span> Pagos y envío</h2>
                   </div>
 
-                  <!-- Cuotas sin interés ocultas: solo se paga por transferencia -->
-                  <div class="optionRow" hidden style="display: none">
+                  <div class="optionRow">
                     <label class="switch">
                       <input type="checkbox" name="installments" id="pCuotas" />
                       <span class="track"></span>
                       <span class="switch-text">
-                        Acepta cuotas sin interés
-                        <small>Se muestra la etiqueta de cuotas en la tarjeta</small>
+                        Acepta pago en cuotas con tarjeta
+                        <small>Se muestra la etiqueta de cuotas en la tarjeta. El recargo de cada cuota se calcula solo con tu margen y lo que cobra Mercado Pago</small>
                       </span>
                     </label>
                     <div class="optionRow-extra">
                       <label class="field">
-                        <span>Cantidad de cuotas</span>
+                        <span>Hasta cuántas cuotas</span>
                         <select name="installmentsCount" id="pCuotasN">
                           <option value="3">3 cuotas</option>
                           <option value="6">6 cuotas</option>
-                          <option value="12">12 cuotas</option>
                         </select>
                       </label>
                     </div>
@@ -1477,7 +1475,7 @@
                     <li>
                       <span class="ver">0.9.0<small>ago 2026</small></span>
                       <ul>
-                        <li>Checkout con transferencia</li>
+                        <li>Checkout con tarjeta y transferencia</li>
                         <li>Carrito y favoritos persistentes</li>
                       </ul>
                     </li>

@@ -48,10 +48,10 @@ export const LEGAL = {
     "los tribunales ordinarios competentes del domicilio del consumidor o del lugar donde recibió o debió recibir el producto (art. 1109 del Código Civil y Comercial). Para quienes no revistan el carácter de consumidores, los Tribunales Ordinarios de la Ciudad Autónoma de Buenos Aires",
 
   // --- Vigencia de los documentos ---
-  fechaVigencia: "2026-10-10", // se muestra como "10 de octubre de 2026"
-  version: "3.3", // subir en cada cambio de los textos
+  fechaVigencia: "2026-11-13", // se muestra como "13 de noviembre de 2026"
+  version: "3.5", // subir en cada cambio de los textos
   // Versión de la Política de cookies: si cambia, el banner vuelve a pedir el consentimiento.
-  versionCookies: "3.0",
+  versionCookies: "3.1",
 
   // --- Links externos ---
   sitioWeb: "https://computersell.com.ar",

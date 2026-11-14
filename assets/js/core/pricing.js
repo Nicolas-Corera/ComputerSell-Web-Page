@@ -1,12 +1,18 @@
-// Cálculo del total del checkout: envío + recargo por tarjeta + recargo por
-// cuotas. Mismo código en el navegador (pago.js, como window.CSPricing) y en
-// el backend (api/_lib/checkout.js, con require), así el total que se muestra
-// es exactamente el que se cobra. Los valores están en assets/js/config/.
+// Cálculo del total del checkout: envío + recargo del pago con tarjeta. Mismo
+// código en el navegador (pago.js, como window.CSPricing) y en el backend
+// (api/_lib/checkout.js, con require). Las tarifas están en assets/js/config/.
+//
+// El recargo de la tarjeta NO se calcula acá: depende del costo y del margen de
+// cada producto, que el navegador nunca ve. Lo calcula el servidor
+// (api/_lib/card-pricing.js) y llega como `card`:
+//   { credito: { 1: recargo, 3: recargo, 6: recargo }, debito: { 1: recargo } }
+// (recargo en pesos sobre el total de productos + envío). Sin `card` el total
+// con tarjeta todavía no se conoce (pending).
 //
 // Ítems: [{ price, qty, weight, weightUnit, freeShipping, installments }]
 //   weight/weightUnit: peso del producto ("g" o "kg")
 //   freeShipping: toggle "Envío gratis" del producto
-//   installments: cuotas sin interés del producto (0 = no tiene)
+//   installments: cuotas que admite el producto (0 = solo 1 pago)
 (function (root, factory) {
   if (typeof module === "object" && module.exports) {
     module.exports = factory(require("../config/shipping-rates.js"), require("../config/payment-rates.js"), require("../config/installment-rates.js"));
@@ -15,8 +21,8 @@
   }
 })(typeof self !== "undefined" ? self : this, function (SHIPPING, PAYMENT, MP_FEES) {
   const qtyOf = (it) => Math.max(1, parseInt(it.qty, 10) || 1);
-  // Máximo de cuotas que se ofrece: la mayor de la tabla de costos de MP (12)
-  const MAX_INSTALLMENTS = Math.max(...Object.keys(MP_FEES.installments).map(Number));
+  // Máximo de cuotas que se ofrece (config)
+  const MAX_INSTALLMENTS = MP_FEES.maxInstallments;
   const toKg = (weight, unit) => (Number(weight) || 0) / (unit === "g" ? 1000 : 1);
 
   function isRegional(province) {
@@ -48,72 +54,62 @@
     return { cost: rateForWeight(kg, regional ? "regional" : "national"), kg, regional };
   }
 
-  // Cuotas sin interés del pedido: las que admiten TODOS los productos (hasta el máximo)
-  function freeInstallments(items) {
+  // Cuotas máximas del pedido: las que admiten TODOS los productos (con tope)
+  function maxInstallments(items) {
     if (!items.length) return 0;
     return Math.min(MAX_INSTALLMENTS, ...items.map((it) => parseInt(it.installments, 10) || 0));
   }
 
-  // Cuotas que se ofrecen: todas hasta las sin interés del pedido y, por
-  // encima, las que tienen recargo configurado
-  function installmentOptions(freeMax) {
+  // Cuotas que se ofrecen: 1 pago y las de la tabla de costos de Mercado Pago
+  // hasta el máximo del pedido
+  function installmentOptions(max) {
     const list = [1];
-    for (let n = 2; n <= freeMax; n++) list.push(n);
     Object.keys(MP_FEES.installments)
       .map(Number)
       .sort((a, b) => a - b)
-      .forEach((n) => n > freeMax && list.push(n));
+      .forEach((n) => n <= max && n <= MAX_INSTALLMENTS && list.push(n));
     return list;
-  }
-
-  // Recargo de una cantidad de cuotas (0 si es sin interés, null si no se
-  // ofrece). Compensa lo que cobra Mercado Pago: con el recargo, lo que queda
-  // después de sus costos (que también se cobran sobre el recargo) es lo mismo
-  // que en 1 cuota. total × (1 − cobro − cuotas) = base × (1 − cobro)
-  function installmentRate(n, freeMax) {
-    if (n <= 1 || n <= freeMax) return 0;
-    const fee = MP_FEES.installments[n];
-    if (fee == null) return null;
-    const processing = MP_FEES.processing * (1 + MP_FEES.iva);
-    const installments = fee * (1 + MP_FEES.iva);
-    return (1 - processing) / (1 - processing - installments) - 1;
-  }
-
-  // Total en n cuotas a partir del total con recargo por tarjeta
-  function installmentPlan(base, n, freeMax) {
-    const rate = installmentRate(n, freeMax);
-    if (rate === null) return null;
-    const total = base + Math.round(base * rate);
-    return { installments: n, total, each: Math.round(total / n), free: rate === 0 };
   }
 
   // Desglose completo. method: credito | debito | transferencia.
   // Las cuotas solo aplican a crédito. valid = false si las cuotas no se ofrecen.
-  function quote({ items, province, method, installments }) {
+  // pending = true si es con tarjeta y todavía no llegó el recargo del servidor.
+  function quote({ items, province, method, installments, card }) {
     const pay = PAYMENT[method];
     if (!pay) throw new Error("Medio de pago inválido");
     const subtotal = items.reduce((sum, it) => sum + it.price * qtyOf(it), 0);
     const ship = shipping(items, province);
     const shippingCost = ship.cost || 0;
-    const cardSurcharge = Math.round((subtotal + shippingCost) * pay.surcharge);
-    const base = subtotal + shippingCost + cardSurcharge;
-    const freeMax = freeInstallments(items);
+    const transferTotal = subtotal + shippingCost;
+    const max = maxInstallments(items);
     const n = method === "credito" ? Math.max(1, parseInt(installments, 10) || 1) : 1;
-    const plan = installmentPlan(base, n, freeMax);
-    const total = plan ? plan.total : base;
+
+    let valid = installmentOptions(max).includes(n);
+    let cardSurcharge = 0;
+    let pending = false;
+    if (pay.card) {
+      const s = card && card[method] ? card[method][n] : undefined;
+      if (Number.isInteger(s) && s >= 0) cardSurcharge = s;
+      else pending = true;
+    }
+    // Monto de referencia para pedirle a Mercado Pago los planes de cuotas del
+    // BIN: el total con tarjeta de crédito en 1 pago
+    const credit1 = card && card.credito ? card.credito[1] : undefined;
+    const base = transferTotal + (Number.isInteger(credit1) ? credit1 : 0);
     return {
       subtotal,
       shipping: ship.cost, // null = falta la provincia
       shippingKg: ship.kg,
+      transferTotal, // productos + envío, sin recargo
       cardSurcharge,
-      base, // subtotal + envío + recargo por tarjeta
+      base,
       installments: n,
-      installmentSurcharge: total - base,
-      total,
-      freeInstallments: freeMax,
-      valid: !!plan,
+      total: transferTotal + cardSurcharge,
+      maxInstallments: max,
+      pending,
+      valid,
     };
   }
 
-  return { PAYMENT, PROVINCES: SHIPPING.provinces, isRegional, shipping, freeInstallments, installmentOptions, installmentRate, installmentPlan, quote };
+  return { PAYMENT, PROVINCES: SHIPPING.provinces, isRegional, shipping, maxInstallments, installmentOptions, quote };
 });
