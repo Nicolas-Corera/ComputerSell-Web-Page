@@ -168,8 +168,8 @@ loading(async function () {
     // Tarjeta detectada por Mercado Pago a partir del BIN
     bin: "",
     paymentMethod: null, // {id, name, payment_type_id, settings...}
-    cardTable: null, // recargo de cada opción con tarjeta (lo calcula el servidor)
-    cardKey: "", // carrito + provincia para los que se calculó cardTable
+    cardTables: null, // recargo de cada opción con tarjeta, envío regional y nacional (lo calcula el servidor)
+    cardKey: "", // carrito para el que se calcularon
     cardAsked: "", // ... y el de la consulta en curso
     installmentPlans: [], // payer_costs de MP para el BIN y el monto actual
     installmentsAmount: 0, // monto con el que se pidieron las cuotas
@@ -215,29 +215,33 @@ loading(async function () {
       province: provinceSelect.value,
       method: state.method,
       installments: selectedInstallments(),
-      card: state.cardKey === cardKey() ? state.cardTable : null,
+      card: cardTable(),
     });
   }
 
   // ---------- Recargo de la tarjeta (lo calcula el servidor) ----------
-  // Cambia con el carrito y la provincia (envío); no con el medio de pago ni
-  // las cuotas: la respuesta trae todas las opciones.
-  const cardKey = () =>
-    provinceSelect.value
-      ? JSON.stringify([
-          provinceSelect.value,
-          store.getItems().map((it) => [it.id, it.qty]),
-        ])
-      : "";
+  // Se pide una sola vez por carrito, apenas se abre el checkout, con el envío
+  // regional y el nacional: al elegir la provincia solo se escoge una de las
+  // dos tablas (sin esperar al servidor). La respuesta trae todas las opciones
+  // de medio de pago y cuotas.
+  const cardKey = () => JSON.stringify(store.getItems().map((it) => [it.id, it.qty]));
+
+  // Tabla de la provincia elegida (null mientras no llega o falta la provincia)
+  function cardTable() {
+    const t = state.cardKey === cardKey() ? state.cardTables : null;
+    const province = provinceSelect.value;
+    if (!t || !province) return null;
+    return Pricing.isRegional(province) ? t.regional : t.national;
+  }
 
   let cardTimer = null;
   function refreshCardTable() {
     const key = cardKey();
-    if (!key || key === state.cardKey || key === state.cardAsked) return;
+    if (store.getItems().length === 0 || key === state.cardKey || key === state.cardAsked) return;
     state.cardAsked = key;
     clearTimeout(cardTimer);
     cardTimer = setTimeout(async () => {
-      let table = null;
+      let tables = null;
       try {
         const { data: sess } = await sb.auth.getSession();
         if (!sess || !sess.session) throw new Error("sin sesión");
@@ -247,24 +251,21 @@ loading(async function () {
             "Content-Type": "application/json",
             Authorization: "Bearer " + sess.session.access_token,
           },
-          body: JSON.stringify({
-            items: cartItems(),
-            province: provinceSelect.value,
-          }),
+          body: JSON.stringify({ items: cartItems() }),
         });
         const out = await res.json().catch(() => ({}));
-        if (res.ok && out.card) table = out.card;
+        if (res.ok && out.regional && out.national) tables = out;
         else console.error("[quote]", res.status, out.error);
       } catch (e) {
         console.error("[quote]", e);
       }
       if (state.cardAsked !== key) return; // mientras tanto cambió el carrito
       state.cardAsked = "";
-      state.cardKey = table ? key : "";
-      state.cardTable = table;
-      if (!table) toast("No pudimos calcular el total con tarjeta. Probá de nuevo.", "bad");
+      state.cardKey = tables ? key : "";
+      state.cardTables = tables;
+      if (!tables) toast("No pudimos calcular el total con tarjeta. Probá de nuevo.", "bad");
       renderSummary();
-    }, 200);
+    }, 100);
   }
 
   function bump(el) {
@@ -324,7 +325,7 @@ loading(async function () {
       sumCuotas.hidden = true;
     }
 
-    if (PAYMENT[state.method].card && !noProvince) refreshCardTable();
+    if (CARD_ENABLED) refreshCardTable();
 
     if (!state.processing)
       payBtn.textContent = noTotal
@@ -726,7 +727,7 @@ loading(async function () {
     const list = Pricing.installmentOptions(max).filter(
       (n) => n === 1 || !supported.length || supported.includes(n),
     );
-    const card = state.cardKey === cardKey() ? state.cardTable : null;
+    const card = cardTable();
     cuotasSelect.innerHTML = "";
     list.forEach((n) => {
       const q = Pricing.quote({
@@ -748,7 +749,7 @@ loading(async function () {
     cuotasSelect.value = list.includes(current) ? String(current) : "1";
     cuotasHint.textContent =
       supported.length && list.length === 1
-        ? "Tu tarjeta no admite cuotas para este pedido"
+        ? "Esta tarjeta no tiene cuotas disponibles para este pedido"
         : max > 1
           ? `Hasta ${max} cuotas`
           : "";
@@ -771,6 +772,16 @@ loading(async function () {
       });
       if (seq !== installmentsSeq) return; // llegó una consulta más nueva
       state.installmentPlans = (res && res[0] && res[0].payer_costs) || [];
+      // Solo se ofrecen cuotas que Mercado Pago cobra sin interés al comprador.
+      // Si la cuenta no las tiene activadas, ninguna cuota pasa el filtro.
+      if (
+        state.installmentPlans.length &&
+        !state.installmentPlans.some((p) => p.installments > 1 && !p.installment_rate)
+      )
+        console.warn(
+          "[mp] Mercado Pago cobra interés al comprador en las cuotas de esta tarjeta: activá las cuotas sin interés en la cuenta de Mercado Pago",
+          state.installmentPlans.map((p) => `${p.installments}x ${p.installment_rate}%`).join(" · "),
+        );
     } catch (e) {
       console.error("[mp] getInstallments", e);
       if (seq === installmentsSeq) state.installmentPlans = [];

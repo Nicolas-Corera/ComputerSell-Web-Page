@@ -88,13 +88,20 @@ async function loadCosts(ids) {
 }
 
 // Productos del pedido + cálculo del total con el mismo código que el checkout.
-// Con tarjeta (o si se pide la tabla de recargos) el recargo sale del costo y
-// el margen de cada producto (api/_lib/card-pricing.js).
+// Con tarjeta el recargo sale del costo y el margen de cada producto
+// (api/_lib/card-pricing.js). Con withZones se devuelven las tablas de recargo
+// para el envío regional y el nacional (el checkout las pide una sola vez y
+// elige según la provincia, sin volver a consultar al cambiarla).
 // Los productos se leen con la sesión del comprador (token): el service role
 // de este proyecto solo ejecuta RPCs, no tiene permisos sobre las tablas.
-async function buildQuote({ token, items, province, method, installments, withTable }) {
+// Productos y costos se piden en paralelo (no dependen entre sí).
+async function buildQuote({ token, items, province, method, installments, withZones }) {
   const ids = items.map((it) => it.product_id);
-  const rows = await sbFetch(`/rest/v1/products?id=in.(${ids.join(",")})&status=eq.publicado&select=id,price,weight,weight_unit,free_shipping,installments`, { token });
+  const isCard = !!(pricing.PAYMENT[method] && pricing.PAYMENT[method].card);
+  const [rows, costs] = await Promise.all([
+    sbFetch(`/rest/v1/products?id=in.(${ids.join(",")})&status=eq.publicado&select=id,price,weight,weight_unit,free_shipping,installments`, { token }),
+    withZones || isCard ? loadCosts(ids) : null,
+  ]);
   const byId = new Map((rows || []).map((r) => [r.id, r]));
   if (ids.some((id) => !byId.has(id))) throw new HttpError(409, "Un producto del carrito ya no está disponible");
 
@@ -102,17 +109,22 @@ async function buildQuote({ token, items, province, method, installments, withTa
     const p = byId.get(it.product_id);
     return { price: p.price, qty: it.qty, weight: p.weight, weightUnit: p.weight_unit, freeShipping: p.free_shipping, installments: p.installments };
   });
-  let card = null;
-  if (withTable || (pricing.PAYMENT[method] && pricing.PAYMENT[method].card)) {
-    const costs = await loadCosts(ids);
-    const shipping = pricing.quote({ items: pricingItems, province, method: "transferencia" }).shipping || 0;
-    card = cardPricing.surchargeTable({
+  const tableFor = (prov) =>
+    cardPricing.surchargeTable({
       lines: items.map((it, i) => ({ price: pricingItems[i].price, qty: it.qty, cost: costs.get(it.product_id) || 0 })),
-      shipping,
+      shipping: pricing.shipping(pricingItems, prov).cost || 0,
     });
+  let card = null;
+  let zones = null;
+  if (withZones) {
+    const regional = pricing.PROVINCES.find((x) => pricing.isRegional(x));
+    const national = pricing.PROVINCES.find((x) => !pricing.isRegional(x));
+    zones = { regional: tableFor(regional), national: tableFor(national) };
+  } else if (isCard) {
+    card = tableFor(province);
   }
   const quote = pricing.quote({ items: pricingItems, province, method, installments, card });
-  return { quote, card };
+  return { quote, card, zones };
 }
 
 // Calcula el total y crea la orden. Devuelve {order, quote}.
