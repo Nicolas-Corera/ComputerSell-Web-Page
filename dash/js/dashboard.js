@@ -2022,8 +2022,11 @@ import { initBannerEditor } from "./banners-editor.js";
         : sale.checked && o > p
           ? `Margen en oferta: ${fmt(p)}${loss}${noCost}<br>Sin oferta ($${formatPrice(o)}): ${fmt(o)}`
           : `Margen: ${fmt(p)}${loss}${noCost}`;
+      // Con precio de transferencia (menor al precio): otro margen debajo
+      const t = parsePrice(transferPrice.value);
+      if (p && t > 0 && t < p) $("#pMargin").innerHTML += `<br>Margen con transferencia ($${formatPrice(t)}): ${fmt(t)}${c > t ? " · a pérdida" : ""}`;
     };
-    [price, cost, oldPrice, discount].forEach((el) => el.addEventListener("input", updateMargin));
+    [price, cost, oldPrice, discount, transferPrice].forEach((el) => el.addEventListener("input", updateMargin));
     sale.addEventListener("change", updateMargin);
 
     // --- Tags ---
