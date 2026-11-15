@@ -108,6 +108,28 @@ img[data-ar] {
   }
 }
 
+/* Encuadre elegido desde el panel (ajuste, posición y zoom): uno para escritorio y otro,
+   aparte, para celular (hasta 640 px) */
+img[data-fr] {
+  object-fit: var(--of);
+  object-position: var(--op);
+  transform: scale(var(--sc));
+  transform-origin: var(--op);
+}
+@media (max-width: 640px) {
+  img[data-fr]:not([data-fr-m]) {
+    object-fit: cover;
+    object-position: 50% 50%;
+    transform: none;
+  }
+  img[data-fr-m] {
+    object-fit: var(--of-m);
+    object-position: var(--op-m);
+    transform: scale(var(--sc-m));
+    transform-origin: var(--op-m);
+  }
+}
+
 /* Un lugar de imagen oculto (vencido y sin reemplazo) o su texto original reemplazado */
 [data-slot][hidden],
 [data-slot-default][hidden] {

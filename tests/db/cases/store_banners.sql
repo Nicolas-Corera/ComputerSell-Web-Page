@@ -54,3 +54,11 @@ select test.ok((select zoom from public.store_banners where slot = 'home-promo')
 select test.fails($$update public.store_banners set zoom = 5 where slot = 'home-promo'$$, 'check constraint', 'el zoom tiene tope');
 select test.fails($$update public.store_banners set pos_x = 120 where slot = 'home-promo'$$, 'check constraint', 'la posición va de 0 a 100');
 select test.fails($$update public.store_banners set fit = 'fill' where slot = 'home-promo'$$, 'check constraint', 'el ajuste es cover o contain');
+
+-- Encuadre propio para celular (migración 0043)
+select sandbox.as_user('dddddddd-dddd-4ddd-8ddd-dddddddddddd');
+update public.store_banners set m_fit = 'cover', m_zoom = 2, m_pos_x = 10, m_pos_y = 90 where slot = 'home-promo';
+select test.ok((select m_zoom from public.store_banners where slot = 'home-promo') = 2, 'el admin puede reacomodar para celular');
+select test.fails($$update public.store_banners set m_zoom = 5 where slot = 'home-promo'$$, 'check constraint', 'el zoom de celular tiene tope');
+select test.fails($$update public.store_banners set m_pos_y = 101 where slot = 'home-promo'$$, 'check constraint', 'la posición de celular va de 0 a 100');
+select test.fails($$update public.store_banners set m_fit = 'fill' where slot = 'home-promo'$$, 'check constraint', 'el ajuste de celular es cover o contain');
