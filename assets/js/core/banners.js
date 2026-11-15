@@ -59,7 +59,7 @@ function restore(el) {
 // Muestra `entry` en el lugar `el`; sin entrada, la imagen original
 function show(el, entry) {
   snapshot(el);
-  const key = entry ? [entry.id || "", entry.image_url || entry.image_path, entry.mobile_url || entry.mobile_path || "", entry.link || "", entry.alt || "", entry.legal || "", entry.fit, entry.zoom, entry.pos_x, entry.pos_y].join("|") : "";
+  const key = entry ? [entry.id || "", entry.image_url || entry.image_path, entry.mobile_url || entry.mobile_path || "", entry.link || "", entry.alt || "", entry.legal || "", entry.fit, entry.zoom, entry.pos_x, entry.pos_y, entry.m_fit, entry.m_zoom, entry.m_pos_x, entry.m_pos_y].join("|") : "";
   if ((el.dataset.slotEntry || "") !== key) {
     restore(el);
     if (entry) fill(el, entry);
@@ -79,21 +79,34 @@ function frame(img, entry) {
   if (slot && slot.ratio) {
     img.dataset.ar = "";
     img.style.setProperty("--ar", `${slot.size[0]} / ${slot.size[1]}`);
-    if (slot.mobileSize && (entry.mobile_url || entry.mobile_path)) {
+    // En celular el lugar toma su proporción de celular tenga o no imagen propia de celular
+    if (slot.mobileSize) {
       img.dataset.arM = "";
       img.style.setProperty("--ar-m", `${slot.mobileSize[0]} / ${slot.mobileSize[1]}`);
     }
   }
-  const fit = entry.fit === "contain" ? "contain" : "cover";
-  const zoom = clamp(entry.zoom, 1, 3, 1);
-  const x = clamp(entry.pos_x, 0, 100, 50);
-  const y = clamp(entry.pos_y, 0, 100, 50);
-  if (fit === "cover" && zoom === 1 && x === 50 && y === 50) return; // como siempre
-  img.style.objectFit = fit;
-  img.style.objectPosition = `${x}% ${y}%`;
-  if (zoom !== 1) {
-    img.style.transform = `scale(${zoom})`;
-    img.style.transformOrigin = `${x}% ${y}%`;
+  const pack = (fit, zoom, x, y) => ({
+    fit: fit === "contain" ? "contain" : "cover",
+    zoom: clamp(zoom, 1, 3, 1),
+    x: clamp(x, 0, 100, 50),
+    y: clamp(y, 0, 100, 50),
+  });
+  const d = pack(entry.fit, entry.zoom, entry.pos_x, entry.pos_y);
+  // Celular: encuadre propio; sin él (nulos) usa el de escritorio
+  const m = entry.m_fit == null && entry.m_zoom == null && entry.m_pos_x == null && entry.m_pos_y == null ? d : pack(entry.m_fit ?? d.fit, entry.m_zoom ?? d.zoom, entry.m_pos_x ?? d.x, entry.m_pos_y ?? d.y);
+  const set = (sfx, f) => {
+    img.style.setProperty("--of" + sfx, f.fit);
+    img.style.setProperty("--op" + sfx, `${f.x}% ${f.y}%`);
+    img.style.setProperty("--sc" + sfx, String(f.zoom));
+  };
+  const plain = (f) => f.fit === "cover" && f.zoom === 1 && f.x === 50 && f.y === 50; // como siempre
+  if (!plain(d)) {
+    img.dataset.fr = "";
+    set("", d);
+  }
+  if (!plain(m)) {
+    img.dataset.frM = "";
+    set("-m", m);
   }
 }
 

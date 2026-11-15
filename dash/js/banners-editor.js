@@ -36,6 +36,19 @@ export function initBannerEditor({ toast, confirmModal, escapeHtml: esc, fmtDate
   let selected = ""; // slot elegido
   let draft = null; // formulario abierto: { id, file, mobileFile, imageUrl, mobileUrl, ... }
   let previewAt = ""; // valor datetime-local de "ver el día"
+  let device = "desktop"; // desde dónde se mira (y qué encuadre se edita): desktop | mobile
+
+  // Encuadre del formulario: uno para escritorio (fr.d) y otro solo para celular (fr.m).
+  // Mientras no se toca el de celular (mTouched) hereda el de escritorio
+  const view = () => (device === "mobile" && draft.mTouched ? draft.fr.m : draft.fr.d);
+  const edit = () => {
+    if (device !== "mobile") return draft.fr.d;
+    if (!draft.mTouched) {
+      draft.fr.m = { ...draft.fr.d };
+      draft.mTouched = true;
+    }
+    return draft.fr.m;
+  };
 
   const $ = (sel) => root.querySelector(sel);
   const range = (r) => (r.starts_at ? "desde " + fmtDateTime(r.starts_at) : "desde ya") + " · " + (r.ends_at ? "hasta " + fmtDateTime(r.ends_at) : "sin vencimiento");
@@ -76,10 +89,14 @@ export function initBannerEditor({ toast, confirmModal, escapeHtml: esc, fmtDate
       link: draft.link,
       alt: draft.alt,
       legal: draft.legal,
-      fit: draft.fit,
-      zoom: draft.zoom,
-      pos_x: draft.posX,
-      pos_y: draft.posY,
+      fit: draft.fr.d.fit,
+      zoom: draft.fr.d.zoom,
+      pos_x: draft.fr.d.x,
+      pos_y: draft.fr.d.y,
+      m_fit: draft.mTouched ? draft.fr.m.fit : null,
+      m_zoom: draft.mTouched ? draft.fr.m.zoom : null,
+      m_pos_x: draft.mTouched ? draft.fr.m.x : null,
+      m_pos_y: draft.mTouched ? draft.fr.m.y : null,
       enabled: true,
       starts_at: null,
       ends_at: null,
@@ -120,12 +137,17 @@ export function initBannerEditor({ toast, confirmModal, escapeHtml: esc, fmtDate
   // más largo; mostrar completa: en el que deja bordes) o si tiene zoom
   function axes() {
     const slot = SLOT_BY_ID[selected];
-    if (!draft || !draft.ratio || !slot) return { x: true, y: true };
-    if (draft.zoom > 1.001) return { x: true, y: true };
-    const box = slot.size[0] / slot.size[1];
-    const wide = draft.ratio > box * 1.01;
-    const tall = draft.ratio < box / 1.01;
-    return draft.fit === "cover" ? { x: wide, y: tall } : { x: tall, y: wide };
+    const mob = device === "mobile";
+    // En celular: el lugar tiene su medida de celular y la imagen es la de celular si hay, si no la de escritorio
+    const ratio = mob && draft && draft.mobileUrl && !draft.removeMobile && draft.ratioM ? draft.ratioM : draft && draft.ratio;
+    if (!draft || !ratio || !slot) return { x: true, y: true };
+    const f = view();
+    if (f.zoom > 1.001) return { x: true, y: true };
+    const size = (mob && slot.mobileSize) || slot.size;
+    const box = size[0] / size[1];
+    const wide = ratio > box * 1.01;
+    const tall = ratio < box / 1.01;
+    return f.fit === "cover" ? { x: wide, y: tall } : { x: tall, y: wide };
   }
 
   function updateAxes() {
@@ -154,16 +176,28 @@ export function initBannerEditor({ toast, confirmModal, escapeHtml: esc, fmtDate
       }
     };
     im.src = src;
+    if (d.mobileUrl) {
+      const msrc = d.mobileUrl;
+      const mi = new Image();
+      mi.onload = () => {
+        if (draft === d && d.mobileUrl === msrc && mi.naturalHeight) {
+          d.ratioM = mi.naturalWidth / mi.naturalHeight;
+          updateAxes();
+        }
+      };
+      mi.src = msrc;
+    }
   }
 
   function frameChanged() {
     if (!draft || !root) return;
     const set = (id, v) => $(id) && ($(id).value = String(v));
-    set("#bnFit", draft.fit);
-    set("#bnZoom", draft.zoom);
-    set("#bnX", Math.round(draft.posX));
-    set("#bnY", Math.round(draft.posY));
-    if ($("#bnZoomV")) $("#bnZoomV").textContent = draft.zoom.toFixed(2) + "×";
+    const f = view();
+    set("#bnFit", f.fit);
+    set("#bnZoom", f.zoom);
+    set("#bnX", Math.round(f.x));
+    set("#bnY", Math.round(f.y));
+    if ($("#bnZoomV")) $("#bnZoomV").textContent = f.zoom.toFixed(2) + "×";
     updateAxes();
     push();
   }
@@ -270,14 +304,21 @@ export function initBannerEditor({ toast, confirmModal, escapeHtml: esc, fmtDate
       startsAt: row ? toInput(row.starts_at) : "",
       endsAt: row ? toInput(row.ends_at) : "",
       enabled: row ? row.enabled : true,
-      fit: row && row.fit === "contain" ? "contain" : "cover",
-      zoom: row ? Number(row.zoom) || 1 : 1,
-      posX: row && row.pos_x != null ? row.pos_x : 50,
-      posY: row && row.pos_y != null ? row.pos_y : 50,
+      fr: {
+        d: { fit: row && row.fit === "contain" ? "contain" : "cover", zoom: row ? Number(row.zoom) || 1 : 1, x: row && row.pos_x != null ? row.pos_x : 50, y: row && row.pos_y != null ? row.pos_y : 50 },
+        m: { fit: "cover", zoom: 1, x: 50, y: 50 },
+      },
+      mTouched: false,
       ratio: 0,
+      ratioM: 0,
       imageData: "", // la imagen elegida como data: (la tienda, en otro origen, no puede leer un blob:)
       mobileData: "",
     };
+    if (row && (row.m_fit != null || row.m_zoom != null || row.m_pos_x != null || row.m_pos_y != null)) {
+      const d = draft.fr.d;
+      draft.fr.m = { fit: row.m_fit === "contain" ? "contain" : row.m_fit === "cover" ? "cover" : d.fit, zoom: row.m_zoom != null ? Number(row.m_zoom) || 1 : d.zoom, x: row.m_pos_x != null ? row.m_pos_x : d.x, y: row.m_pos_y != null ? row.m_pos_y : d.y };
+      draft.mTouched = true;
+    }
     drawSide();
     loadRatio();
     updateAxes();
@@ -301,6 +342,8 @@ export function initBannerEditor({ toast, confirmModal, escapeHtml: esc, fmtDate
 
   function drawForm(side) {
     const s = SLOT_BY_ID[selected];
+    const f = view();
+    const mob = device === "mobile";
     side.innerHTML = `
       <button class="btn-text bnBack" type="button" id="bnCancelTop">← Volver</button>
       <h3>${draft.id ? "Editar imagen" : "Nueva imagen"} · ${esc(s.label)}</h3>
@@ -316,12 +359,12 @@ export function initBannerEditor({ toast, confirmModal, escapeHtml: esc, fmtDate
         }
         ${s.link ? `<label class="field"><span>Link al tocarla (opcional)</span><input type="text" id="bnLink" maxlength="300" placeholder="/productos?disponibilidad=oferta" value="${esc(draft.link)}" /></label>` : ""}
         ${s.legal ? `<label class="field"><span>Texto de abajo: condiciones de la campaña (opcional)</span><textarea id="bnLegal" rows="4" maxlength="600" placeholder="Ej.: Hasta 30% OFF en productos seleccionados, hasta el 18/10 o hasta agotar stock.">${esc(draft.legal)}</textarea></label>` : ""}
-        ${draft.imageUrl ? `<fieldset class="bnFrame"><legend>Encuadre dentro del lugar</legend>
-          <p class="bnHint">Arrastrá la imagen en la página para moverla y usá la rueda del mouse para agrandarla.</p>
-          <label class="field"><span>Ajuste</span><select id="bnFit"><option value="cover"${draft.fit === "cover" ? " selected" : ""}>Llenar el lugar (recorta lo que sobra)</option><option value="contain"${draft.fit === "contain" ? " selected" : ""}>Mostrar completa (puede dejar bordes)</option></select></label>
-          <label class="bnRange"><span>Zoom <b id="bnZoomV">${draft.zoom.toFixed(2)}×</b></span><input type="range" id="bnZoom" min="1" max="3" step="0.05" value="${draft.zoom}" /></label>
-          <label class="bnRange"><span>Horizontal</span><input type="range" id="bnX" min="0" max="100" step="1" value="${Math.round(draft.posX)}" /></label>
-          <label class="bnRange"><span>Vertical</span><input type="range" id="bnY" min="0" max="100" step="1" value="${Math.round(draft.posY)}" /></label>
+        ${draft.imageUrl ? `<fieldset class="bnFrame"><legend>Encuadre ${mob ? "en celular" : "en escritorio"}</legend>
+          <p class="bnHint">${mob ? "Estás acomodando la imagen solo para celular (con o sin imagen propia de celular); escritorio no cambia." : "Esto es solo para escritorio; para acomodarla en celular tocá Celular arriba."} Arrastrá la imagen en la página para moverla y usá la rueda del mouse para agrandarla.</p>
+          <label class="field"><span>Ajuste</span><select id="bnFit"><option value="cover"${f.fit === "cover" ? " selected" : ""}>Llenar el lugar (recorta lo que sobra)</option><option value="contain"${f.fit === "contain" ? " selected" : ""}>Mostrar completa (puede dejar bordes)</option></select></label>
+          <label class="bnRange"><span>Zoom <b id="bnZoomV">${f.zoom.toFixed(2)}×</b></span><input type="range" id="bnZoom" min="1" max="3" step="0.05" value="${f.zoom}" /></label>
+          <label class="bnRange"><span>Horizontal</span><input type="range" id="bnX" min="0" max="100" step="1" value="${Math.round(f.x)}" /></label>
+          <label class="bnRange"><span>Vertical</span><input type="range" id="bnY" min="0" max="100" step="1" value="${Math.round(f.y)}" /></label>
           <p class="bnHint" id="bnAxes"></p>
           <button class="btn btn-ghost is-sm" type="button" id="bnCenter">Centrar y restablecer</button>
         </fieldset>` : ""}
@@ -392,11 +435,14 @@ export function initBannerEditor({ toast, confirmModal, escapeHtml: esc, fmtDate
       });
     // El link y el texto se ven al instante en la vista previa
     if ($("#bnFit")) {
-      $("#bnFit").addEventListener("change", (e) => ((draft.fit = e.target.value === "contain" ? "contain" : "cover"), frameChanged()));
-      $("#bnZoom").addEventListener("input", (e) => ((draft.zoom = clamp(Number(e.target.value), 1, 3)), frameChanged()));
-      $("#bnX").addEventListener("input", (e) => ((draft.posX = clamp(Number(e.target.value), 0, 100)), frameChanged()));
-      $("#bnY").addEventListener("input", (e) => ((draft.posY = clamp(Number(e.target.value), 0, 100)), frameChanged()));
-      $("#bnCenter").addEventListener("click", () => ((draft.fit = "cover"), (draft.zoom = 1), (draft.posX = 50), (draft.posY = 50), frameChanged()));
+      $("#bnFit").addEventListener("change", (e) => ((edit().fit = e.target.value === "contain" ? "contain" : "cover"), frameChanged()));
+      $("#bnZoom").addEventListener("input", (e) => ((edit().zoom = clamp(Number(e.target.value), 1, 3)), frameChanged()));
+      $("#bnX").addEventListener("input", (e) => ((edit().x = clamp(Number(e.target.value), 0, 100)), frameChanged()));
+      $("#bnY").addEventListener("input", (e) => ((edit().y = clamp(Number(e.target.value), 0, 100)), frameChanged()));
+      $("#bnCenter").addEventListener("click", () => {
+        Object.assign(edit(), { fit: "cover", zoom: 1, x: 50, y: 50 });
+        frameChanged();
+      });
     }
     ["#bnLink", "#bnAlt", "#bnLegal"].forEach((id) => $(id) && $(id).addEventListener("input", () => (sync(), push())));
     $("#bnForm").addEventListener("submit", async (e) => {
@@ -413,7 +459,7 @@ export function initBannerEditor({ toast, confirmModal, escapeHtml: esc, fmtDate
       btn.disabled = true;
       const uploaded = [];
       try {
-        const fields = { slot: selected, link: link || null, alt: draft.alt.trim(), ...(s.legal ? { legal: draft.legal.trim() || null } : {}), starts_at: from, ends_at: to, enabled: draft.enabled, fit: draft.fit, zoom: Math.round(draft.zoom * 100) / 100, pos_x: Math.round(draft.posX), pos_y: Math.round(draft.posY) };
+        const fields = { slot: selected, link: link || null, alt: draft.alt.trim(), ...(s.legal ? { legal: draft.legal.trim() || null } : {}), starts_at: from, ends_at: to, enabled: draft.enabled, fit: draft.fr.d.fit, zoom: Math.round(draft.fr.d.zoom * 100) / 100, pos_x: Math.round(draft.fr.d.x), pos_y: Math.round(draft.fr.d.y), m_fit: draft.mTouched ? draft.fr.m.fit : null, m_zoom: draft.mTouched ? Math.round(draft.fr.m.zoom * 100) / 100 : null, m_pos_x: draft.mTouched ? Math.round(draft.fr.m.x) : null, m_pos_y: draft.mTouched ? Math.round(draft.fr.m.y) : null };
         if (draft.file) uploaded.push((fields.image_path = await uploadBannerFile(selected, draft.file)));
         if (draft.mobileFile) uploaded.push((fields.mobile_path = await uploadBannerFile(selected, draft.mobileFile)));
         else if (draft.removeMobile) fields.mobile_path = null;
@@ -443,6 +489,13 @@ export function initBannerEditor({ toast, confirmModal, escapeHtml: esc, fmtDate
   function setDevice(kind) {
     root.querySelectorAll("[data-dev]").forEach((b) => b.classList.toggle("is-on", b.dataset.dev === kind));
     $("#bnFrameWrap").classList.toggle("is-mobile", kind === "mobile");
+    device = kind === "mobile" ? "mobile" : "desktop";
+    // El encuadre que se edita es el del aparato elegido
+    if (draft) {
+      drawSide();
+      updateAxes();
+    }
+    push();
   }
 
   function build() {
@@ -490,12 +543,14 @@ export function initBannerEditor({ toast, confirmModal, escapeHtml: esc, fmtDate
       if (draft && e.data.type === "cs-pan" && Number.isFinite(e.data.dx) && Number.isFinite(e.data.dy)) {
         // Arrastrar a la derecha mueve la imagen a la derecha: se ve más de su lado izquierdo
         const a = axes();
-        if (a.x) draft.posX = clamp(draft.posX - e.data.dx, 0, 100);
-        if (a.y) draft.posY = clamp(draft.posY - e.data.dy, 0, 100);
+        const f = edit();
+        if (a.x) f.x = clamp(f.x - e.data.dx, 0, 100);
+        if (a.y) f.y = clamp(f.y - e.data.dy, 0, 100);
         frameChanged();
       }
       if (draft && e.data.type === "cs-zoom" && Number.isFinite(e.data.delta)) {
-        draft.zoom = clamp(Math.round((draft.zoom + e.data.delta) * 20) / 20, 1, 3);
+        const f = edit();
+        f.zoom = clamp(Math.round((f.zoom + e.data.delta) * 20) / 20, 1, 3);
         frameChanged();
       }
     });
