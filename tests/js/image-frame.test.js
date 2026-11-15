@@ -46,3 +46,12 @@ test("la tienda pide image_frames y la base la expone solo como columna pública
 test("la tarjeta escapa el estilo del encuadre", () => {
   assert.match(read("assets/js/core/utils.js"), /style="\$\{escapeHtml\(p\.imageStyle\)\}"/);
 });
+
+test("el catálogo paginado y el broadcast traen precio con transferencia y encuadre (0045)", () => {
+  const sql = read("supabase/migrations/0045_catalogo_transferencia_encuadre.sql");
+  assert.match(sql, /p\.price, p\.transfer_price, p\.old_price/);
+  assert.match(sql, /jsonb_build_array\(p\.image_frames->0\) end as image_frames/);
+  assert.match(sql, /'transfer_price', r\.transfer_price/);
+  assert.match(sql, /'image_frames', case when r\.image_frames/);
+  assert.ok(!/\bcost\b|created_by/.test(sql.replace(/--.*$/gm, "")), "no expone columnas privadas");
+});

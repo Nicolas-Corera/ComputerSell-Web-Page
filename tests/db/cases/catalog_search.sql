@@ -80,3 +80,10 @@ select test.ok(pg_temp.plan($q$select id from public.products p where p.status =
 select test.ok(pg_temp.plan($q$select id from public.products p where p.status = 'publicado' order by (p.stock > 0) desc, p.created_at desc limit 24$q$) like '%products_pub_relevance_idx%', 'el listado por relevancia usa su índice');
 select test.ok(pg_temp.plan($q$select id from public.products p where p.status = 'publicado' order by p.price limit 24$q$) like '%products_pub_price_idx%', 'el orden por precio usa su índice');
 select test.ok((public.search_products(p_words => '{rtx}')->>'total')::int = 1, 'la búsqueda sigue dando lo mismo con 3000 productos');
+
+-- Tarjetas con precio de transferencia y encuadre (migración 0045)
+select sandbox.as_user('dddddddd-dddd-4ddd-8ddd-dddddddddddd');
+update public.products set transfer_price = price - 1, image_frames = '[{"fit":"cover","zoom":1.5,"x":20,"y":80}, null]'::jsonb where id = '30000000-0000-4000-8000-000000000002';
+select sandbox.as_anon();
+select test.ok((select (i->>'transfer_price')::int from jsonb_array_elements(public.search_products(p_words => '{gpu-2}')->'items') i) is not null, 'search_products trae transfer_price');
+select test.ok((select jsonb_array_length(i->'image_frames') from jsonb_array_elements(public.search_products(p_words => '{gpu-2}')->'items') i) = 1, 'search_products trae solo el encuadre de la imagen principal');
