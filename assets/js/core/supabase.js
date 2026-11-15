@@ -3,6 +3,7 @@
 // generado desde el .env con `npm run env`).
 // Versión exacta: un "@2" flotante cargaría cualquier versión nueva sin revisarla
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/+esm";
+import { frameStyle } from "./image-frame.js";
 
 const ENV = window.CS_ENV || {};
 if (!ENV.SUPABASE_URL || !ENV.SUPABASE_ANON_KEY) {
@@ -240,6 +241,7 @@ export function toCard(p) {
     installments: p.installments || 0, // cuotas sin interés configuradas en el panel
     delivery: p.delivery || "24-48hs", // tiempo de entrega configurado en el panel
     image: p.images && p.images[0] ? p.images[0] : "",
+    imageStyle: p.images && p.images[0] && Array.isArray(p.image_frames) ? frameStyle(p.image_frames[0]) : "", // encuadre de la imagen principal elegido en el panel
     stock: p.stock,
     freeShipping: p.free_shipping, // envío gratis (solo CABA y Buenos Aires)
     weight: Number(p.weight) || 0, // peso para calcular el envío en el checkout
@@ -256,7 +258,7 @@ export function toCard(p) {
 export const PRODUCT_COLUMNS =
   "id,sku,title,brand,category,subcategory,description,tags,price,old_price,transfer_price,on_sale,stock,stock_min,status," +
   "warranty,warranty_unit,featured,installments,free_shipping,delivery,weight,weight_unit,dimensions,dimensions_unit," +
-  "condition,images,specs,highlights,created_at,updated_at";
+  "condition,images,image_frames,specs,highlights,created_at,updated_at";
 
 // ---------- Modo mantenimiento ----------
 // El servidor ya no deja entrar a la tienda (middleware.ts). Esto saca al

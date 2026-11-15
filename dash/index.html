@@ -1083,6 +1083,25 @@
                     </div>
                   </div>
 
+                  <div class="pvFrame" id="pvFrameBar" hidden>
+                    <div class="pvFrame-head">
+                      <strong id="pvFrameWho">Imagen principal</strong>
+                      <button class="btn btn-ghost is-sm" type="button" id="pvFrameReset">Restablecer</button>
+                    </div>
+                    <p class="hint">Arrastrá la imagen sobre la tarjeta para moverla y usá la rueda del mouse para agrandarla. Elegí otra imagen tocándola en la lista de arriba. En la tienda la tarjeta usa la imagen principal.</p>
+                    <label class="field">
+                      <span>Ajuste</span>
+                      <select id="pvFit">
+                        <option value="contain">Mostrar completa (puede dejar bordes)</option>
+                        <option value="cover">Llenar el recuadro (recorta lo que sobra)</option>
+                      </select>
+                    </label>
+                    <label class="pvRange"><span>Zoom <b id="pvZoomV">1.00×</b></span><input type="range" id="pvZoom" min="1" max="3" step="0.05" value="1" /></label>
+                    <label class="pvRange"><span>Horizontal</span><input type="range" id="pvX" min="0" max="100" step="1" value="50" /></label>
+                    <label class="pvRange"><span>Vertical</span><input type="range" id="pvY" min="0" max="100" step="1" value="50" /></label>
+                    <p class="hint" id="pvFrameNote"></p>
+                  </div>
+
                   <div class="pvDesc" id="pvDesc">
                     <span class="sectionTitle">Descripción</span>
                     <p id="pvDescText" class="is-empty">La descripción aparece acá a medida que la escribís.</p>

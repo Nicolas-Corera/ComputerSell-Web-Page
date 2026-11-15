@@ -93,7 +93,7 @@ window.CS = (function () {
     return `
       <div class="itemDestacado${out ? " is-out" : ""}" data-id="${escapeHtml(p.id)}" ${extraAttrs || ""}>
         <a class="imageDestacado" href="/detail.html?id=${escapeHtml(p.id)}">
-          ${p.image ? `<img src="${escapeHtml(p.image)}" alt="${escapeHtml(p.name)}" loading="lazy" />` : ""}
+          ${p.image ? `<img src="${escapeHtml(p.image)}" alt="${escapeHtml(p.name)}" loading="lazy"${p.imageStyle ? ` style="${escapeHtml(p.imageStyle)}"` : ""} />` : ""}
           ${p.oldPrice ? `<span class="cardBadge-sale">${Math.round((1 - p.price / p.oldPrice) * 100)}% OFF</span>` : ""}
           ${out ? `<span class="cardBadge-out">Sin stock</span>` : ""}
           ${p.freeShipping ? `<span class="cardBadge-ship" title="Envío gratis a CABA y Provincia de Buenos Aires. Al resto del país se cobra según el peso."><svg aria-hidden="true"><use href="#ic-shipping_truck" /></svg>Envío gratis CABA y Bs. As.</span>` : ""}

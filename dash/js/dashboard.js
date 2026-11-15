@@ -6,6 +6,7 @@
 // colapso del menú, etc.) se guardan en localStorage con prefijo "cs_admin_".
 import { sb, signOut, CATEGORIES, applyStoreLinks, storeUrl } from "/assets/js/core/supabase.js";
 import { saleNoteHtml, printSaleNote, loadSignature } from "/assets/js/core/sale-note.js";
+import { DEFAULT_FRAME, normalizeFrame, frameStyle, framesToSave } from "/assets/js/core/image-frame.js";
 import {
   PRODUCTS, ORDERS, RESERVAS, INVOICES, RECEIPTS, NOTIFS, CUSTOMERS, REVOCATIONS, USER,
   requireAdmin, loadAll, onChange, startRealtime, setOrderStatus, reviewReceipt, markRead, receiptUrl, loadProducts,
@@ -1911,7 +1912,9 @@ import { initBannerEditor } from "./banners-editor.js";
     const specRows = $("#specRows"), highlightRows = $("#highlightRows");
 
     let tags = [];
-    let images = []; // { url, name, file }
+    let images = []; // { url, name, file, frame } (frame: encuadre elegido en la vista previa, null = como siempre)
+    let selImg = null; // la imagen que se está acomodando en la vista previa
+    let selRatio = 0; // proporción (ancho / alto) de esa imagen
 
     // --- Contadores ---
     const counter = (el, out, max) => {
@@ -2060,7 +2063,8 @@ import { initBannerEditor } from "./banners-editor.js";
         if (!/^image\/(png|jpeg|webp)$/.test(f.type)) return toast(`${f.name}: formato no permitido`, "bad");
         if (f.size > 5 * 1024 * 1024) return toast(`${f.name}: supera los 5 MB`, "bad");
         if (images.length >= 8) return toast("Máximo 8 imágenes", "bad");
-        images.push({ url: URL.createObjectURL(f), name: f.name, file: f, isNew: true });
+        images.push({ url: URL.createObjectURL(f), name: f.name, file: f, isNew: true, frame: null });
+        selImg = images[images.length - 1];
       });
       renderImages();
     }
@@ -2154,10 +2158,11 @@ import { initBannerEditor } from "./banners-editor.js";
     }
 
     function renderImages(droppedIdx = -1) {
+      if (!images.includes(selImg)) selImg = images[0] || null;
       imgGrid.innerHTML = images
         .map(
           (im, i) => `
-          <div class="imgItem${im.isNew ? " is-new" : ""}${i === droppedIdx ? " is-dropped" : ""}${i === 0 ? " is-main" : ""}" data-i="${i}">
+          <div class="imgItem${im.isNew ? " is-new" : ""}${i === droppedIdx ? " is-dropped" : ""}${i === 0 ? " is-main" : ""}${im === selImg ? " is-selected" : ""}" data-i="${i}">
             <img src="${im.url}" alt="" draggable="false" />
             <span class="imgItem-main">Principal</span>
             <div class="imgItem-tools">
@@ -2179,11 +2184,19 @@ import { initBannerEditor } from "./banners-editor.js";
           };
           const cancel = () => {
             window.removeEventListener("pointermove", pending);
-            window.removeEventListener("pointerup", cancel);
+            window.removeEventListener("pointerup", up);
             window.removeEventListener("pointercancel", cancel);
           };
+          // Un toque sin arrastrar elige la imagen para acomodarla en la vista previa
+          const up = () => {
+            cancel();
+            if (images[+item.dataset.i] && images[+item.dataset.i] !== selImg) {
+              selImg = images[+item.dataset.i];
+              renderImages();
+            }
+          };
           window.addEventListener("pointermove", pending);
-          window.addEventListener("pointerup", cancel);
+          window.addEventListener("pointerup", up);
           window.addEventListener("pointercancel", cancel);
         });
       });
@@ -2252,7 +2265,25 @@ import { initBannerEditor } from "./banners-editor.js";
       const pvImage = $("#pvImage"), pvImg = $("#pvImage img");
       pvImage.classList.toggle("is-empty", !images.length);
       pvImg.hidden = !images.length;
-      pvImg.src = images[0] ? images[0].url : "";
+      // La vista previa muestra la imagen elegida abajo (la principal si no se eligió otra), con su encuadre
+      const cur = selImg || images[0];
+      if (pvImg.getAttribute("src") !== (cur ? cur.url : "")) {
+        pvImg.src = cur ? cur.url : "";
+        selRatio = 0;
+        if (cur) {
+          const probe = new Image();
+          probe.onload = () => {
+            if (cur === selImg && probe.naturalHeight) {
+              selRatio = probe.naturalWidth / probe.naturalHeight;
+              updateFrameBar();
+            }
+          };
+          probe.src = cur.url;
+        }
+      }
+      pvImg.style.cssText = cur ? frameStyle(cur.frame) : "";
+      pvImage.classList.toggle("is-pan", !!cur);
+      updateFrameBar();
 
       const d = desc.value.trim();
       const pvText = $("#pvDescText");
@@ -2264,6 +2295,85 @@ import { initBannerEditor } from "./banners-editor.js";
         .map((h) => `<li><svg><use href="#ic-check" /></svg><span>${escapeHtml(h)}</span></li>`)
         .join("");
     }
+    // --- Encuadre de la imagen sobre la vista previa ---
+    // El recuadro de la tarjeta es cuadrado: la imagen se adapta a él. Arrastrar la mueve,
+    // la rueda la agranda; "Llenar" la recorta para ocupar todo el recuadro.
+    const frameBar = $("#pvFrameBar"), frameFit = $("#pvFit"), frameZoom = $("#pvZoom"), frameX = $("#pvX"), frameY = $("#pvY");
+    const curFrame = () => normalizeFrame(selImg && selImg.frame) || { ...DEFAULT_FRAME };
+    function frameAxes() {
+      const f = curFrame();
+      if (!selRatio) return { x: true, y: true };
+      if (f.zoom > 1.001) return { x: true, y: true };
+      const wide = selRatio > 1.01, tall = selRatio < 1 / 1.01;
+      return f.fit === "cover" ? { x: wide, y: tall } : { x: tall, y: wide };
+    }
+    function updateFrameBar() {
+      frameBar.hidden = !images.length;
+      if (!images.length) return;
+      const f = curFrame(), a = frameAxes();
+      const i = images.indexOf(selImg);
+      $("#pvFrameWho").textContent = i <= 0 ? "Imagen principal" : `Imagen ${i + 1}`;
+      frameFit.value = f.fit;
+      frameZoom.value = String(f.zoom);
+      $("#pvZoomV").textContent = f.zoom.toFixed(2) + "×";
+      frameX.value = String(f.x);
+      frameY.value = String(f.y);
+      frameX.disabled = !a.x;
+      frameY.disabled = !a.y;
+      $("#pvFrameNote").textContent = !a.x && !a.y ? "Con este ajuste la imagen ya ocupa todo el recuadro: elegí «Llenar» o agrandala para poder moverla." : "";
+    }
+    // Cualquier cambio de encuadre arma el de la imagen elegida y refresca la vista previa
+    function setFrame(patch) {
+      if (!selImg) return;
+      selImg.frame = normalizeFrame({ ...curFrame(), ...patch });
+      dirty = true;
+      updatePreview();
+      updateSummary();
+    }
+    frameFit.addEventListener("change", () => setFrame({ fit: frameFit.value }));
+    frameZoom.addEventListener("input", () => setFrame({ zoom: Number(frameZoom.value) }));
+    frameX.addEventListener("input", () => setFrame({ x: Number(frameX.value) }));
+    frameY.addEventListener("input", () => setFrame({ y: Number(frameY.value) }));
+    $("#pvFrameReset").addEventListener("click", () => {
+      if (selImg) selImg.frame = null;
+      dirty = true;
+      updatePreview();
+    });
+    {
+      const box = $("#pvImage");
+      let drag = null;
+      box.addEventListener("pointerdown", (e) => {
+        if (e.button !== 0 || !selImg) return;
+        const r = box.getBoundingClientRect();
+        drag = { x: e.clientX, y: e.clientY, w: r.width || 1, h: r.height || 1 };
+        box.setPointerCapture && box.setPointerCapture(e.pointerId);
+        e.preventDefault();
+      });
+      box.addEventListener("pointermove", (e) => {
+        if (!drag || !selImg) return;
+        const f = curFrame(), a = frameAxes();
+        const patch = {};
+        // Arrastrar a la derecha mueve la imagen a la derecha: se ve más de su lado izquierdo
+        if (a.x) patch.x = Math.min(100, Math.max(0, f.x - ((e.clientX - drag.x) / drag.w) * 100));
+        if (a.y) patch.y = Math.min(100, Math.max(0, f.y - ((e.clientY - drag.y) / drag.h) * 100));
+        drag.x = e.clientX;
+        drag.y = e.clientY;
+        if (Object.keys(patch).length) setFrame(patch);
+      });
+      const stop = () => (drag = null);
+      box.addEventListener("pointerup", stop);
+      box.addEventListener("pointercancel", stop);
+      box.addEventListener(
+        "wheel",
+        (e) => {
+          if (!selImg) return;
+          e.preventDefault();
+          setFrame({ zoom: Math.round((curFrame().zoom + (e.deltaY < 0 ? 0.1 : -0.1)) * 20) / 20 });
+        },
+        { passive: false },
+      );
+    }
+
     [title, price, transferPrice, oldPrice, sale, cuotas, cuotasN, discount, desc].forEach((el) => {
       el.addEventListener("input", updatePreview);
       el.addEventListener("change", updatePreview);
@@ -2438,7 +2548,8 @@ import { initBannerEditor } from "./banners-editor.js";
       $("#pWeight").value = r.weight || "";
       $("#pDims").value = r.dimensions;
       $("#pCondition").value = r.condition;
-      images = copy ? [] : (r.images || []).map((url) => ({ url, name: url.split("/").pop(), existing: true }));
+      images = copy ? [] : (r.images || []).map((url, i) => ({ url, name: url.split("/").pop(), existing: true, frame: normalizeFrame(Array.isArray(r.image_frames) ? r.image_frames[i] : null) }));
+      selImg = images[0] || null;
       renderImages();
       specRows.innerHTML = "";
       (r.specs || []).forEach((s) => addSpec(s.k, s.v));
@@ -2599,6 +2710,7 @@ import { initBannerEditor } from "./banners-editor.js";
         dimensions: d.dimensions,
         condition: d.condition,
         images: imageUrls,
+        image_frames: framesToSave(images.map((i) => i.frame)),
         specs: d.specs,
         highlights: d.highlights,
       };
@@ -2682,6 +2794,7 @@ import { initBannerEditor } from "./banners-editor.js";
       tags = [];
       images.forEach((i) => !i.existing && URL.revokeObjectURL(i.url));
       images = [];
+      selImg = null;
       renderTags();
       renderImages();
       specRows.innerHTML = "";
