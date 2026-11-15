@@ -185,6 +185,7 @@ loading(async function () {
       const p = productInfo(it.id);
       return {
         price: it.price,
+        transferPrice: it.transferPrice || 0,
         qty: it.qty,
         weight: p.weight ?? 0,
         weightUnit: p.weightUnit || "kg",
@@ -294,7 +295,7 @@ loading(async function () {
             <span class="summaryItem-name">${escapeHtml(it.name)}</span>
             <span class="summaryItem-qty">x${it.qty}</span>
           </div>
-          <span class="summaryItem-price">${formatPrice(it.price * it.qty)}</span>
+          <span class="summaryItem-price">${formatPrice(Pricing.unitPrice(it, state.method) * it.qty)}</span>
         </li>`,
       )
       .join("");

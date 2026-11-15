@@ -10,7 +10,7 @@ import { sb, toCard } from "./supabase.js";
 
 // Columnas que usa toCard (tarjetas, carrito, favoritos): nada de descripción/specs
 export const CARD_COLUMNS =
-  "id,title,brand,category,subcategory,price,old_price,on_sale,stock,installments,free_shipping,delivery,weight,weight_unit,images";
+  "id,title,brand,category,subcategory,price,transfer_price,old_price,on_sale,stock,installments,free_shipping,delivery,weight,weight_unit,images";
 
 export function fetchCards(build) {
   let q = sb.from("products").select(CARD_COLUMNS).eq("status", "publicado");

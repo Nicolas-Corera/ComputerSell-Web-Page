@@ -3,6 +3,7 @@
 // (8 + 12) y se actualizan en vivo (precio, stock).
 import { fetchCards, onCatalogChange, applyChange, refreshCart } from "../core/catalog.js";
 import { toCard, loading } from "../core/supabase.js";
+import { initBanners } from "../core/banners.js";
 
 const { cardHtml, emptyHtml } = window.CS;
 const featuredEl = document.getElementById("homeFeatured");
@@ -40,9 +41,11 @@ function render() {
   if (window.syncFavorites) window.syncFavorites();
 }
 
-// Banner de campaña con vigencia (data-until): vencido, no se muestra
-const promo = document.getElementById("promoBanner");
-if (promo && promo.dataset.until && Date.now() >= Date.parse(promo.dataset.until)) promo.remove();
+// Imágenes y banners: los lugares [data-slot] se cambian y programan desde el
+// panel (Tienda -> Imágenes y banners). Un lugar con vigencia propia
+// (data-until, como el banner de campaña) se oculta al vencer si no hay
+// otra carga vigente.
+initBanners();
 
 loading(load());
 refreshCart(); // precio/stock del carrito (solo esos productos)

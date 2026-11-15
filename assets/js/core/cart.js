@@ -30,6 +30,7 @@
       ...it,
       qty: Math.min(MAX_QTY, Math.max(1, Math.floor(Number(it.qty)) || 1)),
       price: Math.max(0, Math.round(Number(it.price)) || 0),
+      transferPrice: Math.max(0, Math.round(Number(it.transferPrice)) || 0),
       name: String(it.name || "").slice(0, 200),
     }));
   const listeners = [];
@@ -42,7 +43,9 @@
   const CartStore = {
     getItems: () => cart.map((it) => ({ ...it })),
     totalQty: () => cart.reduce((sum, it) => sum + it.qty, 0),
-    totalPrice: () => cart.reduce((sum, it) => sum + it.price * it.qty, 0),
+    // Lo que se paga hoy es por transferencia: usa el precio con transferencia si el producto lo tiene
+    unitPrice: (it) => (it.transferPrice > 0 && it.transferPrice < it.price ? it.transferPrice : it.price),
+    totalPrice: () => cart.reduce((sum, it) => sum + (it.transferPrice > 0 && it.transferPrice < it.price ? it.transferPrice : it.price) * it.qty, 0),
     // Devuelve false si no hay stock suficiente
     add(product) {
       const qty = Math.max(1, Math.floor(product.qty) || 1);
@@ -67,6 +70,7 @@
           id: product.id,
           name: product.name,
           price: product.price,
+          transferPrice: product.transferPrice || 0,
           oldPrice: product.oldPrice || 0,
           cuotas: product.cuotas || "",
           image: product.image || "",
@@ -86,8 +90,8 @@
       products.forEach((p) => {
         const it = cart.find((x) => x.id === p.id);
         if (!it) return;
-        if (it.price !== p.price || it.stock !== p.stock || it.name !== p.name || it.image !== p.image || it.installments !== (p.installments || 0) || it.delivery !== (p.delivery || "")) {
-          Object.assign(it, { price: p.price, stock: p.stock, name: p.name, image: p.image, oldPrice: p.oldPrice || 0, cuotas: p.cuotas || "", freeShipping: !!p.freeShipping, installments: p.installments || 0, delivery: p.delivery || "" });
+        if (it.price !== p.price || it.transferPrice !== (p.transferPrice || 0) || it.stock !== p.stock || it.name !== p.name || it.image !== p.image || it.installments !== (p.installments || 0) || it.delivery !== (p.delivery || "")) {
+          Object.assign(it, { price: p.price, transferPrice: p.transferPrice || 0, stock: p.stock, name: p.name, image: p.image, oldPrice: p.oldPrice || 0, cuotas: p.cuotas || "", freeShipping: !!p.freeShipping, installments: p.installments || 0, delivery: p.delivery || "" });
           if (typeof p.stock === "number" && it.qty > p.stock) it.qty = Math.max(0, p.stock);
           changed = true;
         }

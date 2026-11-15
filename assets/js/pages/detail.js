@@ -196,6 +196,10 @@ function render(p) {
   $("#pOld").hidden = !card.oldPrice;
   $("#pOld").textContent = card.oldPrice ? `$${formatPrice(card.oldPrice)}` : "";
   $("#pPrice").textContent = formatPrice(p.price);
+  // Precio pagando por transferencia (si el producto lo tiene)
+  const transfer = $("#pTransfer");
+  transfer.hidden = !card.transferPrice;
+  transfer.innerHTML = card.transferPrice ? `<strong>$${formatPrice(card.transferPrice)}</strong> con transferencia <em>${Math.round((1 - card.transferPrice / p.price) * 100)}% menos</em>` : "";
   const cuotas = $("#pCuotas");
   cuotas.hidden = !p.installments;
   // Hasta N cuotas con tarjeta (6 como máximo, config/installment-rates.js). Sin montos: el recargo se ve en el checkout

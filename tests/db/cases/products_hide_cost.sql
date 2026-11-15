@@ -13,7 +13,7 @@ select test.fails('select cost from public.products', 'permission denied', 'anon
 select test.fails('select created_by from public.products', 'permission denied', 'anon no puede leer created_by');
 select test.fails('select * from public.products', 'permission denied', 'anon no puede hacer select *');
 select test.ok((select count(*) from (
-  select id, sku, title, brand, category, subcategory, description, tags, price, old_price, on_sale, stock, stock_min, status,
+  select id, sku, title, brand, category, subcategory, description, tags, price, old_price, transfer_price, on_sale, stock, stock_min, status,
          warranty, warranty_unit, featured, installments, free_shipping, delivery, weight, weight_unit, dimensions, dimensions_unit,
          condition, images, specs, highlights, created_at, updated_at
   from public.products where status = 'publicado') s) = 1, 'anon lee el catálogo con la lista de columnas públicas');

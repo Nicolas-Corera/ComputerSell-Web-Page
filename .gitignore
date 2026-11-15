@@ -3,6 +3,9 @@ node_modules/
 .env*
 !.env.example
 
+CLAUDE.md
+MEMORY.md
+
 
 .claude/
 .vercel/

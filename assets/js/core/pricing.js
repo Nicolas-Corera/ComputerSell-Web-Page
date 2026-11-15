@@ -71,13 +71,21 @@
     return list;
   }
 
+  // Precio unitario según el medio de pago: con transferencia, el "precio con transferencia"
+  // del producto si lo tiene (y es menor); si no, el precio normal. Lo mismo hace la base
+  // (product_unit_price en place_order), que es la que cobra.
+  function unitPrice(it, method) {
+    const t = Number(it.transferPrice);
+    return method === "transferencia" && t > 0 && t < it.price ? t : it.price;
+  }
+
   // Desglose completo. method: credito | debito | transferencia.
   // Las cuotas solo aplican a crédito. valid = false si las cuotas no se ofrecen.
   // pending = true si es con tarjeta y todavía no llegó el recargo del servidor.
   function quote({ items, province, method, installments, card }) {
     const pay = PAYMENT[method];
     if (!pay) throw new Error("Medio de pago inválido");
-    const subtotal = items.reduce((sum, it) => sum + it.price * qtyOf(it), 0);
+    const subtotal = items.reduce((sum, it) => sum + unitPrice(it, method) * qtyOf(it), 0);
     const ship = shipping(items, province);
     const shippingCost = ship.cost || 0;
     const transferTotal = subtotal + shippingCost;
@@ -111,5 +119,5 @@
     };
   }
 
-  return { PAYMENT, PROVINCES: SHIPPING.provinces, isRegional, shipping, maxInstallments, installmentOptions, quote };
+  return { PAYMENT, PROVINCES: SHIPPING.provinces, unitPrice, isRegional, shipping, maxInstallments, installmentOptions, quote };
 });

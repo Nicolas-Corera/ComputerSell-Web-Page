@@ -104,6 +104,7 @@ window.CS = (function () {
             ${p.oldPrice ? `<del class="dashed"><span class="sr-only">Precio anterior: </span>$${formatPrice(p.oldPrice)}</del>` : ""}
             <span class="priceNow"><span class="sr-only">${p.oldPrice ? "Precio actual: " : "Precio: "}</span>${formatPrice(p.price)}</span>
           </div>
+          ${p.transferPrice ? `<span class="transferLine"><strong>$${formatPrice(p.transferPrice)}</strong> con transferencia</span>` : ""}
           ${p.cuotas ? `<span class="cuotas">${escapeHtml(p.cuotas)}</span>` : ""}
         </div>
         <div class="actionsDestacados">

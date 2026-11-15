@@ -173,7 +173,7 @@
               </a>
             </div>
           </div>
-          <div class="hero-visual">
+          <div class="hero-visual" id="slot-home-hero" data-slot="home-hero">
             <img
               src="/assets/images/pc.webp"
               width="520"
@@ -270,7 +270,7 @@
             </div>
           </div>
         </section>
-        <div class="bannerSections" id="promoBanner" data-until="2026-10-19T00:00:00-03:00">
+        <div class="bannerSections" id="slot-home-promo" data-slot="home-promo" data-until="2026-10-19T00:00:00-03:00">
           <a href="/productos?disponibilidad=oferta" class="promoBanner-link">
             <picture>
               <source media="(max-width: 640px)" srcset="/assets/images/mothersDay.webp" />
@@ -283,7 +283,7 @@
               />
             </picture>
           </a>
-          <p class="promoBanner-terms">
+          <p class="promoBanner-terms" data-slot-default>
             Especial Día de la Madre: hasta 30% OFF en productos seleccionados,
             hasta el 18/10/2026 o hasta agotar stock. Envío gratis solo a CABA y
             Provincia de Buenos Aires en los productos marcados con envío
@@ -334,6 +334,8 @@
             target="_blank"
             rel="noopener"
             class="masonry-item is-wide"
+            id="slot-home-intercom"
+            data-slot="home-intercom"
           >
             <div class="masonry-item is-wide">
               <img
@@ -346,7 +348,7 @@
               />
             </div>
           </a>
-          <a href="/envios" class="masonry-item is-tall">
+          <a href="/envios" class="masonry-item is-tall" id="slot-home-envios" data-slot="home-envios">
             <div class="masonry-item is-tall">
               <img
                 src="/assets/images/envios.webp"
@@ -360,6 +362,8 @@
           <a
             href="/productos?disponibilidad=oferta"
             class="masonry-item is-xtall"
+            id="slot-home-vertical"
+            data-slot="home-vertical"
           >
             <div class="masonry-item is-xtall">
               <img
@@ -374,6 +378,8 @@
           <a
             href="/productos?disponibilidad=oferta"
             class="masonry-item is-tall"
+            id="slot-home-ofertas"
+            data-slot="home-ofertas"
           >
             <div class="masonry-item is-tall">
               <img
@@ -390,6 +396,8 @@
             target="_blank"
             rel="noopener"
             class="masonry-link is-std"
+            id="slot-home-portfolio"
+            data-slot="home-portfolio"
           >
             <div class="masonry-item is-std">
               <img
@@ -401,7 +409,7 @@
               />
             </div>
           </a>
-          <a href="/nosotros" class="masonry-item is-wide">
+          <a href="/nosotros" class="masonry-item is-wide" id="slot-home-nosotros" data-slot="home-nosotros">
             <div class="masonry-item is-wide">
               <img
                 src="/assets/images/banner3.webp"
