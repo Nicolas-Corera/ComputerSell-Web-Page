@@ -904,6 +904,11 @@ body.auth-body {
   text-align: center;
 }
 
+.auth-note-link {
+  color: var(--blue, #3b82f6);
+  font-weight: 600;
+  text-decoration: underline;
+}
 .auth-note code {
   font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
   font-size: 12px;
