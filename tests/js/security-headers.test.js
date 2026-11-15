@@ -11,7 +11,7 @@ const ROOT = path.join(__dirname, "..", "..");
 
 test("[LOW] vercel.json manda los headers de seguridad en todas las rutas", () => {
   const cfg = JSON.parse(fs.readFileSync(path.join(ROOT, "vercel.json"), "utf8"));
-  const all = (cfg.headers || []).find((h) => h.source === "/(.*)");
+  const all = (cfg.headers || []).find((h) => h.source === "/(.+)");
   assert.ok(all, "falta el bloque de headers para /(.*)");
   const h = Object.fromEntries(all.headers.map((x) => [x.key.toLowerCase(), x.value]));
   assert.strictEqual(h["x-content-type-options"], "nosniff");

@@ -99,7 +99,7 @@ async function buildQuote({ token, items, province, method, installments, withZo
   const ids = items.map((it) => it.product_id);
   const isCard = !!(pricing.PAYMENT[method] && pricing.PAYMENT[method].card);
   const [rows, costs] = await Promise.all([
-    sbFetch(`/rest/v1/products?id=in.(${ids.join(",")})&status=eq.publicado&select=id,price,weight,weight_unit,free_shipping,installments`, { token }),
+    sbFetch(`/rest/v1/products?id=in.(${ids.join(",")})&status=eq.publicado&select=id,price,transfer_price,weight,weight_unit,free_shipping,installments`, { token }),
     withZones || isCard ? loadCosts(ids) : null,
   ]);
   const byId = new Map((rows || []).map((r) => [r.id, r]));
@@ -107,7 +107,7 @@ async function buildQuote({ token, items, province, method, installments, withZo
 
   const pricingItems = items.map((it) => {
     const p = byId.get(it.product_id);
-    return { price: p.price, qty: it.qty, weight: p.weight, weightUnit: p.weight_unit, freeShipping: p.free_shipping, installments: p.installments };
+    return { price: p.price, transferPrice: p.transfer_price || 0, qty: it.qty, weight: p.weight, weightUnit: p.weight_unit, freeShipping: p.free_shipping, installments: p.installments };
   });
   const tableFor = (prov) =>
     cardPricing.surchargeTable({

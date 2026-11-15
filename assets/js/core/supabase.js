@@ -234,6 +234,7 @@ export function toCard(p) {
     id: p.id,
     name: p.title,
     price: p.price,
+    transferPrice: p.transfer_price > 0 && p.transfer_price < p.price ? p.transfer_price : 0, // precio pagando por transferencia (0 = sin precio especial)
     oldPrice: p.on_sale && p.old_price > p.price ? p.old_price : 0,
     cuotas: p.installments ? `Hasta ${Math.min(p.installments, MAX_CUOTAS)} cuotas con tarjeta` : "",
     installments: p.installments || 0, // cuotas sin interés configuradas en el panel
@@ -253,7 +254,7 @@ export function toCard(p) {
 // Columnas de products que puede leer la tienda (cost y created_by son solo
 // del panel: migración 0017). Con permisos por columna, select("*") falla.
 export const PRODUCT_COLUMNS =
-  "id,sku,title,brand,category,subcategory,description,tags,price,old_price,on_sale,stock,stock_min,status," +
+  "id,sku,title,brand,category,subcategory,description,tags,price,old_price,transfer_price,on_sale,stock,stock_min,status," +
   "warranty,warranty_unit,featured,installments,free_shipping,delivery,weight,weight_unit,dimensions,dimensions_unit," +
   "condition,images,specs,highlights,created_at,updated_at";
 

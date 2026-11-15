@@ -14,6 +14,9 @@ export const REVOCATIONS = [];
 export let USER = { id: null, name: "", email: "", avatar: "" };
 // Estado de la tienda (public.store_settings): modo mantenimiento
 export const STORE = { loaded: false, maintenance: false, updatedAt: null, updatedBy: "" };
+// Imágenes y banners programados de la tienda (public.store_banners)
+export const BANNERS = [];
+export const BANNERS_STATE = { loaded: false };
 
 const listeners = [];
 export function onChange(fn) {
@@ -250,10 +253,59 @@ export async function loadStore() {
   }
 }
 
+// Imágenes y banners programados (public.store_banners). El admin ve todos,
+// también los apagados.
+export async function loadBanners() {
+  const { data, error } = await sb.from("store_banners").select("*").order("created_at", { ascending: false });
+  if (error) console.error("[banners]", error);
+  BANNERS_STATE.loaded = !error;
+  replace(BANNERS, data || []);
+}
+
 export async function loadAll() {
   await loadProducts();
   await loadOrders();
-  await Promise.all([loadInvoices(), loadReceipts(), loadReservas(), loadNotifs(), loadRevocations(), loadStore()]);
+  await Promise.all([loadInvoices(), loadReceipts(), loadReservas(), loadNotifs(), loadRevocations(), loadStore(), loadBanners()]);
+}
+
+const BANNER_TYPES = { "image/png": "png", "image/jpeg": "jpg", "image/webp": "webp" };
+export const BANNER_MAX_BYTES = 5 * 1024 * 1024;
+
+// Sube un archivo al bucket "banners" y devuelve su ruta. Revisa tipo y tamaño
+// acá (el bucket también los exige).
+export async function uploadBannerFile(slot, file) {
+  const ext = BANNER_TYPES[file.type];
+  if (!ext) throw new Error("La imagen tiene que ser PNG, JPG o WebP.");
+  if (file.size > BANNER_MAX_BYTES) throw new Error("La imagen pesa más de 5 MB.");
+  const path = `${slot}/${crypto.randomUUID()}.${ext}`;
+  const { error } = await sb.storage.from("banners").upload(path, file, { contentType: file.type, upsert: false });
+  if (error) throw error;
+  return path;
+}
+
+export async function removeBannerFiles(paths) {
+  const list = paths.filter(Boolean);
+  if (list.length) await sb.storage.from("banners").remove(list);
+}
+
+// Crea (sin id) o actualiza una entrada. `fields`: slot, image_path, mobile_path,
+// link, alt, starts_at, ends_at, enabled.
+export async function saveBanner(id, fields) {
+  const q = id ? sb.from("store_banners").update(fields).eq("id", id) : sb.from("store_banners").insert(fields);
+  const { data, error } = await q.select();
+  if (error) throw error;
+  if (!data || !data.length) throw new Error("No tenés permiso para cambiar los banners.");
+  await loadBanners();
+  emit("banners");
+  return data[0];
+}
+
+export async function deleteBanner(row) {
+  const { error } = await sb.from("store_banners").delete().eq("id", row.id);
+  if (error) throw error;
+  await removeBannerFiles([row.image_path, row.mobile_path]);
+  await loadBanners();
+  emit("banners");
 }
 
 // Activa o desactiva el modo mantenimiento (la base solo lo permite a admins)
@@ -330,4 +382,5 @@ export function startRealtime() {
   subscribe("notifications", () => debounced("notifs", async () => (await loadNotifs(), emit("notifs"))), null, ["INSERT", "UPDATE"]);
   subscribe("revocation_requests", () => debounced("revocations", async () => (await loadRevocations(), emit("revocations"))));
   subscribe("store_settings", () => debounced("store", async () => (await loadStore(), emit("store"))), null, ["UPDATE"]);
+  subscribe("store_banners", () => debounced("banners", async () => (await loadBanners(), emit("banners"))));
 }

@@ -1,0 +1,364 @@
+/* Panel -> Tienda -> Imágenes y banners: resumen y editor visual */
+
+/* ===== Resumen por lugar (tarjeta de Tienda) ===== */
+.bnSummary {
+  display: flex;
+  flex-direction: column;
+}
+.bnRow {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 0;
+  border-top: 1px solid var(--line);
+}
+.bnRow-img {
+  flex: 0 0 72px;
+  height: 48px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--bg-2);
+  display: grid;
+  place-items: center;
+  color: var(--ink-soft);
+  font-size: 11px;
+}
+.bnRow-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.bnRow-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.bnRow-text strong {
+  font-size: 14px;
+}
+.bnRow-text small {
+  color: var(--ink-soft);
+  font-size: 12.5px;
+}
+
+/* ===== Editor a pantalla completa ===== */
+.bnEditor {
+  position: fixed;
+  inset: 0;
+  z-index: 400;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-0);
+}
+.bnEditor[hidden] {
+  display: none;
+}
+.bnBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  padding: 10px 16px;
+  background: var(--bg-1);
+  border-bottom: 1px solid var(--line);
+}
+.bnTools {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.bnDate {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+.bnDate input {
+  padding: 6px 8px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: var(--bg-2);
+  color: var(--ink);
+  font: inherit;
+}
+.bnSeg {
+  display: inline-flex;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.bnSeg button {
+  padding: 6px 14px;
+  border: 0;
+  background: transparent;
+  color: var(--ink-soft);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+.bnSeg button.is-on {
+  background: var(--ink);
+  color: var(--bg-1);
+}
+.bnBody {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 380px;
+}
+.bnStage {
+  min-width: 0;
+  overflow: auto;
+  padding: 12px;
+  background: var(--bg-2);
+}
+.bnFrameWrap {
+  height: 100%;
+  min-height: 480px;
+  margin: 0 auto;
+  background: #fff;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+}
+.bnFrameWrap.is-mobile {
+  max-width: 390px;
+}
+.bnFrameWrap iframe {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+.bnSide {
+  overflow: auto;
+  padding: 18px;
+  background: var(--bg-1);
+  border-left: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.bnSide h3 {
+  font-size: 16px;
+  font-weight: 800;
+  margin: 0;
+}
+.bnHint {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 13px;
+  line-height: 1.5;
+}
+.bnBack {
+  align-self: flex-start;
+}
+.bnSlots {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.bnSlot {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--bg-2);
+  color: var(--ink);
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+}
+.bnSlot:hover {
+  border-color: var(--ink-soft);
+}
+.bnSlot small {
+  color: var(--ink-soft);
+  font-size: 12px;
+}
+.bnList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.bnItem {
+  display: grid;
+  grid-template-columns: 84px minmax(0, 1fr);
+  gap: 6px 12px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+.bnItem.is-live {
+  border-color: var(--ok);
+}
+.bnItem img {
+  width: 84px;
+  height: 56px;
+  object-fit: cover;
+  border-radius: 6px;
+  background: var(--bg-2);
+}
+.bnItem-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.bnItem-text small {
+  color: var(--ink-soft);
+  font-size: 12px;
+}
+.bnItem-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.bnForm {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.bnPrev {
+  max-width: 100%;
+  max-height: 120px;
+  object-fit: contain;
+  border-radius: 8px;
+  background: var(--bg-2);
+}
+.bnPrevRow {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+.bnDates {
+  display: grid;
+  gap: 10px;
+}
+.bnCheck {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+.bnError {
+  margin: 0;
+  color: var(--bad);
+  font-size: 13px;
+}
+.bnError[hidden] {
+  display: none;
+}
+.bnActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+@media (max-width: 900px) {
+  .bnBody {
+    grid-template-columns: 1fr;
+    grid-template-rows: minmax(260px, 45%) minmax(0, 1fr);
+  }
+  .bnSide {
+    border-left: 0;
+    border-top: 1px solid var(--line);
+  }
+}
+
+.bnTools .btn,
+.bnBack {
+  width: auto;
+  flex: none;
+}
+
+/* Formulario: archivos y texto largo con el mismo aspecto que el resto de los campos */
+.bnForm .field input[type="file"] {
+  display: flex;
+  align-items: center;
+  height: auto;
+  min-height: 0;
+  padding: 8px 10px;
+  color: var(--ink-soft);
+  font-size: 13px;
+}
+.bnForm .field input[type="file"]::file-selector-button {
+  margin-right: 10px;
+  padding: 7px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--bg-2);
+  color: var(--ink);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+.bnForm .field input[type="file"]::file-selector-button:hover {
+  border-color: var(--ink-soft);
+}
+.bnForm .field textarea {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--bg-0);
+  color: var(--ink);
+  font: inherit;
+  font-size: 14px;
+  line-height: 1.5;
+  resize: vertical;
+}
+.bnForm .field textarea:focus {
+  outline: none;
+  border-color: var(--ink-soft);
+}
+.bnForm .field textarea::placeholder {
+  color: var(--ink-soft);
+  opacity: 0.7;
+}
+
+/* Encuadre de la imagen */
+.bnFrame {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+.bnFrame legend {
+  padding: 0 6px;
+  font-size: 13px;
+  font-weight: 700;
+}
+.bnRange {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12.5px;
+  color: var(--ink-soft);
+}
+.bnRange input {
+  width: 100%;
+}
+.bnFrame .btn {
+  align-self: flex-start;
+}
+
+.bnRange input:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}

@@ -23,6 +23,7 @@
     <link rel="stylesheet" href="/assets/css/components/page.css" />
     <link rel="stylesheet" href="/assets/css/components/product-card.css" />
     <link rel="stylesheet" href="/dash/css/dashboard.css" />
+    <link rel="stylesheet" href="/dash/css/banners.css" />
     <script src="/dash/js/theme-init.js"></script>
   </head>
 
@@ -770,6 +771,19 @@
                       </div>
                     </label>
                     <label class="field">
+                      <span>Precio con transferencia (opcional)</span>
+                      <div class="input-affix" data-prefix="$">
+                        <input
+                          type="text"
+                          name="transferPrice"
+                          id="pTransferPrice"
+                          inputmode="numeric"
+                          placeholder="Vacío = el mismo precio"
+                        />
+                      </div>
+                      <span class="field-help" id="pTransferHelp">Si lo cargás, la tienda muestra este valor debajo del precio y es lo que se cobra al pagar por transferencia.</span>
+                    </label>
+                    <label class="field">
                       <span>Costo (uso interno)</span>
                       <div class="input-affix" data-prefix="$">
                         <input
@@ -1051,6 +1065,7 @@
                         <span class="dashed" id="pvOld" hidden></span>
                         <span class="priceNow" id="pvPrice">0</span>
                       </div>
+                      <span class="transferLine" id="pvTransfer" hidden></span>
                       <span class="cuotas" id="pvCuotas" hidden></span>
                     </div>
                     <div class="actionsDestacados">
@@ -1136,6 +1151,30 @@
                   Ver tienda
                 </a>
               </div>
+            </div>
+
+            <div class="card" id="bannersCard">
+              <div class="card-head">
+                <h2>
+                  <svg><use href="#ic-image" /></svg>
+                  Imágenes y banners
+                </h2>
+                <button class="btn btn-secondary is-sm" type="button" id="bannersOpen">
+                  <svg><use href="#ic-edit" /></svg>
+                  Abrir editor visual
+                </button>
+              </div>
+              <div class="settingRow">
+                <div class="text">
+                  <strong>Cambiá las imágenes del inicio sin tocar el código</strong>
+                  <small>
+                    Elegís el lugar sobre una réplica de la página, cargás la imagen o el banner y le
+                    ponés fecha de inicio y de fin: llegada la fecha la tienda cambia sola, sin
+                    recargar. Si no hay ninguna vigente se ve la imagen original.
+                  </small>
+                </div>
+              </div>
+              <div class="bnSummary" id="bannersSummary"></div>
             </div>
           </section>
 

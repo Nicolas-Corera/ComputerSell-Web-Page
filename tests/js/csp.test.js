@@ -23,7 +23,7 @@ const JS = ["assets/js", "dash/js"].flatMap((d) => walk(d, /\.js$/));
 
 function csp() {
   const cfg = JSON.parse(read("vercel.json"));
-  const all = cfg.headers.find((h) => h.source === "/(.*)");
+  const all = cfg.headers.find((h) => h.source === "/(.+)");
   const h = all.headers.find((x) => x.key.toLowerCase() === "content-security-policy");
   assert.ok(h, "falta Content-Security-Policy en vercel.json");
   return Object.fromEntries(h.value.split(";").map((d) => d.trim().split(/\s+/)).map(([k, ...v]) => [k, v]));

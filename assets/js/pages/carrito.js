@@ -53,6 +53,7 @@ import { loading } from "../core/supabase.js";
               ${it.oldPrice ? `<span class="dashed">$${formatPrice(it.oldPrice)}</span>` : ""}
               <span class="priceNow">${formatPrice(it.price)}</span>
             </div>
+            ${it.transferPrice > 0 && it.transferPrice < it.price ? `<span class="transferLine"><strong>$${formatPrice(it.transferPrice)}</strong> con transferencia</span>` : ""}
             ${it.cuotas ? `<span class="cuotas">${escapeHtml(it.cuotas)}</span>` : ""}
             ${typeof it.stock === "number" && it.qty >= it.stock ? `<span class="cuotas" style="color:#f59e0b">Límite alcanzado: ${it.stock} unidad${it.stock === 1 ? "" : "es"} disponible${it.stock === 1 ? "" : "s"}, tenés ${it.qty}</span>` : typeof it.stock === "number" && it.stock <= 3 ? `<span class="cuotas" style="color:#f59e0b">Quedan ${it.stock}</span>` : ""}
           </div>
@@ -62,7 +63,7 @@ import { loading } from "../core/supabase.js";
               <input type="text" value="${it.qty > 99 ? "99+" : it.qty}" readonly />
               <button type="button" data-action="inc" aria-label="Sumar uno" ${typeof it.stock === "number" && it.qty >= it.stock ? "disabled" : ""}>+</button>
             </div>
-            <span class="cartRow-subtotal">${formatPrice(it.price * it.qty)}</span>
+            <span class="cartRow-subtotal">${formatPrice(store.unitPrice(it) * it.qty)}</span>
             <button type="button" class="cartRow-remove" data-action="remove" aria-label="Eliminar del carrito">${ICON_TRASH}</button>
           </div>
         </li>`,

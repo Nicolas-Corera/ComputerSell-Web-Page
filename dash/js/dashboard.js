@@ -11,6 +11,7 @@ import {
   requireAdmin, loadAll, onChange, startRealtime, setOrderStatus, reviewReceipt, markRead, receiptUrl, loadProducts,
   setProductStock, setRevocationStatus, STORE, setMaintenance,
 } from "./data.js";
+import { initBannerEditor } from "./banners-editor.js";
 
 (async function () {
   if (!(await requireAdmin())) return;
@@ -1153,6 +1154,7 @@ import {
         <h4>Precio</h4>
         <dl class="kv">
           <dt>Venta</dt><dd><strong style="font-family:var(--font-display);font-size:16px">$${formatPrice(p.price)}</strong></dd>
+          ${r.transfer_price ? `<dt>Con transferencia</dt><dd>$${formatPrice(r.transfer_price)}</dd>` : ""}
           ${r.on_sale && r.old_price ? `<dt>Antes</dt><dd><s>$${formatPrice(r.old_price)}</s> · ${Math.round((1 - p.price / r.old_price) * 100)}% off</dd>` : ""}
           <dt>Costo</dt><dd>${p.cost ? "$" + formatPrice(p.cost) : "—"}</dd>
           <dt>Margen</dt><dd>${p.cost && p.price ? Math.round((1 - p.cost / p.price) * 100) + "%" : "—"}</dd>
@@ -1517,9 +1519,13 @@ import {
       : "Sin cambios todavía";
   }
 
+  let bannerEditor = null;
+
   function renderStore() {
     const input = $("#storeMaintenance");
     drawStore();
+    // Imágenes y banners programables (editor visual)
+    bannerEditor = initBannerEditor({ toast, confirmModal, escapeHtml, fmtDateTime });
     input.addEventListener("change", async () => {
       const on = input.checked;
       input.checked = !on; // hasta confirmar y guardar, el switch muestra el estado real
@@ -1897,7 +1903,7 @@ import {
     const title = $("#pTitle"), brand = $("#pBrand"), sku = $("#pSku");
     const cat = $("#pCategory"), sub = $("#pSubcategory");
     const desc = $("#pDescription");
-    const price = $("#pPrice"), cost = $("#pCost"), oldPrice = $("#pOldPrice"), discount = $("#pDiscount");
+    const price = $("#pPrice"), cost = $("#pCost"), oldPrice = $("#pOldPrice"), discount = $("#pDiscount"), transferPrice = $("#pTransferPrice");
     const stock = $("#pStock"), status = $("#pStatus");
     const sale = $("#pSale"), cuotas = $("#pCuotas"), cuotasN = $("#pCuotasN"), freeShip = $("#pFreeShip");
     const tagsBox = $("#pTags"), tagInput = $("#pTagInput");
@@ -1940,7 +1946,7 @@ import {
         el.value = n ? formatPrice(n) : /\d/.test(el.value) ? "0" : "";
       });
     }
-    [price, cost, oldPrice].forEach(moneyInput);
+    [price, cost, oldPrice, transferPrice].forEach(moneyInput);
 
     // --- Dimensiones: "45 20 45" o "45x20x45" -> "45 × 20 × 45" ---
     // Espacio, x, *, / o - pasan al número siguiente (máximo 3). Una unidad al
@@ -2231,6 +2237,10 @@ import {
       const onSale = sale.checked && o > p && p > 0;
       pvOld.hidden = !onSale;
       pvOld.textContent = "$" + formatPrice(o);
+      const t = parsePrice(transferPrice.value);
+      const pvT = $("#pvTransfer");
+      pvT.hidden = !(t > 0 && t < p);
+      pvT.innerHTML = t > 0 && t < p ? `<strong>$${formatPrice(t)}</strong> con transferencia` : "";
       // Mismo cálculo que la tarjeta de la tienda (utils.js)
       const pvBadge = $("#pvBadge");
       pvBadge.hidden = !onSale;
@@ -2254,7 +2264,7 @@ import {
         .map((h) => `<li><svg><use href="#ic-check" /></svg><span>${escapeHtml(h)}</span></li>`)
         .join("");
     }
-    [title, price, oldPrice, sale, cuotas, cuotasN, discount, desc].forEach((el) => {
+    [title, price, transferPrice, oldPrice, sale, cuotas, cuotasN, discount, desc].forEach((el) => {
       el.addEventListener("input", updatePreview);
       el.addEventListener("change", updatePreview);
     });
@@ -2288,6 +2298,7 @@ import {
         dimensionsUnit: $("#pDimsUnit").value,
         sale: sale.checked,
         oldPrice: parsePrice(oldPrice.value),
+        transferPrice: parsePrice(transferPrice.value),
         featured: $("#pFeatured").checked,
         installments: cuotas.checked ? +cuotasN.value : 0,
         freeShipping: freeShip.checked,
@@ -2322,6 +2333,7 @@ import {
         ["Categoría", !!d.category, cat.closest(".field"), cat],
         ["Descripción", d.description.length >= 40, desc.closest(".field"), desc],
         ["Precio", d.price > 0, price.closest(".field"), price],
+        ["Precio con transferencia menor al precio", !d.transferPrice || d.transferPrice < d.price, transferPrice.closest(".field"), transferPrice],
         ["Stock", stock.value !== "", stock.closest(".field"), stock],
         ["Peso", +d.weight > 0, $("#pWeight").closest(".field"), $("#pWeight")],
         ["Garantía", warrantyOk(d), $("#pWarranty").closest(".field"), $("#pWarranty")],
@@ -2416,6 +2428,7 @@ import {
       $("#pDimsUnit").value = r.dimensions_unit || "cm";
       sale.checked = r.on_sale;
       oldPrice.value = r.old_price ? formatPrice(r.old_price) : "";
+      transferPrice.value = r.transfer_price ? formatPrice(r.transfer_price) : "";
       discount.value = r.on_sale && r.old_price > r.price ? Math.round((1 - r.price / r.old_price) * 100) : "";
       $("#pFeatured").checked = r.featured;
       cuotas.checked = r.installments > 0;
@@ -2569,6 +2582,7 @@ import {
         price: d.price,
         cost: d.cost,
         old_price: d.oldPrice,
+        transfer_price: d.transferPrice > 0 && d.transferPrice < d.price ? d.transferPrice : null,
         on_sale: d.sale && d.oldPrice > d.price,
         stock: d.stock,
         stock_min: d.stockMin,
@@ -3204,6 +3218,7 @@ import {
       updateStoreBadge();
       if (rendered.tienda) drawStore();
     }
+    if (what === "banners" && bannerEditor) bannerEditor.refresh();
     if (rendered.arrepentimientos && (what === "revocations" || what === "orders") && RENDERERS._redrawRevocations) RENDERERS._redrawRevocations();
     if (rendered.notificaciones && what === "notifs") renderNotifs();
     if (rendered.dashboard && what !== "notifs") renderDashboard();

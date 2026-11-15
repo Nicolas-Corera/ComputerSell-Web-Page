@@ -15,11 +15,17 @@ const { ROOT } = require("./lib");
 
 execFileSync(process.execPath, [path.join(__dirname, "build-env.js")], { stdio: "inherit" });
 
-// Headers de seguridad de vercel.json (los mismos que en producción)
+// Headers de seguridad de vercel.json (los mismos que en producción). La
+// regla con "has" es la del editor visual del panel: el inicio con ?editor=1
+// puede abrirse en un iframe del panel (y solo ahí).
 const VERCEL_JSON = path.join(ROOT, "vercel.json");
-const SECURITY_HEADERS = Object.fromEntries(
-  ((fs.existsSync(VERCEL_JSON) && JSON.parse(fs.readFileSync(VERCEL_JSON, "utf8")).headers) || []).flatMap((h) => h.headers.map((x) => [x.key, x.value])),
-);
+const RULES = (fs.existsSync(VERCEL_JSON) && JSON.parse(fs.readFileSync(VERCEL_JSON, "utf8")).headers) || [];
+const toObject = (rule) => Object.fromEntries(rule.headers.map((x) => [x.key, x.value]));
+const SECURITY_HEADERS = toObject(RULES.find((r) => !r.has && !r.missing) || { headers: [] });
+const EDITOR_HEADERS = toObject(RULES.find((r) => r.has) || { headers: [] });
+// En local el panel (dash.localhost) embebe la tienda (localhost): lo permite el frame-src (y cualquier puerto, por si el 3000 está ocupado)
+const devCsp = (h) => (h["Content-Security-Policy"] ? { ...h, "Content-Security-Policy": h["Content-Security-Policy"].replace("frame-src ", "frame-src http://localhost:* ").replace("http://dash.localhost:3000", "http://dash.localhost:*") } : h);
+const headersFor = (app, url, query) => devCsp(app === "tienda" && url === "/" && new URLSearchParams(query).get("editor") === "1" && Object.keys(EDITOR_HEADERS).length ? EDITOR_HEADERS : SECURITY_HEADERS);
 
 const PORT = +(process.env.PORT || 3000);
 const HOST = process.env.DEV_HOST || "127.0.0.1";
@@ -84,6 +90,7 @@ http
     }
     if (url.startsWith("/api/")) return runApi(url, req, res);
     const app = /^dash./i.test(req.headers.host || "") ? "dash" : "tienda";
+    const SEC = headersFor(app, url, req.url.split("?")[1] || "");
     if (app === "tienda" && url === "/sitemap.xml") return runApi("/api/sitemap", req, res);
     if (app === "tienda" && url === "/.well-known/security.txt") url = "/security.txt";
     // Primero la carpeta de la app, después la raíz (assets compartidos).
@@ -104,14 +111,14 @@ http
       // Igual que Vercel: la página 404.html de la raíz
       const page = path.join(ROOT, "404.html");
       if (req.method === "GET" && /\.html$|\/[^.]*$/.test(url) && fs.existsSync(page)) {
-        res.writeHead(404, { ...SECURITY_HEADERS, "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" });
+        res.writeHead(404, { ...SEC, "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" });
         return fs.createReadStream(page).pipe(res);
       }
       res.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" });
       return res.end("404 · " + url);
     }
     res.writeHead(200, {
-      ...SECURITY_HEADERS,
+      ...SEC,
       "Content-Type": MIME[path.extname(file).toLowerCase()] || "application/octet-stream",
       "Cache-Control": "no-store",
     });

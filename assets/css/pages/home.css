@@ -95,8 +95,28 @@
   height: 100%;
 }
 
+/* Lugares sin recuadro fijo (imagen principal y banner de campaña): al cargar una imagen desde el
+   panel el lugar conserva su proporción y la imagen se recorta para llenarlo */
+img[data-ar] {
+  width: 100%;
+  aspect-ratio: var(--ar);
+  object-fit: cover;
+}
+@media (max-width: 640px) {
+  img[data-ar-m] {
+    aspect-ratio: var(--ar-m);
+  }
+}
+
+/* Un lugar de imagen oculto (vencido y sin reemplazo) o su texto original reemplazado */
+[data-slot][hidden],
+[data-slot-default][hidden] {
+  display: none !important;
+}
+
 .hero-visual img {
   width: 100%;
+  height: auto;
   max-width: 620px;
   filter: drop-shadow(0 30px 60px rgba(0, 0, 0, 0.55));
 }
@@ -126,6 +146,8 @@
 .promoBanner-link {
   display: block;
   width: 100%;
+  overflow: hidden; /* el zoom de la imagen no se sale del banner */
+  border-radius: 30px;
 }
 .promoBanner-terms {
   margin: 0;
