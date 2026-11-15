@@ -14,10 +14,10 @@ let featured = [];
 let hardware = [];
 
 async function load() {
-  // Con respaldo: sin destacados se muestran PCs; sin componentes, cualquier otro hardware
+  // Con respaldo: sin destacados se muestran PCs; sin componentes ni periféricos, cualquier otro producto que no sea PC
   const [feat, hard] = await Promise.all([
     fetchCards((q) => newest(q.eq("featured", true)).limit(8)).then((r) => r.length ? r : fetchCards((q) => newest(q.eq("category", "computadoras")).limit(8))),
-    fetchCards((q) => newest(q.eq("category", "componentes")).limit(12)).then((r) => r.length ? r : fetchCards((q) => newest(q.neq("category", "computadoras")).limit(12))),
+    fetchCards((q) => newest(q.in("category", ["componentes", "perifericos"])).limit(12)).then((r) => r.length ? r : fetchCards((q) => newest(q.neq("category", "computadoras")).limit(12))),
   ]);
   featured = feat;
   hardware = hard;
