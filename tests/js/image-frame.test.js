@@ -55,3 +55,10 @@ test("el catálogo paginado y el broadcast traen precio con transferencia y encu
   assert.match(sql, /'image_frames', case when r\.image_frames/);
   assert.ok(!/\bcost\b|created_by/.test(sql.replace(/--.*$/gm, "")), "no expone columnas privadas");
 });
+
+test("el detalle aplica el encuadre de cada imagen de la galería, escapado", () => {
+  const src = read("assets/js/pages/detail.js");
+  assert.match(src, /import \{ frameStyle \} from "\.\.\/core\/image-frame\.js"/);
+  assert.match(src, /style="\$\{escapeHtml\(st\)\}"/);
+  assert.match(src, /renderGallery\([^;]*p\.image_frames\)/);
+});

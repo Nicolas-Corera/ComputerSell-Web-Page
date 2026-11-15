@@ -103,6 +103,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden; /* el zoom elegido en el panel no se sale de su lugar */
 }
 
 .gallery-slide img {

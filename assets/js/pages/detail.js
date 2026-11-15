@@ -3,6 +3,7 @@
 // productos relacionados (solo 4 tarjetas).
 import { sb, toCard, CATEGORIES, loading, PRODUCT_COLUMNS } from "../core/supabase.js";
 import { fetchCards, onCatalogChange, applyChange, refreshCart } from "../core/catalog.js";
+import { frameStyle } from "../core/image-frame.js";
 
 const { formatPrice, escapeHtml, cardHtml, register } = window.CS;
 const $ = (s) => document.querySelector(s);
@@ -104,18 +105,23 @@ $("#galleryMain").addEventListener("keydown", (e) => {
   if (e.key === "ArrowRight") (e.preventDefault(), next());
 });
 
-function renderGallery(imgs, title) {
+function renderGallery(imgs, title, frames) {
   const current = galleryImgs[slide];
   galleryImgs = imgs;
   // En vivo (cambio de imágenes desde el panel): se queda en la que estaba viendo
   slide = Math.max(0, imgs.indexOf(current));
   const many = imgs.length > 1;
+  // Encuadre de cada imagen elegido en el panel (arrastrar y zoom sobre la vista previa)
+  const styleOf = (i) => {
+    const st = Array.isArray(frames) ? frameStyle(frames[i]) : "";
+    return st ? ` style="${escapeHtml(st)}"` : "";
+  };
   const slideHtml = (src, i) =>
-    `<div class="gallery-slide" role="group" aria-roledescription="imagen" aria-label="${i + 1} de ${imgs.length}"><img src="${escapeHtml(src)}" alt="${escapeHtml(title)}${many ? ` (imagen ${i + 1})` : ""}" ${i ? 'loading="lazy"' : ""} draggable="false" /></div>`;
+    `<div class="gallery-slide" role="group" aria-roledescription="imagen" aria-label="${i + 1} de ${imgs.length}"><img src="${escapeHtml(src)}" alt="${escapeHtml(title)}${many ? ` (imagen ${i + 1})` : ""}" ${i ? 'loading="lazy"' : ""}${styleOf(i)} draggable="false" /></div>`;
   // Copias de los extremos: solo para el efecto de bucle (ocultas para lectores de pantalla)
-  const cloneHtml = (src) =>
-    `<div class="gallery-slide" aria-hidden="true"><img src="${escapeHtml(src)}" alt="" loading="lazy" draggable="false" /></div>`;
-  track.innerHTML = (many ? cloneHtml(imgs[imgs.length - 1]) : "") + imgs.map(slideHtml).join("") + (many ? cloneHtml(imgs[0]) : "");
+  const cloneHtml = (src, i) =>
+    `<div class="gallery-slide" aria-hidden="true"><img src="${escapeHtml(src)}" alt="" loading="lazy"${styleOf(i)} draggable="false" /></div>`;
+  track.innerHTML = (many ? cloneHtml(imgs[imgs.length - 1], imgs.length - 1) : "") + imgs.map(slideHtml).join("") + (many ? cloneHtml(imgs[0], 0) : "");
   $("#galleryPrev").hidden = $("#galleryNext").hidden = $("#galleryDots").hidden = !many;
   $("#galleryDots").innerHTML = many
     ? imgs.map((_, i) => `<button type="button" data-slide="${i}" aria-label="Ver imagen ${i + 1} de ${imgs.length}"></button>`).join("")
@@ -184,7 +190,7 @@ function render(p) {
   $("#crumbTitle").textContent = p.title;
 
   // Galería
-  renderGallery(p.images && p.images.length ? p.images : [], p.title);
+  renderGallery(p.images && p.images.length ? p.images : [], p.title, p.image_frames);
   const badge = $("#discountBadge");
   badge.hidden = !card.oldPrice;
   if (card.oldPrice) badge.querySelector("span").textContent = `${Math.round((1 - p.price / card.oldPrice) * 100)}% OFF`;
