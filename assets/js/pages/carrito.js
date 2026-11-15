@@ -45,7 +45,7 @@ import { loading } from "../core/supabase.js";
         (it) => `
         <li class="cartRow" data-id="${escapeHtml(it.id)}">
           <div class="cartRow-img">
-            ${it.image ? `<img src="${escapeHtml(it.image)}" alt="" />` : ""}
+            ${it.image ? `<img src="${escapeHtml(it.image)}" alt=""${it.imageStyle ? ` style="${escapeHtml(it.imageStyle)}"` : ""} />` : ""}
           </div>
           <div class="cartRow-info">
             <span class="cartRow-name">${escapeHtml(it.name)}</span>

@@ -131,7 +131,7 @@ function renderGallery(imgs, title, frames) {
     ? imgs
         .map(
           (src, i) =>
-            `<button type="button" class="thumb" data-slide="${i}" aria-label="Ver imagen ${i + 1} de ${imgs.length}"><img src="${escapeHtml(src)}" alt="" /></button>`,
+            `<button type="button" class="thumb" data-slide="${i}" aria-label="Ver imagen ${i + 1} de ${imgs.length}"><img src="${escapeHtml(src)}" alt=""${styleOf(i)} /></button>`,
         )
         .join("")
     : "";

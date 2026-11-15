@@ -62,3 +62,9 @@ test("el detalle aplica el encuadre de cada imagen de la galería, escapado", ()
   assert.match(src, /style="\$\{escapeHtml\(st\)\}"/);
   assert.match(src, /renderGallery\([^;]*p\.image_frames\)/);
 });
+
+test("miniaturas, carrito y resumen de pago también llevan el encuadre", () => {
+  assert.match(read("assets/js/pages/detail.js"), /alt=""\$\{styleOf\(i\)\} \/><\/button>/);
+  for (const f of ["assets/js/core/cart.js", "assets/js/pages/carrito.js", "assets/js/pages/pago.js"]) assert.match(read(f), /imageStyle/, f);
+  assert.match(read("assets/js/core/cart.js"), /imageStyle: p\.imageStyle \|\| ""/);
+});

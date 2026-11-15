@@ -74,6 +74,7 @@
           oldPrice: product.oldPrice || 0,
           cuotas: product.cuotas || "",
           image: product.image || "",
+          imageStyle: product.imageStyle || "",
           stock: product.stock,
           freeShipping: !!product.freeShipping,
           installments: product.installments || 0,
@@ -90,8 +91,8 @@
       products.forEach((p) => {
         const it = cart.find((x) => x.id === p.id);
         if (!it) return;
-        if (it.price !== p.price || it.transferPrice !== (p.transferPrice || 0) || it.stock !== p.stock || it.name !== p.name || it.image !== p.image || it.installments !== (p.installments || 0) || it.delivery !== (p.delivery || "")) {
-          Object.assign(it, { price: p.price, transferPrice: p.transferPrice || 0, stock: p.stock, name: p.name, image: p.image, oldPrice: p.oldPrice || 0, cuotas: p.cuotas || "", freeShipping: !!p.freeShipping, installments: p.installments || 0, delivery: p.delivery || "" });
+        if (it.price !== p.price || it.transferPrice !== (p.transferPrice || 0) || it.stock !== p.stock || it.name !== p.name || it.image !== p.image || (it.imageStyle || "") !== (p.imageStyle || "") || it.installments !== (p.installments || 0) || it.delivery !== (p.delivery || "")) {
+          Object.assign(it, { price: p.price, transferPrice: p.transferPrice || 0, stock: p.stock, name: p.name, image: p.image, imageStyle: p.imageStyle || "", oldPrice: p.oldPrice || 0, cuotas: p.cuotas || "", freeShipping: !!p.freeShipping, installments: p.installments || 0, delivery: p.delivery || "" });
           if (typeof p.stock === "number" && it.qty > p.stock) it.qty = Math.max(0, p.stock);
           changed = true;
         }
@@ -225,7 +226,7 @@
         (it) => `
         <li class="cartItem" data-id="${escapeHtml(it.id)}">
           <div class="cartItem-img">
-            ${it.image ? `<img src="${escapeHtml(it.image)}" alt="" />` : ""}
+            ${it.image ? `<img src="${escapeHtml(it.image)}" alt=""${it.imageStyle ? ` style="${escapeHtml(it.imageStyle)}"` : ""} />` : ""}
           </div>
           <div class="cartItem-body">
             <span class="cartItem-name">${escapeHtml(it.name)}</span>

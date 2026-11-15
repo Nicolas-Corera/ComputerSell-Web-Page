@@ -226,6 +226,7 @@
   align-items: center;
   justify-content: center;
   padding: 8px;
+  overflow: hidden;
   cursor: pointer;
   transition:
     border-color 0.2s ease,

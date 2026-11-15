@@ -289,7 +289,7 @@ loading(async function () {
         (it) => `
         <li class="summaryItem">
           <div class="summaryItem-img">
-            ${it.image ? `<img src="${escapeHtml(it.image)}" alt="" />` : ""}
+            ${it.image ? `<img src="${escapeHtml(it.image)}" alt=""${it.imageStyle ? ` style="${escapeHtml(it.imageStyle)}"` : ""} />` : ""}
           </div>
           <div class="summaryItem-body">
             <span class="summaryItem-name">${escapeHtml(it.name)}</span>
