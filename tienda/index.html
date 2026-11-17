@@ -112,7 +112,11 @@
       href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap"
       rel="stylesheet"
     />
-    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js" integrity="sha384-XmJ9SoHtVOHoQUcKvFAzVXwdkKo1Ie3bhmSoIAkcdsHGaIrVJIkmozyq0FJeb/Ly" crossorigin="anonymous"></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"
+      integrity="sha384-XmJ9SoHtVOHoQUcKvFAzVXwdkKo1Ie3bhmSoIAkcdsHGaIrVJIkmozyq0FJeb/Ly"
+      crossorigin="anonymous"
+    ></script>
     <link rel="stylesheet" href="/assets/css/base.css" />
     <link rel="stylesheet" href="/assets/css/components/cookie-consent.css" />
     <link rel="stylesheet" href="/assets/css/loader.css" />
@@ -146,7 +150,8 @@
           >
           <span>•</span>
           <span class="marquee-item"
-            ><svg class="ic-sm"><use href="#ic-sell_tag" /></svg>Pagá con tarjeta en cuotas o por transferencia bancaria</span
+            ><svg class="ic-sm"><use href="#ic-sell_tag" /></svg>Pagá con
+            tarjeta en cuotas o por transferencia bancaria</span
           >
         </div>
       </div>
@@ -160,10 +165,7 @@
               informática al siguiente nivel.
             </p>
             <div class="hero-actions">
-              <button
-                class="btn-primary"
-                data-href="/productos.html"
-              >
+              <button class="btn-primary" data-href="/productos.html">
                 Ver productos
                 <svg class="ic-sm"><use href="#ic-arrow_forward" /></svg>
               </button>
@@ -193,22 +195,13 @@
           <li class="item" id="productsMenuBtn">
             <span class="item-spn2">Productos</span>
           </li>
-          <li
-            class="item"
-            data-href="/productos.html?categoria=computadoras"
-          >
+          <li class="item" data-href="/productos.html?categoria=computadoras">
             <span class="item-spn2">Computadoras</span>
           </li>
-          <li
-            class="item"
-            data-href="/productos.html?categoria=notebooks"
-          >
+          <li class="item" data-href="/productos.html?categoria=notebooks">
             <span class="item-spn2">Notebooks</span>
           </li>
-          <li
-            class="item"
-            data-href="/productos.html?disponibilidad=oferta"
-          >
+          <li class="item" data-href="/productos.html?disponibilidad=oferta">
             <span class="item-spn2">Ofertas</span>
           </li>
           <li class="item"><span class="item-spn2">Nosotros</span></li>
@@ -242,22 +235,31 @@
         <section class="section destacados">
           <div class="destacados-head">
             <h2>Productos destacados</h2>
-            <span>
-              Una selección de equipos, notebooks y tablets elegidos por
-              nuestro equipo.
-            </span>
+            <div class="destacados-text">
+              <span>
+                Una selección de equipos, notebooks y tablets elegidos por
+                nuestro equipo.
+              </span>
+              <a href="/productos.html" class="btn-text"
+                >Ver más productos<svg class="ic-sm">
+                  <use href="#ic-arrow_forward" />
+                </svg>
+              </a>
+            </div>
           </div>
           <div class="carouselWrap">
             <button
               class="btn btn-third carousel-arrow carousel-arrow--prev"
-              data-carousel-target="homeFeatured" data-carousel-dir="-1"
+              data-carousel-target="homeFeatured"
+              data-carousel-dir="-1"
               aria-label="Anterior"
             >
               <svg class="ic-md rot180"><use href="#ic-arrow_forward" /></svg>
             </button>
             <button
               class="btn btn-third carousel-arrow carousel-arrow--next"
-              data-carousel-target="homeFeatured" data-carousel-dir="1"
+              data-carousel-target="homeFeatured"
+              data-carousel-dir="1"
               aria-label="Siguiente"
             >
               <svg class="ic-md"><use href="#ic-arrow_forward" /></svg>
@@ -270,10 +272,18 @@
             </div>
           </div>
         </section>
-        <div class="bannerSections" id="slot-home-promo" data-slot="home-promo" data-until="2026-10-19T00:00:00-03:00">
+        <div
+          class="bannerSections"
+          id="slot-home-promo"
+          data-slot="home-promo"
+          data-until="2026-10-19T00:00:00-03:00"
+        >
           <a href="/productos?disponibilidad=oferta" class="promoBanner-link">
             <picture>
-              <source media="(max-width: 640px)" srcset="/assets/images/mothersDay.webp" />
+              <source
+                media="(max-width: 640px)"
+                srcset="/assets/images/mothersDay.webp"
+              />
               <img
                 src="/assets/images/bannerMotherDay.webp"
                 width="1600"
@@ -308,14 +318,16 @@
           <div class="carouselWrap">
             <button
               class="btn btn-third carousel-arrow carousel-arrow--prev"
-              data-carousel-target="carouselHardware" data-carousel-dir="-1"
+              data-carousel-target="carouselHardware"
+              data-carousel-dir="-1"
               aria-label="Anterior"
             >
               <svg class="ic-md rot180"><use href="#ic-arrow_forward" /></svg>
             </button>
             <button
               class="btn btn-third carousel-arrow carousel-arrow--next"
-              data-carousel-target="carouselHardware" data-carousel-dir="1"
+              data-carousel-target="carouselHardware"
+              data-carousel-dir="1"
               aria-label="Siguiente"
             >
               <svg class="ic-md"><use href="#ic-arrow_forward" /></svg>
@@ -348,7 +360,12 @@
               />
             </div>
           </a>
-          <a href="/envios" class="masonry-item is-tall" id="slot-home-envios" data-slot="home-envios">
+          <a
+            href="/envios"
+            class="masonry-item is-tall"
+            id="slot-home-envios"
+            data-slot="home-envios"
+          >
             <div class="masonry-item is-tall">
               <img
                 src="/assets/images/envios.webp"
@@ -409,7 +426,12 @@
               />
             </div>
           </a>
-          <a href="/nosotros" class="masonry-item is-wide" id="slot-home-nosotros" data-slot="home-nosotros">
+          <a
+            href="/nosotros"
+            class="masonry-item is-wide"
+            id="slot-home-nosotros"
+            data-slot="home-nosotros"
+          >
             <div class="masonry-item is-wide">
               <img
                 src="/assets/images/banner3.webp"
@@ -440,10 +462,18 @@
               justo.
             </p>
             <div class="footer-social">
-              <a href="https://wa.me/5491140942695" target="_blank" rel="noopener" aria-label="WhatsApp"
+              <a
+                href="https://wa.me/5491140942695"
+                target="_blank"
+                rel="noopener"
+                aria-label="WhatsApp"
                 ><svg class="ic-sm"><use href="#ic-whatsapp" /></svg>
               </a>
-              <a href="https://www.instagram.com/computersell.arg" target="_blank" rel="noopener" aria-label="Instagram"
+              <a
+                href="https://www.instagram.com/computersell.arg"
+                target="_blank"
+                rel="noopener"
+                aria-label="Instagram"
                 ><svg class="ic-sm"><use href="#ic-instagram" /></svg>
               </a>
             </div>
@@ -481,7 +511,9 @@
           <div class="footer-col">
             <h3>Ayuda</h3>
             <ul>
-              <li><a href="/informacion-legal#preguntas">Preguntas frecuentes</a></li>
+              <li>
+                <a href="/informacion-legal#preguntas">Preguntas frecuentes</a>
+              </li>
               <li><a href="/envios">Envíos</a></li>
               <li>
                 <a href="/cambios-y-devoluciones">Cambios y devoluciones</a>
@@ -516,7 +548,9 @@
                 <svg class="ic-sm"><use href="#ic-whatsapp" /></svg>
                 <span>WhatsApp:</span
                 ><a
-                  href="https://wa.me/5491140942695" target="_blank" rel="noopener"
+                  href="https://wa.me/5491140942695"
+                  target="_blank"
+                  rel="noopener"
                   data-legal="whatsapp"
                   data-legal-link="whatsapp"
                   >+54 9 11 4094-2695</a
@@ -556,15 +590,38 @@
             </button>
           </div>
           <div class="footer-payments" aria-label="Medios de pago">
-            <img src="/assets/icons/visa.svg" alt="Visa" width="48" height="30" loading="lazy" />
-            <img src="/assets/icons/mastercard.svg" alt="Mastercard" width="48" height="30" loading="lazy" />
-            <img src="/assets/icons/mercado-pago-wordmark.svg" alt="Mercado Pago" width="96" height="30" loading="lazy" />
+            <img
+              src="/assets/icons/visa.svg"
+              alt="Visa"
+              width="48"
+              height="30"
+              loading="lazy"
+            />
+            <img
+              src="/assets/icons/mastercard.svg"
+              alt="Mastercard"
+              width="48"
+              height="30"
+              loading="lazy"
+            />
+            <img
+              src="/assets/icons/mercado-pago-wordmark.svg"
+              alt="Mercado Pago"
+              width="96"
+              height="30"
+              loading="lazy"
+            />
           </div>
         </div>
 
         <div class="footer-credit">
           Página web diseñada por
-          <a href="https://www.intercomsite.com.ar" target="_blank" rel="noopener">IntercomSite</a>
+          <a
+            href="https://www.intercomsite.com.ar"
+            target="_blank"
+            rel="noopener"
+            >IntercomSite</a
+          >
         </div>
       </div>
     </footer>
@@ -572,7 +629,10 @@
     <script src="/assets/js/components/navbar.js"></script>
     <script src="/assets/js/components/menu.js"></script>
     <script type="module" src="/assets/js/components/footer-legal.js"></script>
-    <script type="module" src="/assets/js/components/empty-categories.js"></script>
+    <script
+      type="module"
+      src="/assets/js/components/empty-categories.js"
+    ></script>
     <script src="/assets/js/components/carousel.js"></script>
     <script src="/assets/js/core/env.js"></script>
     <script src="/assets/js/core/utils.js"></script>
