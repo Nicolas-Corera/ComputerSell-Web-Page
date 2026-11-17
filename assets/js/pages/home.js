@@ -1,7 +1,12 @@
 // Inicio: "PCs Destacadas" (productos marcados como destacados) y hardware
 // (componentes); cada sección pasa a carrusel cuando tiene suficientes tarjetas. Se piden solo las tarjetas que se muestran
 // (8 + 12) y se actualizan en vivo (precio, stock).
-import { fetchCards, onCatalogChange, applyChange, refreshCart } from "../core/catalog.js";
+import {
+  fetchCards,
+  onCatalogChange,
+  applyChange,
+  refreshCart,
+} from "../core/catalog.js";
 import { toCard, loading } from "../core/supabase.js";
 import { initBanners } from "../core/banners.js";
 
@@ -15,9 +20,13 @@ let hardware = [];
 
 async function load() {
   // Con respaldo: sin destacados se muestran PCs; sin componentes ni periféricos, cualquier otro producto que no sea PC
+  // const [feat, hard] = await Promise.all([
+  //   fetchCards((q) => newest(q.eq("featured", true)).limit(8)).then((r) => r.length ? r : fetchCards((q) => newest(q.eq("category", "computadoras")).limit(8))),
+  //   fetchCards((q) => newest(q.in("category", ["componentes", "perifericos"])).limit(12)).then((r) => r.length ? r : fetchCards((q) => newest(q.neq("category", "computadoras")).limit(12))),
+  // ]);
   const [feat, hard] = await Promise.all([
-    fetchCards((q) => newest(q.eq("featured", true)).limit(8)).then((r) => r.length ? r : fetchCards((q) => newest(q.eq("category", "computadoras")).limit(8))),
-    fetchCards((q) => newest(q.in("category", ["componentes", "perifericos"])).limit(12)).then((r) => r.length ? r : fetchCards((q) => newest(q.neq("category", "computadoras")).limit(12))),
+    fetchCards((q) => newest(q.eq("featured", true))),
+    fetchCards((q) => newest(q.in("category", ["componentes", "perifericos"]))),
   ]);
   featured = feat;
   hardware = hard;
@@ -27,11 +36,19 @@ async function load() {
 function render() {
   featuredEl.innerHTML = featured.length
     ? featured.map((p) => cardHtml(toCard(p))).join("")
-    : emptyHtml("Todavía no hay equipos destacados", "Estamos preparando nuestra selección de PCs armadas. Muy pronto vas a verlas acá.", { icon: "ic-info" });
+    : emptyHtml(
+        "Todavía no hay equipos destacados",
+        "Estamos preparando nuestra selección de PCs armadas. Muy pronto vas a verlas acá.",
+        { icon: "ic-info" },
+      );
 
   hardwareEl.innerHTML = hardware.length
     ? hardware.map((p) => cardHtml(toCard(p))).join("")
-    : emptyHtml("Sin productos de hardware por ahora", "Componentes y periféricos van a aparecer acá apenas los publiquemos.", { icon: "ic-info" });
+    : emptyHtml(
+        "Sin productos de hardware por ahora",
+        "Componentes y periféricos van a aparecer acá apenas los publiquemos.",
+        { icon: "ic-info" },
+      );
   // Grilla o carrusel según cuántas tarjetas hay (carousel.js)
   if (typeof setupCarousel === "function") {
     setupCarousel("homeFeatured");

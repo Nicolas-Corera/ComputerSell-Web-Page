@@ -194,7 +194,7 @@ img[data-fr] {
   line-height: 1.1;
 }
 
-.hardware-text {
+.hardware-text, .destacados-text {
   color: var(--ink-soft);
   font-size: 15px;
   max-width: 340px;
