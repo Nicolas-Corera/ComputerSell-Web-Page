@@ -68,10 +68,9 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-  /* nombre (2 líneas) + precio + cuotas, con o sin cuotas/precio tachado */
-  height: 110px;
-  flex-shrink: 0;
-  overflow: hidden;
+  /* nombre (2 líneas) + precio + transferencia + cuotas: el alto acompaña
+     al contenido para que nunca se recorte el nombre */
+  flex: 1 0 auto;
 }
 
 .textCard > span:first-child {
@@ -82,6 +81,7 @@
   color: var(--ink);
   /* siempre ocupa 2 líneas; el excedente se corta con "…" */
   height: 2.7em;
+  flex-shrink: 0;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -141,7 +141,8 @@
 .actionsDestacados {
   display: flex;
   gap: 10px;
-  margin-top: 4px;
+  /* botones alineados abajo aunque una tarjeta no tenga cuotas/transferencia */
+  margin-top: auto;
   flex-shrink: 0;
 }
 
